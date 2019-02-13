@@ -1,0 +1,19 @@
+The training data set has 1600 tokens in general.
+The training data set has 859 unique tokens.
+The training data set has 114 multi-tokens.
+The development data set has 1600 tokens in general.
+Training and development data sets have 859 tokens in common.
+The development data set has 0 unique tokens.
+The development data set has 114 multi-tokens.
+The development test set has 1600 tokens in general.
+Training and test data sets have 859 tokens in common.
+The test data set has 0 unique tokens.
+The test data set has 114 multi-tokens.
+Training and development data sets have 670 lemmas in common.
+A development data set has 0 unique lemmas.
+Training and development data sets have 77 multilabel lemmas in common.
+A development data set has 0 unique multilabel lemmas.
+Training and test data sets have 670 lemmas in common.
+A test data set has 0 unique lemmas.
+Training and test data sets have 77 multilabel lemmas in common.
+A test data set has 0 unique multilabel lemmas.

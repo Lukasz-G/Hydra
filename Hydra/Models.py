@@ -1,13 +1,9 @@
-import socket
-from unicodedata import bidirectional
-hostname = socket.gethostname()
-
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-from memory_profiler import profile
+#from memory_profiler import profile
 #from cuda_functional import SRU, SRUCell
 #global use_cuda
 #use_cuda = torch.cuda.is_available()
@@ -174,12 +170,11 @@ class ModelConvDecon(nn.Module):
         
         
         kernel_size_deconv1a = (1-1)*2 - 2*0 + 3 + 0
-        kernel_size_deconv2a = (kernel_size_deconv1a-1)*2 - 2*0 + 3 + 0
         kernel_size_deconv1b = (1-1)*2 - 2*0 + 3 + 0
+        kernel_size_deconv2a = (kernel_size_deconv1a-1)*2 - 2*0 + 3 + 0
         kernel_size_deconv2b = (kernel_size_deconv1b-1)*2 - 2*0 + 3 + 0
         kernel_size_deconv3a = self.max_len_lemma - kernel_size_deconv2a + 1
         kernel_size_deconv3b = self.lemma_size - kernel_size_deconv2b + 1
-        
         
         self.lemmas_deconv = nn.Sequential(
             nn.Dropout(dropout_value_conv),

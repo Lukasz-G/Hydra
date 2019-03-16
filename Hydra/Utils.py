@@ -1,4 +1,4 @@
-import ConfigParser, math, time, torch, os, pickle, torch, random, itertools, codecs, argparse
+import ConfigParser, math, time, os, pickle, torch, random, itertools, codecs, argparse
 import numpy as np
 from fuzzywuzzy import fuzz
 from collections import defaultdict
@@ -339,6 +339,12 @@ def start_mpi():
     name_host = MPI.Get_processor_name()
     
     return comm, size, rank, name_host
+
+''' a function for pruning a text from non-alphanumeric symbols --- a copy from LoadingCorpus '''
+
+def leave_only_alphanumeric(string):
+    return ''.join(ch if ch.isalnum() else ' ' for ch in string)
+
 
 '''
 A function to check and compare number of processes and available GPUs

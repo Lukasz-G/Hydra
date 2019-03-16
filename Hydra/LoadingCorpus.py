@@ -518,7 +518,7 @@ class Loading_and_formating():
             if answer_sanity:
                 if not answer_sanity:
                     continue
-                self.lemma_tags_splitter(random_index, another_index)
+                self.lemma_tags_splitter(random_index)
                 indices_changed.append(random_index)
             else:
                 continue

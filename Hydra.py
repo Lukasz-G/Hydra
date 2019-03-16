@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+import torch, os, time, warnings, codecs
 from collections import defaultdict
-import torch, sys, os, time
-import matplotlib, codecs
-matplotlib.use('Agg')
+from mpi4py import MPI
+
 
 
 
@@ -15,8 +15,8 @@ check_gpu_and_select_workers, preprocessing_corpus_by_worker_no_O, start_mpi, ar
 
 
 
-from mpi4py import MPI
-import warnings
+
+
 '''seed for torch'''
 torch.manual_seed(1)
 torch.backends.cudnn.benchmark=True
@@ -102,6 +102,7 @@ if rank in active_workers and extra_check:
         if params['include_lemma']:
             encoder_lemma = load_tools(os.path.join(encoders_path,'encoder_lemma'))
             lemma_size = len(encoder_lemma.classes_)
+        
         if params['include_pos']:
             encoder_pos = load_tools(os.path.join(encoders_path,'encoder_pos'))
             pos_size = len(encoder_pos.classes_)

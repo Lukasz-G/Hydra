@@ -1,6 +1,6 @@
 
 
-import torch, os, time, random
+import torch, os
 from torch.autograd import Variable
 from Communication import Info_exchange
 import numpy as np

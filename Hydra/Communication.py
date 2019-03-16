@@ -1,8 +1,6 @@
             
 import numpy as np
-
-import torch, sys, math, time
-
+import torch, math, time
 from mpi4py import MPI
 
 comm = MPI.COMM_WORLD

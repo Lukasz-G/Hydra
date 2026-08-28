@@ -1,0 +1,57 @@
+[run]
+run_dir = "runs/mhd_base"
+seed = 1337
+
+[data]
+corpus_dir = "D:/Corpora/MHD"
+# Alternatively, explicit directories (overrides corpus_dir splitting):
+# train_dir = "..."
+# dev_dir = "..."
+# test_dir = "..."
+dev_fraction = 0.05
+test_fraction = 0.05
+split_seed = 42
+max_word_len = 48
+max_lemma_len = 32
+chunk_len = 128
+halo = 16
+on_mismatch = "skip"       # "skip" | "error"
+multi_item_upsample = 1
+num_workers = 0
+
+[model]
+d_char = 64
+d_tok = 256
+d_model = 512
+n_slots = 8
+kernel_size = 3
+char_tcn_dilations = [1, 2, 4, 8]
+ctx_tcn_dilations = [1, 2, 4]
+d_dec = 256
+lemma_cross_attention = true
+dropout = 0.15
+
+[loss]
+w_pos = 1.0
+w_morph = 1.0
+w_lemma = 1.5
+null_weight = 0.2
+
+[train]
+batch_chunks = 16
+max_epochs = 60
+lr = 3e-4
+lr_min = 1e-5
+warmup_steps = 1000
+weight_decay = 0.01
+clip_norm = 1.0
+amp = true
+patience = 8
+min_delta = 0.0005
+log_every_steps = 50
+
+[distributed]
+backend = "auto"           # "auto" | "gloo" | "nccl"
+
+[infer]
+batch_chunks = 32

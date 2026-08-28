@@ -1,0 +1,19 @@
+[run]
+run_dir = "runs/smoke"
+seed = 1337
+
+[data]
+corpus_dir = "D:/Corpora/MHD"
+dev_fraction = 0.05
+test_fraction = 0.05
+split_seed = 42
+limit_files = 6
+chunk_len = 128
+halo = 16
+
+[train]
+batch_chunks = 8
+max_epochs = 3
+warmup_steps = 50
+log_every_steps = 10
+patience = 8

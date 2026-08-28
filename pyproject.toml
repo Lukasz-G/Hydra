@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hydra-tagger"
+version = "2.0.0"
+description = "Neural tagger/lemmatizer for pre-modern languages (character-level TCN with slot decoding)"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1",
+    "numpy>=1.24",
+    "tomli>=2; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+hydra-train = "hydra.cli:train_main"
+hydra-tag = "hydra.cli:tag_main"
+hydra-eval = "hydra.cli:eval_main"
+
+[tool.setuptools.packages.find]
+include = ["hydra*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -24,10 +24,12 @@ def train_main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="hydra-train")
     _add_config_args(p)
     p.add_argument("--resume", default=None, help="checkpoint to resume from (e.g. last.pt)")
+    p.add_argument("--init-weights", default=None,
+                   help="warm-start weights from a checkpoint (matching keys only, fresh optimizer)")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     cfg = load_config(args.config, args.overrides)
-    train(cfg, resume=args.resume)
+    train(cfg, resume=args.resume, init_weights=args.init_weights)
 
 
 def tag_main(argv: list[str] | None = None) -> None:
@@ -74,7 +76,13 @@ def eval_main(argv: list[str] | None = None) -> None:
             sys.exit(f"split {args.split!r} is empty in {split_path}")
     docs = load_split_tokens(files, cfg.data.on_mismatch, cfg.model.n_slots)
     ds = HydraDataset(docs, vocabs, cfg.data, cfg.model.n_slots)
-    metrics = evaluate_dataset(model, ds, vocabs, device, cfg.infer.batch_chunks)
+    snapper = None
+    if cfg.infer.snap_lemmas and vocabs.lemma_counts:
+        from .snap import LemmaSnapper
+        snapper = LemmaSnapper(vocabs.lemma_inventory)
+    metrics = evaluate_dataset(model, ds, vocabs, device, cfg.infer.batch_chunks,
+                               snapper=snapper,
+                               cls_min_prob=cfg.infer.classifier_min_prob)
     for k, v in metrics.items():
         print(f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}")
 

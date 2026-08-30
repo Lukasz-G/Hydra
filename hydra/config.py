@@ -37,6 +37,7 @@ class DataConfig:
     # only useful with small chunk_len: at chunk_len=128 ~85% of chunks contain
     # a multi-item token, so upsampling them rebalances nothing
     multi_item_upsample: int = 1
+    lemma_type_min_freq: int = 1  # train freq threshold for the lemma-classifier vocab
     num_workers: int = 0
 
     def __post_init__(self) -> None:
@@ -59,6 +60,7 @@ class ModelConfig:
     ctx_tcn_dilations: tuple[int, ...] = (1, 2, 4)
     d_dec: int = 256
     lemma_cross_attention: bool = True
+    lemma_classifier: bool = False  # classify-or-generate hybrid head
     dropout: float = 0.15
 
 
@@ -67,6 +69,7 @@ class LossConfig:
     w_pos: float = 1.0
     w_morph: float = 1.0
     w_lemma: float = 1.5
+    w_lemma_cls: float = 1.0
     null_weight: float = 0.2
 
 
@@ -93,6 +96,10 @@ class DistributedConfig:
 @dataclass(frozen=True)
 class InferConfig:
     batch_chunks: int = 32
+    snap_lemmas: bool = True  # lexicon-constrained snapping of generated lemmas
+    # classify-or-generate: use the classifier's lemma only when its softmax
+    # probability clears this bar; otherwise trust the character generator
+    classifier_min_prob: float = 0.5
 
 
 @dataclass(frozen=True)

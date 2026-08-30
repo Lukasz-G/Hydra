@@ -60,7 +60,7 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
     # a fresh run must never inherit a stale one from a previous run_dir
     if info.is_main and not (resuming and vocab_path.exists()):
         all_train_tokens = [t for doc in train_docs for t in doc]
-        Vocabs.build(all_train_tokens).save(vocab_path)
+        Vocabs.build(all_train_tokens, cfg.data.lemma_type_min_freq).save(vocab_path)
     barrier(info)
     vocabs = Vocabs.load(vocab_path)
 
@@ -72,7 +72,8 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
     return vocabs, train_ds, dev_ds
 
 
-def train(cfg: Config, resume: str | None = None) -> dict[str, float]:
+def train(cfg: Config, resume: str | None = None,
+          init_weights: str | None = None) -> dict[str, float]:
     info = init_distributed(cfg.distributed.backend)
     seed_everything(cfg.run.seed)
     run_dir = Path(cfg.run.run_dir)
@@ -93,7 +94,16 @@ def train(cfg: Config, resume: str | None = None) -> dict[str, float]:
 
     model = HydraModel(cfg.model, len(vocabs.chars), len(vocabs.pos), len(vocabs.morph),
                        cfg.data.max_word_len, cfg.data.max_lemma_len,
-                       cfg.data.chunk_len, cfg.data.halo).to(info.device)
+                       cfg.data.chunk_len, cfg.data.halo,
+                       n_lemma_types=len(vocabs.lemma_types)).to(info.device)
+    if init_weights and not resume:
+        # warm-start from a compatible checkpoint: matching keys only, fresh
+        # optimizer/schedule (e.g. adding the lemma classifier to a trained model)
+        payload = load_checkpoint(init_weights, map_location="cpu")
+        missing, unexpected = model.load_state_dict(payload["model"], strict=False)
+        if info.is_main:
+            logger.log(event="init_weights", source=str(init_weights),
+                       missing=len(missing), unexpected=len(unexpected))
     if info.is_main:
         n_params = sum(p.numel() for p in model.parameters())
         logger.log(event="model", params=n_params)
@@ -134,6 +144,11 @@ def train(cfg: Config, resume: str | None = None) -> dict[str, float]:
         if info.is_main:
             logger.log(event="resume", from_epoch=start_epoch, best=best_metric)
 
+    snapper = None
+    if info.is_main and cfg.infer.snap_lemmas and vocabs.lemma_counts:
+        from .snap import LemmaSnapper
+        snapper = LemmaSnapper(vocabs.lemma_inventory)
+
     last_dev: dict[str, float] = {}
     for epoch in range(start_epoch, cfg.train.max_epochs):
         model.train()
@@ -146,7 +161,7 @@ def train(cfg: Config, resume: str | None = None) -> dict[str, float]:
             optimizer.zero_grad(set_to_none=True)
             chars = batch["chars"].to(info.device, non_blocking=True)
             targets = {k: batch[k].to(info.device, non_blocking=True)
-                       for k in ("pos", "morph", "lemma")}
+                       for k in ("pos", "morph", "lemma", "lemtype")}
             with torch.autocast(info.device.type, dtype=torch.float16, enabled=use_amp):
                 out = model(chars)
                 loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos))
@@ -172,7 +187,8 @@ def train(cfg: Config, resume: str | None = None) -> dict[str, float]:
             metric = best_metric
             if dev_ds is not None and len(dev_ds) > 0:
                 last_dev = evaluate_dataset(unwrap(model), dev_ds, vocabs, info.device,
-                                            cfg.infer.batch_chunks)
+                                            cfg.infer.batch_chunks, snapper=snapper,
+                                            cls_min_prob=cfg.infer.classifier_min_prob)
                 logger.log(event="dev", epoch=epoch, step=step,
                            epoch_seconds=round(time.time() - t0, 1), **last_dev)
                 metric = last_dev.get("acc_lemma_pos", 0.0)

@@ -1,31 +1,62 @@
-"""Evaluation of a model over a gold dataset: overall / multi-item / OOV metrics."""
+"""Evaluation of a model over a gold dataset.
+
+Reports overall / multi-item / OOV metrics, everything twice: over all
+supervised tokens and over the "clean" subset that excludes damaged tokens
+(gold POS '--', lemma '[!]' — unannotatable text). Also reports lemma accuracy
+with lexicon snapping applied when a snapper is given.
+"""
 from __future__ import annotations
 
 import torch
 
 from .data import HydraDataset, collate
 from .metrics import EvalAccumulator, decode_batch
+from .snap import LemmaSnapper
 from .vocab import Vocabs
+
+DAMAGED_POS = "--"
 
 
 def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
-                     device: torch.device, batch_chunks: int) -> dict[str, float]:
+                     device: torch.device, batch_chunks: int,
+                     snapper: LemmaSnapper | None = None,
+                     cls_min_prob: float = 0.5) -> dict[str, float]:
     model.eval()
-    acc = EvalAccumulator()
+    acc_all = EvalAccumulator()
+    acc_clean = EvalAccumulator()
+    snap_ok_all = snap_ok_clean = 0
     with torch.inference_mode():
         for lo in range(0, len(ds), batch_chunks):
             idxs = list(range(lo, min(lo + batch_chunks, len(ds))))
             batch = collate([ds[i] for i in idxs])
             out = model(batch["chars"].to(device))
             surfaces = [ds.chunk_surfaces(i) for i in idxs]
-            preds = decode_batch(out, vocabs, surfaces)
+            preds = decode_batch(out, vocabs, surfaces, cls_min_prob)
             golds = [ds.chunk_gold(i) for i in idxs]
             n_items = batch["n_items"].numpy()
             for b in range(len(idxs)):
                 for t, gold in enumerate(golds[b]):
                     if gold is None:
                         continue
-                    acc.update(preds[b][t], surfaces[b][t], gold[0], gold[1], gold[2],
-                               int(n_items[b, t]), vocabs.train_surfaces)
+                    p = preds[b][t]
+                    n = int(n_items[b, t])
+                    clean = gold[1] != DAMAGED_POS
+                    acc_all.update(p, surfaces[b][t], gold[0], gold[1], gold[2],
+                                   n, vocabs.train_surfaces)
+                    if clean:
+                        acc_clean.update(p, surfaces[b][t], gold[0], gold[1], gold[2],
+                                         n, vocabs.train_surfaces)
+                    if snapper is not None:
+                        snapped = snapper.snap(p.lemma, len(p.pos.split("+")))
+                        ok = snapped == gold[0]
+                        snap_ok_all += ok
+                        snap_ok_clean += ok and clean
     model.train()
-    return acc.as_dict()
+    metrics = acc_all.as_dict()
+    for k, v in acc_clean.as_dict().items():
+        metrics[f"clean_{k}"] = v
+    if snapper is not None and acc_all.overall.n:
+        metrics["acc_lemma_snapped"] = snap_ok_all / acc_all.overall.n
+        if acc_clean.overall.n:
+            metrics["clean_acc_lemma_snapped"] = snap_ok_clean / acc_clean.overall.n
+    return metrics

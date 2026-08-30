@@ -26,7 +26,8 @@ def load_model_for_inference(model_path: str | Path,
     vocabs = Vocabs.load(vocab_path)
     model = HydraModel(cfg.model, len(vocabs.chars), len(vocabs.pos), len(vocabs.morph),
                        cfg.data.max_word_len, cfg.data.max_lemma_len,
-                       cfg.data.chunk_len, cfg.data.halo).to(device)
+                       cfg.data.chunk_len, cfg.data.halo,
+                       n_lemma_types=len(vocabs.lemma_types)).to(device)
     model.load_state_dict(payload["model"])
     model.eval()
     return model, vocabs, cfg
@@ -64,7 +65,8 @@ def tag_document(model: torch.nn.Module, vocabs: Vocabs, cfg: Config,
             batch = collate([ds[i] for i in idxs])
             out = model(batch["chars"].to(device))
             chunk_surfaces = [ds.chunk_surfaces(i) for i in idxs]
-            preds = decode_batch(out, vocabs, chunk_surfaces)
+            preds = decode_batch(out, vocabs, chunk_surfaces,
+                                 cfg.infer.classifier_min_prob)
             for b, i in enumerate(idxs):
                 _, start = ds.chunks[i]
                 n_here = min(cfg.data.chunk_len, len(surfaces) - start)
@@ -78,6 +80,11 @@ def tag_files(model_path: str | Path, input_path: str | Path, output_dir: str | 
               fmt: str = "auto") -> list[Path]:
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model, vocabs, cfg = load_model_for_inference(model_path, device)
+
+    snapper = None
+    if cfg.infer.snap_lemmas and vocabs.lemma_counts:
+        from .snap import LemmaSnapper
+        snapper = LemmaSnapper(vocabs.lemma_inventory)
 
     input_path = Path(input_path)
     files = sorted(input_path.glob("*.txt")) if input_path.is_dir() else [input_path]
@@ -97,6 +104,8 @@ def tag_files(model_path: str | Path, input_path: str | Path, output_dir: str | 
                     fh.write(text + "\n")
                 else:
                     lemma, pos, morph = next(it)
+                    if snapper is not None:
+                        lemma = snapper.snap(lemma, len(pos.split("+")))
                     fh.write(f"{text}\t{lemma}\t{pos}\t{morph}\n")
         written.append(out_path)
         log.info("tagged %s -> %s (%d tokens)", f, out_path, len(surfaces))

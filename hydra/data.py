@@ -171,6 +171,7 @@ class EncodedDoc:
     pos: np.ndarray      # (n, n_slots) int16: label id | NULL | IGNORE
     morph: np.ndarray    # (n, n_slots) int16
     lemma: np.ndarray    # (n, n_slots, max_lemma_len) int16
+    lemtype: np.ndarray  # (n, n_slots) int32: lemma-type id (UNK if rare/unseen) | IGNORE
     n_items: np.ndarray  # (n,) int8, 0 for context-only
     surfaces: list[str]
     gold: list[tuple[str, str, str] | None]  # '+'-joined (lemma, pos, morph) or None
@@ -183,6 +184,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
     pos = np.full((n, n_slots), IGNORE, dtype=np.int16)
     morph = np.full((n, n_slots), IGNORE, dtype=np.int16)
     lemma = np.full((n, n_slots, max_lemma_len), IGNORE, dtype=np.int16)
+    lemtype = np.full((n, n_slots), IGNORE, dtype=np.int32)
     n_items = np.zeros(n, dtype=np.int8)
     truncated = 0
     for i, tok in enumerate(tokens):
@@ -198,6 +200,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
         for s in range(k):
             pos[i, s] = vocabs.pos.encode(tok.pos[s])
             morph[i, s] = vocabs.morph.encode(tok.morph[s])
+            lemtype[i, s] = vocabs.lemma_types.encode(tok.lemmas[s])
             lids = vocabs.chars.encode(tok.lemmas[s])[:max_lemma_len - 1]
             lemma[i, s, :len(lids)] = lids
             lemma[i, s, len(lids)] = EOW
@@ -207,7 +210,8 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
         log.warning("%d surfaces longer than %d chars were truncated", truncated, max_word_len)
     gold = [None if t.lemmas is None else
             ("+".join(t.lemmas), "+".join(t.pos), "+".join(t.morph)) for t in tokens]
-    return EncodedDoc(chars, pos, morph, lemma, n_items, [t.surface for t in tokens], gold)
+    return EncodedDoc(chars, pos, morph, lemma, lemtype, n_items,
+                      [t.surface for t in tokens], gold)
 
 
 class HydraDataset(Dataset):
@@ -261,12 +265,14 @@ class HydraDataset(Dataset):
         pos = self._slice_padded(doc.pos, start, start + T, IGNORE)
         morph = self._slice_padded(doc.morph, start, start + T, IGNORE)
         lemma = self._slice_padded(doc.lemma, start, start + T, IGNORE)
+        lemtype = self._slice_padded(doc.lemtype, start, start + T, IGNORE)
         n_items = self._slice_padded(doc.n_items, start, start + T, 0)
         return {
             "chars": torch.from_numpy(chars.astype(np.int64)),
             "pos": torch.from_numpy(pos.astype(np.int64)),
             "morph": torch.from_numpy(morph.astype(np.int64)),
             "lemma": torch.from_numpy(lemma.astype(np.int64)),
+            "lemtype": torch.from_numpy(lemtype.astype(np.int64)),
             "token_mask": torch.from_numpy(n_items > 0),
             "n_items": torch.from_numpy(n_items.astype(np.int64)),
         }

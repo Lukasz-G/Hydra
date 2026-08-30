@@ -9,7 +9,7 @@ from pathlib import Path
 import torch
 
 from .model import ModelOutput
-from .vocab import NULL, Vocabs
+from .vocab import LABEL_UNK, NULL, Vocabs
 
 
 @dataclass
@@ -19,19 +19,29 @@ class Prediction:
     morph: str
 
 
-def decode_batch(out: ModelOutput, vocabs: Vocabs,
-                 surfaces: list[list[str]]) -> list[list[Prediction]]:
+def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
+                 cls_min_prob: float = 0.5) -> list[list[Prediction]]:
     """Greedy prefix decoding: read slots until the first NULL POS (slot 0 is
     forced non-NULL). Lemma chars up to the first EOW; empty lemma falls back
-    to the surface form. Returns per (chunk, central position) predictions."""
+    to the surface form. With the classify-or-generate head, a slot's lemma is
+    the classifier's choice only when it is not UNK ("not a known type") AND
+    its softmax probability reaches cls_min_prob; otherwise the generated
+    characters are used. Returns per (chunk, central position) predictions."""
     pos_ids = out.pos_logits.argmax(dim=-1)                       # (B, T, K)
     pos_ids0 = out.pos_logits[..., 0, :].clone()                  # slot 0: mask NULL
     pos_ids0[..., NULL] = torch.finfo(pos_ids0.dtype).min
     pos_ids[..., 0] = pos_ids0.argmax(dim=-1)
-    morph_logits = out.morph_logits.clone()
-    morph_logits[..., NULL] = torch.finfo(morph_logits.dtype).min  # morph NULL never emitted
-    morph_ids = morph_logits.argmax(dim=-1)                        # (B, T, K)
+    # argmax over classes >= 1 skips NULL without materializing a masked copy
+    morph_ids = out.morph_logits[..., 1:].argmax(dim=-1) + 1       # (B, T, K)
     char_ids = out.lemma_logits.argmax(dim=-1)                     # (B, T, K, L)
+
+    cls_ids = None
+    if out.lemma_cls_logits is not None:
+        probs = out.lemma_cls_logits[..., 1:].float().softmax(dim=-1)
+        cls_prob, cls_arg = probs.max(dim=-1)
+        cls_arg = cls_arg + 1                                      # undo NULL skip
+        cls_arg[cls_prob < cls_min_prob] = LABEL_UNK               # low confidence -> generate
+        cls_ids = cls_arg.cpu().numpy()                            # (B, T, K)
 
     pos_ids = pos_ids.cpu().numpy()
     morph_ids = morph_ids.cpu().numpy()
@@ -46,7 +56,11 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs,
             for k in range(K):
                 if k > 0 and pos_ids[b, t, k] == NULL:
                     break
-                lemma = vocabs.chars.decode(char_ids[b, t, k].tolist())
+                lemma = ""
+                if cls_ids is not None and cls_ids[b, t, k] != LABEL_UNK:
+                    lemma = vocabs.lemma_types.decode(cls_ids[b, t, k])
+                if not lemma:
+                    lemma = vocabs.chars.decode(char_ids[b, t, k].tolist())
                 if not lemma:
                     lemma = surfaces[b][t]
                 lemmas.append(lemma)

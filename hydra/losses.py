@@ -33,6 +33,17 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
     l_lemma = torch.where(torch.isnan(l_lemma), zero, l_lemma)
 
     total = cfg.w_pos * l_pos + cfg.w_morph * l_morph + cfg.w_lemma * l_lemma
-    parts = {"loss": float(total.detach()), "loss_pos": float(l_pos.detach()),
+    parts = {"loss_pos": float(l_pos.detach()),
              "loss_morph": float(l_morph.detach()), "loss_lemma": float(l_lemma.detach())}
+
+    if out.lemma_cls_logits is not None:
+        lemtype_t = batch["lemtype"]
+        l_cls = F.cross_entropy(
+            out.lemma_cls_logits.reshape(-1, out.lemma_cls_logits.shape[-1]),
+            lemtype_t.reshape(-1), ignore_index=IGNORE)
+        l_cls = torch.where(torch.isnan(l_cls), zero, l_cls)
+        total = total + cfg.w_lemma_cls * l_cls
+        parts["loss_lemma_cls"] = float(l_cls.detach())
+
+    parts["loss"] = float(total.detach())
     return total, parts

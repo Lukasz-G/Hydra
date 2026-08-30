@@ -22,6 +22,7 @@ class ModelOutput:
     pos_logits: torch.Tensor    # (B, T, K, P)
     morph_logits: torch.Tensor  # (B, T, K, M)
     lemma_logits: torch.Tensor  # (B, T, K, L, C)
+    lemma_cls_logits: torch.Tensor | None = None  # (B, T, K, n_lemma_types)
 
 
 class TCNBlock(nn.Module):
@@ -94,7 +95,8 @@ class LemmaDecoder(nn.Module):
 
 class HydraModel(nn.Module):
     def __init__(self, cfg: ModelConfig, n_chars: int, n_pos: int, n_morph: int,
-                 max_word_len: int, max_lemma_len: int, chunk_len: int, halo: int):
+                 max_word_len: int, max_lemma_len: int, chunk_len: int, halo: int,
+                 n_lemma_types: int = 0):
         super().__init__()
         self.cfg = cfg
         self.T = chunk_len
@@ -119,6 +121,15 @@ class HydraModel(nn.Module):
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
         self.lemma_decoder = LemmaDecoder(cfg, max_lemma_len, n_chars)
+        # classify-or-generate: type-level lemma classifier, factored projection
+        # to keep the ~37k-class output affordable; class UNK = "generate"
+        self.lemma_cls_head = None
+        if cfg.lemma_classifier:
+            if n_lemma_types <= 0:
+                raise ValueError("lemma_classifier=true requires n_lemma_types > 0")
+            self.lemma_cls_head = nn.Sequential(
+                nn.Linear(cfg.d_model, cfg.d_dec), nn.GELU(),
+                nn.Linear(cfg.d_dec, n_lemma_types))
 
     def forward(self, chars: torch.Tensor) -> ModelOutput:
         """chars: (B, S, W) int64 with S = T + 2H."""
@@ -148,6 +159,7 @@ class HydraModel(nn.Module):
 
         pos_logits = self.pos_head(hs)
         morph_logits = self.morph_head(hs)
+        lemma_cls_logits = self.lemma_cls_head(hs) if self.lemma_cls_head is not None else None
 
         flat = hs.reshape(B * T * K, -1)
         char_states = char_pad_mask = None
@@ -160,4 +172,4 @@ class HydraModel(nn.Module):
         lemma_logits = self.lemma_decoder(flat, char_states, char_pad_mask)
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
-        return ModelOutput(pos_logits, morph_logits, lemma_logits)
+        return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits)

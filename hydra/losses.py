@@ -12,6 +12,15 @@ from .vocab import NULL
 
 def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
                  cfg: LossConfig, n_pos: int) -> tuple[torch.Tensor, dict[str, float]]:
+    # MLM-only pretraining: tagging heads absent from the output
+    if out.pos_logits is None:
+        zero = out.mlm_logits.sum() * 0.0
+        l_mlm = F.cross_entropy(out.mlm_logits.reshape(-1, out.mlm_logits.shape[-1]),
+                                batch["mlm"].reshape(-1), ignore_index=IGNORE)
+        l_mlm = torch.where(torch.isnan(l_mlm), zero, l_mlm)
+        total = cfg.w_mlm * l_mlm
+        return total, {"loss": float(total.detach()), "loss_mlm": float(l_mlm.detach())}
+
     pos_t = batch["pos"]      # (B, T, K)
     morph_t = batch["morph"]  # (B, T, K)
     lemma_t = batch["lemma"]  # (B, T, K, L)

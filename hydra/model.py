@@ -19,9 +19,9 @@ from .vocab import PAD
 
 @dataclass
 class ModelOutput:
-    pos_logits: torch.Tensor    # (B, T, K, P)
-    morph_logits: torch.Tensor  # (B, T, K, M)
-    lemma_logits: torch.Tensor  # (B, T, K, L, C)
+    pos_logits: torch.Tensor | None    # (B, T, K, P); None in MLM pretraining mode
+    morph_logits: torch.Tensor | None  # (B, T, K, M)
+    lemma_logits: torch.Tensor | None  # (B, T, K, L, C)
     lemma_cls_logits: torch.Tensor | None = None  # (B, T, K, n_lemma_types)
     mlm_logits: torch.Tensor | None = None        # (B, T, n_word_types)
     joint_logits: torch.Tensor | None = None      # (B, T, K, n_joint_types)
@@ -128,6 +128,8 @@ class HydraModel(nn.Module):
             self.ctx_attn_norm = nn.LayerNorm(cfg.d_tok)
 
         self.mlm_head = None
+        if cfg.pretrain_mlm and not cfg.masked_lm:
+            raise ValueError("pretrain_mlm=true requires masked_lm=true")
         if cfg.masked_lm:
             if n_word_types <= 0:
                 raise ValueError("masked_lm=true requires n_word_types > 0")
@@ -201,6 +203,12 @@ class HydraModel(nn.Module):
             ctx = self.ctx_attn_norm(ctx + att)
 
         center = slice(H, H + T)
+
+        if self.cfg.pretrain_mlm:
+            # MLM-only pretraining: no slot decoding, no lemma decoder
+            mlm_logits = self.mlm_head(ctx[:, center])
+            return ModelOutput(None, None, None, None, mlm_logits, None)
+
         h = self.fuse(torch.cat([tok[:, center], ctx[:, center]], dim=-1))  # (B, T, d_model)
 
         hs = h.unsqueeze(2) + self.slot_emb.view(1, 1, K, -1)               # (B, T, K, d_model)

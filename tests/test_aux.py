@@ -82,6 +82,21 @@ def test_joint_tag_targets(corpus_dir, data_cfg):
     assert (j[2:] == IGNORE).all()
 
 
+def test_pretrain_mlm_mode(model_cfg):
+    cfg = dataclasses.replace(model_cfg, masked_lm=True, pretrain_mlm=True)
+    model = HydraModel(cfg, n_chars=30, n_pos=10, n_morph=12, max_word_len=12,
+                       max_lemma_len=16, chunk_len=8, halo=4, n_word_types=40)
+    g = torch.Generator().manual_seed(0)
+    out = model(torch.randint(3, 30, (2, 16, 12), generator=g))
+    assert out.pos_logits is None and out.lemma_logits is None
+    assert out.mlm_logits.shape == (2, 8, 40)
+    batch = {"mlm": torch.full((2, 8), IGNORE, dtype=torch.int64)}
+    batch["mlm"][0, 2] = 5
+    loss, parts = compute_loss(out, batch, LossConfig(), n_pos=10)
+    assert parts["loss_mlm"] > 0 and torch.isfinite(loss)
+    loss.backward()
+
+
 def test_mlm_loss(model_cfg, corpus_dir, data_cfg):
     import dataclasses as dc
     cfg = dc.replace(model_cfg, masked_lm=True)

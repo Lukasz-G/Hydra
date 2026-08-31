@@ -189,7 +189,7 @@ def train(cfg: Config, resume: str | None = None,
         stop = False
         if info.is_main:
             metric = best_metric
-            if dev_ds is not None and len(dev_ds) > 0:
+            if dev_ds is not None and len(dev_ds) > 0 and not cfg.model.pretrain_mlm:
                 last_dev = evaluate_dataset(unwrap(model), dev_ds, vocabs, info.device,
                                             cfg.infer.batch_chunks, snapper=snapper,
                                             cls_min_prob=cfg.infer.classifier_min_prob)

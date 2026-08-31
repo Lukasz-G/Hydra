@@ -68,6 +68,7 @@ class ModelConfig:
     masked_lm: bool = False          # masked-token auxiliary head on the context encoder
     attention_pooling: bool = False  # learned-query pooling over char states (vs max-pool)
     joint_tag: bool = False          # auxiliary head over combined POS|morph tags
+    pretrain_mlm: bool = False       # MLM-only mode: skip tagging heads in forward
     dropout: float = 0.15
 
 

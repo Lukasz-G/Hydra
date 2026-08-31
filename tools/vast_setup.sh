@@ -7,6 +7,8 @@ REPO="https://github.com/Lukasz-G/Hydra.git"
 DATA_GDRIVE_ID="1oX9EHozkfPX5EGKwLNCVPXcYiJyBCe05"   # hydra_mhd_corpus.zip
 WORK=/workspace
 
+command -v git >/dev/null || { apt-get update -qq && apt-get install -y -qq git; }
+mkdir -p "$WORK"
 cd "$WORK"
 if [ ! -d hydra/.git ]; then
     git clone "$REPO" hydra

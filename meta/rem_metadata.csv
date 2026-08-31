@@ -1,0 +1,408 @@
+sigle,title,period,dialect,typecode,ANNIS-Gruppe,Datierung (Text),Datierung (Hs.),Textbereich,Textsorte,Textart,Sprache (Hs.)/ Schreibort
+M001,M001: Ad equum errehet</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,11-12,–,"Religion, Alltag",Segen,PV,rheinfränkisch
+M002,M002: Ad fluxum sanguinis narium</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,11-12,–,"Religion, Alltag",Segen,P,rheinfränkisch
+M003,"M003: Ad restringendum sanguinem [=Blutsegen, Erfurter]</h4>",,,,12_2-omd_ofrk-PV-X,12,–,"Religion, Alltag",Segen,P,ostmitteldeutsch
+M004,M004: Adelbrecht: Johannes Baptista</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,um 1150 (?),"12,E-13,A","Religion, Poesie",Heiligenlegende,V,bairisch
+M005,"M005: Aegidius, Trierer</h4>",12_2,thurhess,PV-G,12_2-thurhess-PV-G,um 1160,"um 1200 / 13,A","Religion, Poesie",Heiligenlegende,V,hessisch
+M006,M006: Höxterer Aegidius</h4>,,,,12_2-omd_ofrk-PV-X,12,um 1200,"Religion, Poesie",Heiligenlegende,V,hessisch-thüringisch
+M007,M007: Albanus</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,12,"13,2V","Religion, Poesie",Heiligenlegende,V,moselfränkisch
+M008,M008: Straßburger Alexander</h4>,13_1,thurhess,PV-G,13_1-thurhess-PV-G,"12,3D","13,1F?",Poesie,Antikenroman,V,hessisch-thüringisch
+M009,M009: Pfaffe Lambrecht: 'Alexanderlied' (V ['Vorauer Alexander])</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,um 1150/60,"12,3V",Wissen(-schaft),Geschichtsdichtung,V,"mittelfränkisch,  bairisch"
+M010,M010: Alkuins Traktat 'De virtutibus et vitiis'</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,–,Religion,Didaxe,P,alemannisch
+M011,M011: Andreas</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,"12,2",–,"Religion, Poesie",Heiligenlegende,V,mitteldeutsch
+M012,M012: Anegenge</h4>,13_2,bair,V-X,13_2-bair-V-X,–,um 1300,"Religion, Poesie",Lehrdichtung,V,südbairisch
+M013B,M013B: Annolied (V: Bonaventura Vulcanius)</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,um 1080,–,"Religion, Wissen(-schaft), Poesie","Heiligenlegende, Geschichtsdichtung",V,mitteldeutsch
+M013O,M013O: Annolied (O: Opitz)</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,um 1080,–,"Religion, Wissen(-schaft), Poesie","Heiligenlegende, Geschichtsdichtung",V,"mittelfränkisch, rheinfränkisch"
+M014,M014: Priester Arnold: 'Loblied a.d. hl. Geist' ('Von der Siebenzahl')</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,um 1160 (?),"12,4V","Religion, Poesie",Lehrdichtung,V,bairisch
+M015,M015: Bamberger Arzneibuch ['Arzenîbuoch Ipocratis' (B)]</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,um 1100 (?),"12,M","Wissen(-schaft), Alltag",Arzneibuch,P,rheinfränkisch
+M016,M016: Das Innsbrucker Arzneibuch</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"12,3V","Wissen(-schaft), Alltag",Arzneibuch,P,bairisch
+M017,"M017: Arzneibuch, Züricher</h4>",12_2,alem,PV-X,12_2-alem-PV-X,–,"12,E","Wissen(-schaft), Alltag",Arzneibuch,P,alemannisch
+M018,"M018: Augensegen, Cambridger A75</h4>",13_1,bair,P-X,13_1-bair-P-X,–,–,"Religion, Alltag",Segen,P,bairisch
+M019,"M019: Augensegen, Münchner (Regensburger)</h4>",11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,"Religion, Alltag",Segen,P,bairisch
+M020,M020: Münchener Ausfahrtsegen</h4>,12_2,obd,PV-X,12_2-obd-PV-X,–,–,"Religion, Poesie",Segen,V,oberdeutsch
+M021,M021: Auslegung des Vaterunser</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,"12,M","12,3V",Religion,Reimtheologie,V,bairisch
+M022,M022: Frau Ava: Antichrist (V)</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,–,"12,4V",Religion,Bibeldichtung,V,bairisch/ Vorau
+M023,M023: Frau Ava: Jüngstes Gericht (V)</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,–,"12,4V",Religion,Bibeldichtung,V,bairisch/ Vorau
+M024,M024: Ava: Leben Jesu</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,vor 1127 (?),"12,4V; 14",Religion,Bibeldichtung,V,bairisch
+M026,M026: Ave Maria</h4>,13_1,bair,V-X,13_1-bair-V-X,41609,–,Religion,Gebet,V,bairisch
+M027,M027: Von der Babylonischen Gefangenschaft</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,–,–,Religion,Bibeldichtung,V,bairisch
+M028,"M028: Balaam, Vorauer (Bücher Mosis 5)</h4>",12_2,bair,V_2-X,12_2-bair-V_2-X,12,"12,4V",Religion,Bibeldichtung,V,bairisch
+M029,M029: Von der Bedeutung der Buchstaben</h4>,12_2,obd,PV-X,12_2-obd-PV-X,–,–,Alltag,–,P,oberdeutsch
+M030,M030: Benediktbeuer Gebet zum Messopfer</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,–,"13,1V",Religion,Gebet,V,bairisch
+M031,M031: Blutsegen (Millstätter)</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,–,"13,2V","Religion, Alltag",Segen,P,bairisch-alemannisch
+M032,"M032: Blutsegen, Abdinghofer</h4>",12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,"12,M","Religion, Alltag",Segen,P,rheinfränkisch
+M033,M033: Bamberger Blutsegen</h4>,,,,12_2-omd_ofrk-PV-X,12?,"12,3V","Religion, Alltag",Segen,PV,ostfränkisch
+M034,M034: Blutsegen Contra fluxum sanguinis</h4>,12_2,obd,PV-X,12_2-obd-PV-X,12?,–,"Religion, Alltag",Segen,PV,alemannisch (?)
+M035,"M035: Blutsegen, Millstätter (St. Blasianer)</h4>",11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"12,A","Religion, Alltag",–,P,westniederalemannisch/  St. Blasien (?)
+M036,M036: Schlettstädter Blutsegen</h4>,11-12_1,rhfrhess,PV-X,11-12_1-rhfrhess-PV-X,11 (?),–,"Religion, Poesie",Segen,V,rheinfränkisch (?)
+M037,M037: Straßburger Blutsegen</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11 (?),–,"Religion, Poesie",Segen,V,alemannisch (?)
+M038,"M038: Bote, Der heimliche</h4>",13_1,alem,PV-X,13_1-alem-PV-X,–,"13,1V",Poesie,Minnelehre,V,alemannisch
+M040,M040: Brieger Psalmenfragmente</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11 (?),um 1100,Religion,Psalmenübersetzung,P,bairisch (?)
+M041,"M041: Buchunterschrift, deutsche</h4>",11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,"11,A; 11,3V",Wissen(-schaft),–,P,alemannisch
+M044,M044: Osterlied 'Christ ist erstanden'</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,–,"um 1160 (Lipphardt [1978], Sp. 1197); zwischen 1181 und 1198 (Praßl, S. 31ff.)","Religion, Poesie",Lied,V,bairisch/ Salzburger Domstift
+M045,"M045: Christi Geburt, Von</h4>",13_1,wmd,PV-X,13_1-wmd-PV-X,12,"13,1D",Religion,Bibeldichtung,V,mittelfränkisch
+M046,M046: Christus und Pilatus</h4>,14_1,omd,PV-X,14_1-omd-PV-X,–,"14,A",Religion,Bibeldichtung,V,"ostmitteldeutsch, niederdeutsch"
+M047,M047: Codex Falkensteinensis</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"1168-1195 (Noichl, S. 67, 140 und 164)",Alltag,–,P,südbairisch
+M048M,M048M: Contra caducum morbum (M)</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,"Religion, Alltag",Segen,P,bairisch
+M048P,M048P: Contra caducum morbum (P)</h4>,11-12_1,rhfrhess,PV-X,11-12_1-rhfrhess-PV-X,12?,–,"Religion, Alltag",Segen,P,(süd)rheinfränkisch (?)
+M049,M049: Contra malum malannum</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,"Religion, Alltag",Segen,P,"oberdeutsch, westmitteldeutsch"
+M050,M050: Contra paralysin theutonice</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,"Wissen(-schaft), Alltag",Rezept gegen Gicht,P,"alemannisch, rheinfränkisch (?)"
+M051,M051: Contra rehin</h4>,12_2,alem,PV-X,12_2-alem-PV-X,12,"12,E; um 1200","Religion, Alltag",Segen,PV,alemannisch
+M052,M052: Contra uberbein</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,–,"Religion, Alltag",Segen,P,(süd)rheinfränkisch (?)
+M053,M053: Contra vermem edentem</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,–,"Religion, Alltag",Segen,P,(süd)rheinfränkisch (?)
+M054,M054: Contra vermes pecus edentes</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,–,"Religion, Alltag",Segen,P,(süd)rheinfränkisch (?)
+M055,M055: Crescentia</h4>,12_2,alem,PV-X,12_2-alem-PV-X,"12,M","12,4V",Religion,Heiligenlegende,V,alemannisch
+M056,M056: De definitione (Bruchstück einer Logik)</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,Wissen(-schaft),philosophischer Text,P,alemannisch
+M057,M057: De spiritu sancto</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,"12,3D","Religion, Poesie",–,V,rheinfränkisch/ Arnstein oder Beselich
+M058,M058: Sangspruchstrophe MF 'Namenlos IV'</h4>,13_1,bair,V-X,13_1-bair-V-X,–,–,Poesie,Spruchdichtung,V,bairisch
+M059,M059: Denkspruch</h4>,13_1,obd,PV-X,13_1-obd-PV-X,–,"um 1200 (Ziegler, S. 230)",Alltag,Gnome,P,oberdeutsch
+M060,M060: MF Namenlos I-III</h4>,12_2,alem,PV-X,12_2-alem-PV-X,–,"12,E; um 1200",Poesie,Spruchdichtung,V,alemannisch
+M061B,M061B: Deutung der Meßgebräuche</h4>,12_2,bairalem,PV-G,12_2-bairalem-PV-G,12,um/nach 1200,"Religion, Poesie",Lehrdichtung,V,"ostalemannisch, bairisch"
+M061W,M061W: Deutung der Meßgebräuche/Wolfenbüttel</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"13,M","Religion, Poesie",Lehrdichtung,V,bairisch (bairisch-mitteldeutscher Grenzraum mit mitteldeutschen Anklängen)
+M062,M062: Drei Jünglinge im Feuerofen; Ältere Judith</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,"12,1D","12,4V","Religion, Poesie",Bibeldichtung,V,bairisch
+M063,"M063: Du bist mîn, ich bin dîn</h4>",12_2,obd,PV-X,12_2-obd-PV-X,–,"1178-1186 (Schneider 1987, S. 27)",Poesie,Minnesang,V,oberdeutsch
+M064M,M064M: Eilhart von Oberg: 'Tristrant' (M)</h4>,12-13_1,mdnd,V-X,12-13_1-mdnd-V-X,"12,4V-13,A","13,1D",Poesie,höfische Epik,V,"mitteldeutsch, niederdeutsch"
+M064R,M064R: Eilhart von Oberg: 'Tristrant' (R)</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,"12,4V-13,A","13,A",Poesie,höfische Epik,V,bairisch-ostalemannisch
+M064S,M064S: Eilhart von Oberg: 'Tristrant' (St)</h4>,12-13_1,mdnd,V-X,12-13_1-mdnd-V-X,"12,4V-13,A","13,A",Poesie,höfische Epik,V,"mitteldeutsch, niederdeutsch"
+M065,M065: Linzer Entechrist</h4>,12_2,alem,PV-G,12_2-alem-PV-G,–,"um 1200 / 13,A","Religion, Poesie",Bibeldichtung,V,"ostoberdeutsch, westoberdeutsch"
+M066,M066: Esau und Jakob; Zehn Gebote</h4>,13_2,md,V-X,13_2-md-V-X,–,"13,4V","Religion, Poesie",Bibeldichtung,V,südrheinfränkisch
+M067,M067: Wien-Münchner Evangelienübersetzung</h4>,12_2,bairalem,PV-G,12_2-bairalem-PV-G,12,um 1200,Religion,Bibelübersetzung,P,"ostalemannisch, bairisch"
+M068,M068: Altdeutsche Exodus</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,–,"12,4V","Religion, Poesie",Bibeldichtung,V,bairisch (mit schwäbischen Einsprengseln)
+M069,M069: Ezzo: Hymnus ('Ezzolied') (S)</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,1057/65,bald nach 1130,"Religion, Poesie",Lied,V,alemannisch
+M070,M070: Gothaer Fiebersegen</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,12,um 1200,"Religion, Alltag",Segen,P,moselfränkisch
+M071U,M071U: Uppsalaer Frauengebete</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,1V",Religion,Gebet,PV,bairisch (donauländischer Raum)/
+M071W,M071W: Uppsalaer Frauengebete</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,1V",Religion,Gebet,P,bairisch (donauländischer Raum)
+M072,M072: Frauengeheimnisse</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"12,3V",Wissen(-schaft),Arzneibuch,P,bairisch
+M073,M073: Friedberger Christ</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,12,"13,A","Religion, Poesie",Bibeldichtung,V,"rheinfränkisch, hessisch"
+M074,M074: Gebet einer Frau</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,12,"12,4V","Religion, Poesie",Gebet,V,bairisch
+M075,M075: Klosterneuburger Gebet</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,Religion,Gebet,P,bairisch
+M076A,M076A: Gebetbuch Hildegard von Bingen (Bildbeischriften)</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,–,"13,2V",Religion,Bildbeischriften,P,rheinfränkisch/ Raum Bingen-Worms
+M076B,M076B: Gebetbuch Hildegard von Bingen (Mariengebete)</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,–,"13,1V (vgl. Schneider [Kommentarband] S. 55, 62)",Religion,Gebet,P,rheinfränkisch/ Raum Bingen-Worms
+M077,M077: Gebete u. Benediktionen von Muri</h4>,12_2,alem,PV-G,12_2-alem-PV-G,12,um 1200,Religion,Gebet,P,alemannisch
+M078,M078: Engelberger Gebete</h4>,12_2,alem,PV-X,12_2-alem-PV-X,–,"12,E",Religion,Gebet,P,alemannisch
+M079,M079: Klagenfurter Gebete</h4>,12_1,bair,PV-X,12_1-bair-PV-X,"12,1",um 1150,Religion,Gebet,PV,bairisch
+M080,M080: Rheinauer Gebete</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"1150-1170 (Wilhelm, B: S. 154); 11./12, sprachlich 11 (Mohlberg, S. 277)",Religion,Gebet,P,alemannisch
+M081A,M081A: Seckauer (St. Lambrechter) Gebete A</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,A; um 1200",Religion,Gebet,P,bairisch
+M081B,M081B: Seckauer (St. Lambrechter) Gebete B</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,2V",Religion,Gebet,P,bairisch
+M082,M082: Vatikanische Gebete</h4>,13_1,wmd,PV-G,13_1-wmd-PV-G,"vielleicht noch 12,E","13,2V",Religion,Gebet,P,rheinfränkisch
+M083,M083: Zürcher Gebet</h4>,12_2,alem,PV-X,12_2-alem-PV-X,–,um 1200,Religion,Gebet,P,alemannisch
+M084A,M084A: Gebetsanweisungen zum Psalter Augsburg</h4>,12_2,obd,PV-X,12_2-obd-PV-X,–,"13,1V (um 1210-1220) (Hilg S. 77)",Religion,Gebetsanweisung,P,hochdeutsch
+M084B,M084B: Gebetsanweisungen zum Psalter Beuron</h4>,12_2,obd,PV-X,12_2-obd-PV-X,–,–,Religion,Gebetsanweisung,P,oberdeutsch
+M084E,M084E: Gebetsanweisungen zum Psalter Erlangen</h4>,13_1,obd,PV-X,13_1-obd-PV-X,–,–,Religion,Gebetsanweisung,P,oberdeutsch
+M084L,M084L: Gebetsanweisungen zum Psalter London</h4>,13_1,obd,PV-X,13_1-obd-PV-X,–,–,Religion,Gebetsanweisung,P,oberdeutsch
+M084M,M084M: Gebetsanweisungen zum Psalter München</h4>,12_2,obd,PV-X,12_2-obd-PV-X,–,"um 1200 (Schneider, S. 134)",Religion,Gebetsanweisung,P,oberdeutsch
+M085,M085: Gebetsanweisungen zum Psalter u. Nonnengelöbnis</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"1138-1165 (Schmid, S. 218, und Bruchhold, S. 163)",Religion,Gebetsanweisung,P,oberdeutsch/ Admont
+M086,M086: Gebetsanweisung zum Psalter</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"11 (Mohlberg, S. 74); 12,E (Wilhelm, B: S. 196)",Religion,Gebetsanweisung,P,alemannisch
+M087,M087: Vorauer Genesis (Bücher Mosis 1)</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,12,"12,4V","Religion, Poesie",Bibeldichtung,V,bairisch
+M088,M088: Wiener Genesis</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,"11,2","12,4V","Religion, Poesie",Bibeldichtung,V,oberdeutsch
+M089,M089: Bamberger Glaube u. Beichte</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,11?,12,Religion,"Credo, Beichtformel",P,ostfränkisch
+M090,M090: Benediktbeurer Glaube u. Beichte I</h4>,12_2,bairalem,PV-X,12_2-bairalem-PV-X,12,–,Religion,"Credo, Beichte",P,"bairisch, alemannisch"
+M091,M091: Benediktbeurer Glaube u. Beichte II</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Religion,"Credo, Beichte",P,"bairisch, alemannisch"
+M092,M092: Benediktbeurer Glaube u. Beichte III</h4>,12_2,bairalem,PV-X,12_2-bairalem-PV-X,12,um/nach 1200,Religion,"Credo, Beichte",P,"bairisch, alemannisch"
+M093,M093: St. Galler Glaube u. Beichte I</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Religion,"Credo, Beichte",P,alemannisch
+M094,M094: St. Galler Glaube u. Beichte II</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,"12,1",–,Religion,"Credo, Beichte",P,alemannisch
+M095,M095: St. Galler Glaube u. Beichte III</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Religion,"Credo, Beichte",P,alemannisch
+M096,M096: Münchner Glauben und Beichte (A)</h4>,12_2,bair,P-X,12_2-bair-P-X,12?,"12,E; um 1200",Religion,"Credo, Beichte",P,bairisch
+M097,M097: Wessobrunner Glaube u. Beichte I</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Religion,"Credo, Beichte",P,bairisch
+M098,M098: Wessobrunner Glaube u. Beichte II</h4>,12_2,bair,P-X,12_2-bair-P-X,12?,–,Religion,"Credo, Beichte",P,bairisch
+M099,M099: Kremsmünsterer Glaube und Beichte</h4>,12_2,bair,P-X,12_2-bair-P-X,–,–,Religion,"Credo, Beichte",P,bairisch/ Kremsmünster (?)
+M100,M100: Graf Rudolf</h4>,13_1,thurhess,PV-G,13_1-thurhess-PV-G,wohl zwischen ca. 1170 und 1187-90,"13,1V",Poesie,frühhöfischer Roman,V,hessisch-thüringisch
+M101,M101: Grazer Hagelsegen</h4>,12_2,bair,P-X,12_2-bair-P-X,–,–,"Religion, Alltag",Segen,P,oberdeutsch/ Seckau
+M102,M102: Münchner Halssegen</h4>,13_1,obd,PV-X,13_1-obd-PV-X,12?,"13,A","Religion, Alltag",Segen,P,oberdeutsch
+M103,M103: Der arme Hartmann: Rede vom Glauben</h4>,13_1,thurhess,PV-X,13_1-thurhess-PV-X,um 1140/60,"13,A","Religion, Poesie",Reimtheologie,V,mitteldeutsch
+M104,M104: Zürcher Hausbesegnung</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,10 (?),–,"Religion, Poesie",Segen,V,alemannisch
+M105,"M105: Heinrich von Rugge, Leich</h4>",12_2,alem,PV-X,12_2-alem-PV-X,–,"12,E (Schweikle, Sp. 870); (Glauche, S. 114)",Literatur,–,V,alemannisch/ Chur
+M106,"M106: Heinrich, Reinhart Fuchs (S)</h4>",13_1,alem,PV-X,13_1-alem-PV-X,–,"13,A (Schneider, S. 109)",Poesie,frühhöfische Epik,V,westniederalemannisch (elsässisch mit bairischem Einschlag)
+M107G,M107G: Heinrich: 'Litanei' (G)</h4>,12_2,bair,PV-G,12_2-bair-PV-G,um 1160,"12,2",Religion,Heiligenlegende,V,bairisch
+M107S,M107S: Heinrich: 'Litanei' (S)</h4>,13_1,thurhess,PV-X,13_1-thurhess-PV-X,um 1160,"13,A","Religion, Poesie",Heiligenlitanei,V,hessisch-thüringisch
+M108M,M108M: Herzog Ernst A (M)</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,um 1160/70,"13,1V",Poesie,frühhöfische Epik,V,rheinfränkisch
+M108P,M108P: Herzog Ernst A (P)</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,um 1160/70,"13,2V",Poesie,frühhöfische Epik,V,"mitteldeutsch, moselfränkisch"
+M108S,M108S: Herzog Ernst A (S)</h4>,13_2,md,V-X,13_2-md-V-X,um 1160/70,"13,4V",Poesie,frühhöfische Epik,V,"ostfränkisch, omitteldeutsch"
+M109,M109: Himmel und Hölle</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,11?,12,Religion,"Predigt, Beichtrede",P,ostfränkisch
+M110,M110: Daz himelrîche</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,–,–,"Religion, Poesie",Bibeldichtung,V,bairisch
+M111,M111: Himmlisches Jerusalem</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,um 1140,"12,4V; um 1200 - 13,A","Religion, Poesie",Reimtheologie,V,bairisch
+M112,M112: Die Hochzeit</h4>,13_1,bair,PV-G,13_1-bair-PV-G,12/2D,um 1200 / 13/A,"Religion, Poesie",allegorische Dichtung,V,bairisch
+M113,M113: St. Trudperter Hohes Lied (A)</h4>,13_1,alem,PV-G,13_1-alem-PV-G,um 1160,"13,1V",Religion,Allegorese,P,"bairisch, alemannisch"
+M113Y,M113Y: St. Trudperter Hohelied (A)</h4>,13_1,alem,PV-X,13_1-alem-PV-X,–,"13,1V",Religion,–,P,alemannisch
+M114,M114: Idsteiner Sprüche der Väter</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,–,"13,M","Religion, Poesie",religiöse Unterweisung,V,rheinfränkisch
+M115,M115: Baumgartenberger Johannes Baptista</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,"12,1",–,"Religion, Poesie",Heiligenlegende,V,bairisch
+M116,M116: Vorauer Joseph (Bücher Mosis 2)</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,–,–,"Religion, Poesie",Bibeldichtung,V,bairisch
+M117,M117: Erfurter Judeneid</h4>,,,,12_2-omd_ofrk-PV-X,12,"um 1200/13,A",Recht,Eid,P,mitteldeutsch
+M118,M118: Pfälzer Judeneid</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,"12-13,A",–,Recht,Eid,P,(süd)rheinfränkisch
+M119,M119: Die Jüngere Judith</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,um 1140?,"12,4V",Religion,Bibeldichtung,V,bairisch (?)
+M120,"M120: Jüngstes Gericht, Hamburger</h4>",13_1,wmd,PV-X,13_1-wmd-PV-X,"12,1(?)","13,M",Religion,Bibeldichtung,V,(süd)rheinfränkisch
+M121F,"M121F: Kaiserchronik A (F: Fragmente Fr, Mz)</h4>",12_2,bair,V_Kchr1-X,12_2-bair-V_Kchr1-X,um 1140/50 (?),–,"Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,bairisch-ostalemannisch
+M121G,"M121G: Kaiserchronik A (G: Fragmente Gr, I)</h4>",12_2,bair,V_Kchr1-X,12_2-bair-V_Kchr1-X,um 1140/50 (?),"13,1V","Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,bairisch-ostalemannisch
+M121K,M121K: Kaiserchronik A (Fragment K)</h4>,12_2,bair,V_Kchr1-X,12_2-bair-V_Kchr1-X,um 1140/50 (?),–,"Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,bairisch
+M121N,M121N: Kaiserchronik A (Fragment N)</h4>,13_1,alem,PV-X,13_1-alem-PV-X,um 1140/50 (?),–,"Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,alemannisch
+M121S,M121S: Kaiserchronik A (Fragment S)</h4>,13_1,bair,V-X,13_1-bair-V-X,um 1140/50 (?),"13,1D","Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,bairisch
+M121V,M121V: Kaiserchronik A (V) [Ausschnitt]</h4>,12_2,bair,PV-G,12_2-bair-PV-G,–,–,"Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,bairisch
+M121W,M121W: Kaiserchronik A (Fragment W)</h4>,13_1,bair,V-X,13_1-bair-V-X,um 1140/50 (?),"13,A","Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,bairisch
+M121Y,M121Y: Kaiserchronik A (V)</h4>,12_2,bair,V_Kchr-X,12_2-bair-V_Kchr-X,um 1140/50 (?),"12,4V","Wissen(-schaft), Religion",Legenden- und Geschichtsdichtung,V,bairisch
+M122,M122: Kalender mit Urbareinträgen</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"12,E [Kalender]; 13A [Urbareinträge] (Schneider 2005, S. 194)","Wissen(-schaft), Alltag",–,P,bairisch
+M123,"M123: Kalendernoten, Windberger</h4>",12_2,bair,P-X,12_2-bair-P-X,–,"12,4V (Schneider S. 36); wahrscheinlich 1174 (Klein, Sp. 1193, nach Kirchert I, S. 60-63).","Wissen(-schaft), Alltag",–,P,mittelbairisch (nordöstlich)
+M124,M124: Komputistische Notiz</h4>,12_2,alem,PV-X,12_2-alem-PV-X,–,–,"Wissen(-schaft), Alltag",–,P,oberrheinisch
+M125,"M125: Kräuterbuch, Innsbrucker Fassung</h4>",12_2,bair,P-X,12_2-bair-P-X,–,"12,3V (Schnell, S. 199)",Wissen(-schaft),medizinisch-magische Praktik,P,bairisch
+M126,"M126: Kräuterbuch, Prüller Fassung</h4>",11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,1143-1147,Wissen(-schaft),Kräuterbuch,P,bairisch/  Benediktinerkloster Prüll
+M127,M127: Leis</h4>,12_2,obd,PV-X,12_2-obd-PV-X,–,–,Religion,Kirchenlied,P,oberdeutsch
+M128,M128: Leis Troyes 1</h4>,11-12_1,rhfrhess,PV-X,11-12_1-rhfrhess-PV-X,_,Werkdatierung,Religion,Kirchenlied,P,rheinfränkisch (frz. Graphien)
+M129,M129: Leis Troyes 2</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,"12 (Catalogue Général, S. 279); 12-13 (Hüffer, S. 99). pars secunda und tertia der Vita: Januar und Februar 1147 (Hüffer, S. 75)",Religion,Kirchenlied,P,oberdeutsch
+M130,M130: Leis Troyes 3</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,"12-13 (Catalogue Général, S. 368); 12, nicht vor dem Jahr 1180 (Hüffer, S. 99 und 101, Anm. 2).",Religion,Kirchenlied,P,oberdeutsch
+M131,M131: Lob Salomons</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,–,"12,E (vgl. Schneider S. 37f.)","Religion, Poesie",Bibeldichtung,V,bairisch
+M132G,M132G: Lucidarius (Gö1)</h4>,13_1,alem,PV-G,13_1-alem-PV-G,um 1190-95,"13,2V-13,M",Wissen(-schaft),Lehrgespräch,P,alemannisch
+M132W,M132W: Lucidarius W</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"12,M",Wissen(-schaft),Lehrgespräch,P,bairisch
+M133,M133: Halberstädter Makkabäer</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,"12,A (Kraus S. 147; Karin Schneider brieflich am 23.7.2008)","Religion, Poesie",Bibeldichtung,V,mitteldeutsch
+M134,M134: Mariengebet</h4>,13_1,obd,PV-X,13_1-obd-PV-X,12,"um 1200/13,A","Religion, Poesie",Gebet,V,oberdeutsch
+M135,M135: Ältere niederrheinische Marienklage</h4>,13_2,md,V-X,13_2-md-V-X,"13,A (?)","13,3V","Religion, Poesie",Mariendichtung,V,mittelfränkisch
+M136,M136: Arnsteiner Marienlied</h4>,12_2,wmd,PV-G,12_2-wmd-PV-G,"12,M","12,3D (nicht vor den siebziger Jahren)","Religion, Poesie",Mariendichtung,V,"mittelfränkisch, rheinfränkisch"
+M137,M137: Melker Marienlied</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"1123-1142 (Strobl, S. 2 der unpaginierten Vorrede)","Religion, Poesie",Mariendichtung,V,bairisch
+M138,M138: Vorauer Marienlob (Bücher Mosis 4)</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,um 1130,"12,4V","Religion, Poesie",Mariendichtung,V,bairisch
+M139,M139: Marienmirakel</h4>,13_1,bair,V-X,13_1-bair-V-X,–,–,"Religion, Poesie",Mariendichtung,V,"bairisch (mit mitteldeutschem Einschlag, Sschneider 2005)"
+M140,M140: Mariensequenz aus Muri (A)</h4>,12_2,alem,PV-X,12_2-alem-PV-X,–,"12,E; um 1200","Religion, Poesie",Mariendichtung,V,alemannisch
+M140B,M140B: Mariensequenz aus Muri (B)</h4>,12_2,alem,PV-X,12_2-alem-PV-X,um 1180-90,"12,E-13,A","Religion, Poesie",Mariendichtung,V,alemannisch
+M140C,M140C: Mariensequenz aus Muri (C)</h4>,13_1,alem,PV-X,13_1-alem-PV-X,um 1180-90,–,"Religion, Poesie",Mariendichtung,V,alemannisch
+M140D,M140D: Mariensequenz aus Muri (D)</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,um 1180-90,"13,1V","Religion, Poesie",Mariendichtung,V,"ostoberdeutsch, alemannisch"
+M141,M141: Die Mariensequenz aus St. Lambrecht (Seckau)</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"13,1V nicht vor 1200 (Schneider S. 90)","Religion, Poesie",Mariendichtung,V,bairisch
+M142,M142: Memento Mori</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,nach 1065,bald nach 1130,"Religion, Poesie",Predigt,V,alemannisch
+M143,M143: Merigarto</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,11,"12,1V","Wissen(-schaft), Poesie",Lehrdichtung,V,bairisch
+M144,M144: Messgebet 'Got vater allir cristinheit' mit dt. Gebetsanweisung</h4>,13_1,alem,PV-X,13_1-alem-PV-X,"12-13,A","13,1V","Religion, Poesie",Gebet,PV,alemannisch
+M145,"M145: gereimtes Messgebet  'Vater herre, vater got'</h4>",12_2,bair,V_1-X,12_2-bair-V_1-X,–,"Psalter: um 1200; dt. Nachträge: 13,1","Religion, Poesie",Gebet,V,bairisch
+M146,M146: Monatsregeln für die Wahl eines Freundes</h4>,12_2,bairalem,PV-X,12_2-bairalem-PV-X,–,"12,E (Menhardt, S. 69, und Assion, Sp. 665)","Wissen(-schaft), Alltag",–,V,bairisch
+M147,M147: Grazer Monatsregeln</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,1V, nicht vor 1200 (Schneider S. 90)","Wissen(-schaft), Alltag",–,P,bairisch
+M148,M148: Kölner Morgensegen</h4>,13_2,mfrk,PU-X,13_2-mfrk-PU-X,13 (?),"13,3V","Religion, Alltag",Segen,P,mittelfränkisch
+M149,M149: Vorauer Moses  (Bücher Mosis 3)</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,um 1130,"12,4V; 13,A",Religion,Bibeldichtung,V,bairisch
+M150,M150: Otlohs Gebet</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,"11,2",nach 1067,Religion,Gebet,P,bairisch
+M151,M151: Patricius</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,–,"13,2V",Religion,Heiligenlegende,V,ostschwäbisch
+M152,M152: Rheinauer Paulus</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,um 1100,"12,1D","Religion, Poesie","Bibeldichtung, Sündenklage",V,alemannisch
+M153,M153: Vatikanische Pferdesegen 'Ad pestem equi / Ad equum infusum'</h4>,11-12_1,rhfrhess,PV-X,11-12_1-rhfrhess-PV-X,–,um 1100,Religion,–,P,rheinfränkisch
+M154,M154: Physiologus S (Schäftlarner Fragment)</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"um 1200; 12,E (Wilhelm S. 46)",Wissen(-schaft),–,P,bairisch
+M155,M155: Physiologus (Älterer/Ahd. Physiologus)</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,um 1070,–,"Wissen(-schaft), Religion","Naturlehre, christliche Allegorese",P,alemannisch/ Hirsau (?)
+M156,M156: Millstätter Physiologus</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"um 1200/13,A","Religion, Poesie",–,V,südbairisch
+M157,M157: Wiener Physiologus (Jüngerer Physiologus)</h4>,12_2,bair,PV-G,12_2-bair-PV-G,um 1120,"12,4V","Wissen(-schaft), Religion",allegorische Naturlehre,P,"ostoberdeutsch, westoberdeutsch"
+M158,M158: Pilatus</h4>,13_1,thurhess,PV-X,13_1-thurhess-PV-X,13/A (?),"13,A","Religion, Poesie",Legende,V,hessisch-thüringisch
+M159,M159: Londoner Predigt(fragment)</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"12,M (Priebsch, S. 303)",Religion,Predigt,P,bairisch-alemannisch
+M160H,M160H: Priester Konrad: Predigtbuch (Ha)</h4>,13_1,bair,P-X,13_1-bair-P-X,12,–,Religion,Predigt,P,bairisch
+M160M,"M160M: Predigten, Priester Konrad (M1)</h4>",12_2,bair,P-X,12_2-bair-P-X,–,"12,E;  um 1200 (Schneider S. 50)",Religion,Predigt,P,bairisch (östliches oder nördliches Bayern)
+M160P,M160P: Rothsche Predigtsammlung (P) / Priester Konrad: Predigtbuch (P)</h4>,13_1,bair,P-X,13_1-bair-P-X,12/13 (?),"13,2V",Religion,Predigt,P,südbairisch
+M160R,M160R: Rothsche Predigtsammlung [Überlieferungskomplex Priester Konrad (R)]</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,1V (Schneider Textband S. 83)",Religion,Predigt,P,bairisch
+M161,M161: Millstätter Predigtsammlung (M/G T 35)</h4>,13_2,bair,P-X,13_2-bair-P-X,–,"13,M",Religion,Predigt,P,bairisch/ Tirol (?)
+M163B,"M163B: Predigten, M/G T 36, Basler Fragmente</h4>",12_2,alem,PV-X,12_2-alem-PV-X,–,"12,E-13,A (Morvay/Grube S. 29)",Religion,Predigt,P,alemannisch
+M163K,"M163K: Predigten (M/G T 36), Krakauer Fragmente</h4>",12_2,bair,P-X,12_2-bair-P-X,–,–,Religion,Predigt,P,bairisch
+M165,M165: Hoffmannsche Predigtsammlung</h4>,13_1,bairalem,PV-G,13_1-bairalem-PV-G,12/13?,"13,1D",Religion,Predigt,P,westbairisch-ostalemannisch
+M167,M167: Leipziger Predigten (Fragment I)</h4>,13_1,thurhess,PV-X,13_1-thurhess-PV-X,12/13 (?),–,Religion,Predigt,P,mitteldeutsch
+M168,M168: Leysersche Predigten (M/G T 15)</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,A (Leyser S. XXII)",Religion,Predigt,P,südbairisch
+M171,"M171: Predigten, Züricher</h4>",12_2,alem,PV-G,12_2-alem-PV-G,12,"12,E / um 1200",Religion,Predigt,P,alemannisch
+M172,M172: Prager Predigtentwürfe (M/G T 31)</h4>,13_1,obd,PV-X,13_1-obd-PV-X,–,"13,2V",Religion,Predigt,P,"ostfränkisch, nordbairisch, böhmisch"
+M173,M173: Predigtfragment (M/G T 8)</h4>,12_2,bairalem,PV-X,12_2-bairalem-PV-X,–,um 1200 (Palmer S. 211),Religion,Predigt,P,bairisch-ostalemannisch
+M174,M174: Predigtfragmente</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"12,3V (Schneider, S. 393)",Religion,Predigt,P,bairisch
+M177,M177: Predigtfragmente (M/G T 37c)</h4>,12_2,thurhess,PV-G,12_2-thurhess-PV-G,12,"12,E - 13,A",Religion,Predigt,P,hessisch-thüringisch
+M178,M178: Predigtfragmente (M/G T 43)</h4>,12_2,bair,P-X,12_2-bair-P-X,–,–,Religion,Predigt,P,bairisch
+M182A,M182A: Wessobrunner (Ahd.) Predigtsammlung A</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Religion,Predigt,P,bairisch
+M182B,M182B: Wessobrunner (Ahd.) Predigtsammlung B</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Religion,Predigt,P,bairisch
+M182C,M182C: Wessobrunner (Ahd.) Predigtsammlung C</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Religion,Predigt,P,bairisch
+M185,"M185: Psalm 88, Interlinearversion</h4>",13_1,bair,P-X,13_1-bair-P-X,"12-13,A","13,1V",Religion,Psalmenübersetzung,P,bairisch/ Chorfrauenstift Seckau
+M186,M186: Rheinfränkische Interlinearversion der Psalmen</h4>,11-12_1,rhfrhess,PV-X,11-12_1-rhfrhess-PV-X,–,–,Religion,Psalmenübersetzung,P,rheinfränkisch
+M187,M187: Schleizer Psalmenfragmente</h4>,12-13_1,mdnd,PV-X,12-13_1-mdnd-PV-X,12,–,Religion,Psalmenübersetzung,P,"mitteldeutsch, niederdeutsch"
+M188,M188: Trierer Interlinearversion zum Psalter</h4>,12_2,wmd,PV-G,12_2-wmd-PV-G,12,um 1200,Religion,Psalmenübersetzung,P,"rheinfränkisch, alemannisch"
+M188Y,M188Y: Trierer Interlinearversion zum Psalter</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,um 1200,Religion,Psalmenübersetzung,P,rheinfränkisch
+M189,M189: Wiggertsche Psalmenfragmente</h4>,12-13_1,mdnd,PV-X,12-13_1-mdnd-PV-X,12,"12,M",Religion,Psalmenübersetzung,P,"niederdeutsch, hochdeutsch"
+M191,M191: Schlierbacher Psalmenfragmente</h4>,,,,12_2-omd_ofrk-PV-X,–,um 1200,Religion,Psalmenübersetzung,P,"ostfränkisch, bairisch"
+M192,M192: Gereimte Psalter-Paraphrase (Ps. 58-61)</h4>,13_1,obd,PV-X,13_1-obd-PV-X,"12-13,A","13,1V","Religion, Poesie",Psalmendichtung,V,oberdeutsch
+M193,M193: Millstätter Interlinearversion zum Psalter und zu den Hymnen des Römischen Breviers</h4>,12_2,bair,P-X,12_2-bair-P-X,–,nicht vor 1200 (Schneider S. 37),Religion,Psalmenübersetzung,P,bairisch
+M194,M194: Sonnenburger Psalmenfragmente</h4>,13_1,bair,P-X,13_1-bair-P-X,13,–,Religion,Psalmenübersetzung,P,(süd)bairisch
+M195,M195: Windberger Psalter</h4>,12_2,bair,PV-G,12_2-bair-PV-G,12/2H,"12,3V-4V, wahrscheinlich 1174",Religion,Psalmenübersetzung,P,bairisch/ Windberg
+M195Y,M195Y: Windberger Psalter</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"12,4V, wahrscheinlich 1174",Religion,Psalmenübersetzung,P,bairisch/ Windberg
+M196,M196: Benediktbeurer Ratschläge u. Gebete</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,–,"13,1V; nicht vor 1200 (Schneider, S. 90)",Religion,–,P,bairisch
+M197,M197: Geistliche Ratschläge</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11 (?),um 1100,Religion,geistliche Belehrung,P,bairisch
+M198,M198: Vom Rechte</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"um 1200 oder 13,A (Schneider 1987, S. 88)","Religion, Poesie",–,V,bairisch (mit Alemannismen)
+M199A,M199A: Mittelfränkische Reimbibel (A)</h4>,12_2,wmd,PV-G,12_2-wmd-PV-G,um 1100,"12,2D","Religion, Poesie",Bibeldichtung,V,"mittelfränkisch, niederfränkisch, westfälisch/ Werden?"
+M199B,M199B: Mittelfränkische Reimbibel (B)</h4>,12_2,obd,PV-X,12_2-obd-PV-X,um 1100,"12,M","Religion, Poesie",Bibeldichtung,V,"mittelfränkisch, bairisch"
+M199C,M199C: Mittelfränkische Reimbibel (C)</h4>,,,,12_2-omd_ofrk-PV-X,um 1100,"12,3D oder um 1200",Religion,Bibeldichtung,V,"mittelfränkisch, ostfälisch (?)"
+M200,M200: Londoner Reisesegen und Bruchstücke eines Gebets</h4>,,,,12_2-omd_ofrk-PV-X,12,"12,E","Religion, Alltag","Segen, Gebetsanweisung",P,"ostfränkisch, südthüringisch"
+M201,M201: Weingartner Reisesegen</h4>,13_2,md,V-X,13_2-md-V-X,12/13 (?),–,"Religion, Alltag",Segen,PV,rheinfränkisch
+M202,M202: Codex Falkensteinensis: Rezept gegen den Stein</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"1168-1195 (Noichl, S. 67, 140 und 164)",Wissen(-schaft),Rezept,P,südbairisch
+M203,M203: Rezept gegen Lähmung  'Contra paralisin id est vergiht'</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,Wissen(-schaft),Rezept,P,oberdeutsch
+M204,M204: Rittersitte</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,"12,4V (Palmer S. 97)",Poesie,Lehrdichtung,V,rheinfränkisch
+M205A,M205A: Pfaffe Konrad: 'Rolandslied' (A)</h4>,12-13_1,mdnd,V-X,12-13_1-mdnd-V-X,1172 (?),"12,3D (?)","Religion, Wissen(-schaft), Poesie",Legenden- und Geschichtsdichtung,V,"bairisch, niederdeutsch"
+M205E,M205E: Pfaffe Konrad: 'Rolandslied' (E)</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,1172 (?),nicht vor 1220,"Religion, Wissen(-schaft), Poesie",Legenden- und Geschichtsdichtung,V,mittelfränkisch
+M205M,M205M: Pfaffe Konrad: 'Rolandslied' (M)</h4>,12-13_1,mdnd,V-X,12-13_1-mdnd-V-X,1172 (?),"12,2V","Religion, Wissen(-schaft), Poesie",Legenden- und Geschichtsdichtung,V,"mitteldeutsch, niederdeutsch"
+M205P,M205P: Pfaffe Konrad: 'Rolandslied' (P)</h4>,12_2,bair,V_Rol-X,12_2-bair-V_Rol-X,1172 (?),um 1200,"Religion, Wissen(-schaft), Poesie",Legenden- und Geschichtsdichtung,V,"bairisch, mitteldeutsch"
+M205S,M205S: Pfaffe Konrad: 'Rolandslied' (S)</h4>,12-13_1,mdnd,V-X,12-13_1-mdnd-V-X,1172 (?),"13,1D","Religion, Wissen(-schaft), Poesie",Legenden- und Geschichtsdichtung,V,"mitteldeutsch, niederdeutsch"
+M205T,M205T: Pfaffe Konrad: 'Rolandslied' (T)</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,1172 (?),"13,A","Religion, Wissen(-schaft), Poesie",Legenden- und Geschichtsdichtung,V,rheinfränkisch-hessisch
+M205W,M205W: Pfaffe Konrad: 'Rolandslied' (W)</h4>,13_1,thurhess,PV-X,13_1-thurhess-PV-X,1172 (?),"13,1V","Religion, Wissen(-schaft), Poesie",Legenden- und Geschichtsdichtung,V,hessisch-thüringisch
+M206,M206: König Rother (H)</h4>,12-13_1,mdnd,PV-X,12-13_1-mdnd-PV-X,um 1160-70,"13,1V",Poesie,frühhöfische Epik,V,"mitteldeutsch, niederdeutsch"
+M207,M207: Deutsche Rubriken zu Texten eines Nonnenbreviers</h4>,12_2,bair,P-X,12_2-bair-P-X,12,–,Religion,Gebetsanweisungen,P,bairisch
+M208,M208: Deutsche Rubriken zu lateinischen Gebeten</h4>,12_2,bair,P-X,12_2-bair-P-X,12,–,Religion,Gebetsanweisungen,P,bairisch
+M209,M209: Scoph von dem lone</h4>,12_2,alem,PV-G,12_2-alem-PV-G,12,"12,4V","Religion, Poesie",Lehrdichtung,V,alemannisch
+M210,M210: Oberdeutscher Servatius (n)</h4>,13_1,bair,V-X,13_1-bair-V-X,um 1190,"13,1V","Religion, Poesie",Heiligenlegende,V,bairisch
+M212,M212: Gedicht von der Siebenzahl</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,–,"12,3V (?)","Religion, Poesie",Lehrdichtung,V,bairisch
+M213,M213: Trierer Silvester</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,vor 1170,"um 1200 - 13,A","Religion, Poesie",Heiligenlegende,V,hessisch
+M214,M214: Speculum ecclesiae</h4>,12_2,bairalem,PV-G,12_2-bairalem-PV-G,um 1180,um/nach 1200,Religion,Predigt,P,"ostalemannisch, bairisch"
+M214W,M214W: Speculum ecclesiae W (Fragment M/G T9)</h4>,13_1,obd,PV-X,13_1-obd-PV-X,–,"13,1D",Religion,Predigt,P,oberfränkisch
+M214Y,M214Y: Speculum ecclesiae deutsch</h4>,12_2,bairalem,PV-X,12_2-bairalem-PV-X,–,um/nach 1200 (Klemm S. 171),Religion,Predigt,P,mittelbairisch
+M217,M217: Füssener Sprachproben</h4>,12_2,bairalem,PV-X,12_2-bairalem-PV-X,–,–,Alltag,–,P,alemannisch
+M218A,M218A: St. Galler Schularbeit</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,Wissen(-schaft),Schulübersetzung,P,alemannisch
+M218B,"M218B: St. Galler Schularbeit, Exzerpt</h4>",11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,um 1100,Wissen(-schaft),Schulübersetzung,P,alemannisch
+M219,M219: St. Veit</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"13,A; evtl. 12,4V (Schneider)","Religion, Poesie",Heiligenlegende,V,bairisch
+M220M,M220M: Prüler Steinbuch</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"12,A (Keil [1989], Sp. 875)",Wissen(-schaft),Medizinliteratur,P,bairisch
+M220P,M220P: Prüler Steinbuch (M1)</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,"12,1","12,M",Wissen(-schaft),Medizinliteratur,P,bairisch
+M221,M221: Millstätter Sündenklage</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,–,"um 1200 oder 13,A (Schneider 1987, S. 88)","Religion, Poesie",Sündenklage,V,südbairisch
+M222,M222: Uppsalaer Sündenklage</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,–,"13,2V","Religion, Poesie",Sündenklage,V,rheinfränkisch (mit vereinzelten mittelfränkischen Merkmalen)
+M223,M223: Vorauer Sündenklage</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,"12,4V","12,4V","Religion, Poesie",Sündenklage,V,bairisch
+M224,M224: Summa Theologiae</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,"12,4V","12,4V","Religion, Poesie",Reimpredigt,V,"rheinfränkisch, bairisch"
+M225,M225: Tegernseer Prognostica</h4>,12_2,bair,P-X,12_2-bair-P-X,–,um 1200 (Schneider S. 187),"Wissen(-schaft), Alltag",Lunar,P,bairisch
+M226,M226: Pfaffe Lambrecht: Tobias</h4>,12-13_1,mdnd,PV-X,12-13_1-mdnd-PV-X,–,"13,A (Holznagel)","Religion, Poesie",Bibeldichtung,V,"mitteldeutsch, niederdeutsch"
+M227,M227: Tobiassegen G</h4>,13_2,alem,PV-X,13_2-alem-PV-X,–,"13,4V","Religion, Poesie",Segen,V,alemannisch
+M228,M228: Tobiassegen U</h4>,13_1,obd,PV-X,13_1-obd-PV-X,–,–,"Religion, Poesie",Segen,V,oberdeutsch
+M229,M229: Traditio Kuonradi</h4>,12_2,bairalem,PV-X,12_2-bairalem-PV-X,–,um 1200 (vgl. Wilhelm S. 197),Recht,Urkunde,P,alemannisch-schwäbisch
+M230,M230: Schwäbische Trauformel</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"12,2V",Recht,Trauformel,P,alemannisch
+M232,M232: Niederrheinischer Tundalus</h4>,13_1,wmd,PV-G,13_1-wmd-PV-G,"12,4V","13,1V","Religion, Poesie",Heiligenlegende,V,"mittelfränkisch, hessisch/ Nassau? Kloster Eberbach oder Umfeld?"
+M233,M233: Sangspruchstrophe MF 'Namenlos V'</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"um 1200; 13,A",Poesie,Spruchdichtung,V,bairisch
+M234,M234: Vaterunser</h4>,12_2,bair,P-X,12_2-bair-P-X,12,um/nach 1200,Religion,Gebet,P,westbairisch
+M235,M235: Windberger Vaterunser-Erklärung</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,–,Religion,Vaterunser-Auslegung,P,bairisch/ Prämonstratenserkloster Windberg (?)
+M236,M236: Verfahren beim Gottesurteil</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,1V",Recht,–,P,bairisch
+M238,M238: Die Wahrheit</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,"12,M","12,4V",Religion,Bußmahnung,V,bairisch
+M239,M239: Wernher v. Niederrhein: Die vier schiven</h4>,13_2,md,V-X,13_2-md-V-X,"12,M","13,3V",Religion,Reimtheologie,V,mittelfränkisch
+M240B,"M240B: Wernher von Elmendorf, Fragm. B</h4>",,,,12_2-omd_ofrk-PV-X,–,"12,E; um 1200","Wissen(-schaft), Poesie",Lehrdichtung,V,nordmitteldeutsch
+M241,M241: Priester Wernher: Driu liet von der maget (D)</h4>,13_1,bair,PV-G,13_1-bair-PV-G,1172,"13,1V","Religion, Poesie",Mariendichtung,V,bairisch
+M241E,M241E: Priester Wernher: Driu liet von der maget (E)</h4>,13_1,alem,PV-X,13_1-alem-PV-X,–,"13,A (Wesle S. XLII)","Religion, Poesie",Mariendichtung,V,alemannisch
+M241I,M241I: Priester Wernher: Driu liet von der maget (D: Spruchbänder)</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"13,1V (Schneider S. 83)","Religion, Poesie",Mariendichtung,V,mittelbairisch/ Regensburger Raum(?)
+M241Y,M241Y: Priester Wernher: Driu liet von der maget (D)</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"13,1V (Schneider S. 83)","Religion, Poesie",Mariendichtung,V,bairisch
+M242,M242: Wiener Notker</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,11,um 1100,Religion,Psalmenübersetzung,P,bairisch
+M242Y,M242Y: Wiener Notker</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"11,E-12,A (Wunderle/Schmid), 11,E (um 1100?) (Eva Irblich, ÖNB Wien)",Religion,Psalmenübersetzung,P,bairisch
+M243,M243: Der Wilde Mann: Dichtungen</h4>,13_2,md,V-X,13_2-md-V-X,"12,3D","13,3V","Religion, Poesie","Heiligenlegende, Lehrdichtung",V,mittelfränkisch
+M244,M244: Williram von Ebersberg: 'Hoheliedkommentar' (Br/B)</h4>,11_2-12_1,obd,PV-G,11_2-12_1-obd-PV-G,um 1065,"11,E",Religion,Übersetzung und Kommentierung,P,ostfränkisch
+M246,M246: Münchener Wundsegen</h4>,12_2,bair,P-X,12_2-bair-P-X,–,–,"Religion, Alltag",Segen,P,bairisch
+M247,M247: Prüler Wurmsegen</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"1143-1147 (Halm, S. 151)","Religion, Poesie",Segen,V,bairisch
+M248,M248: Grazer Wurmsegen (B)</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"um 1200; 13,A","Religion, Poesie",Segen,V,bairisch
+M249,M249: Zehn Gebote</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"13,1V","Religion, Poesie",Reimparaphrase,V,bairisch
+M250,M250: Nonnengelöbnis</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,–,"1138-1165 (Schmid, S. 218, und Bruchhold, S. 163)","Religion, Recht",Gelöbnis,V,bairisch
+M251,M251: Schreinskarten der Kölner Laurenzpfarre</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,1159-1170,1159-1170,Recht,Urkunde,U,mittelfränkisch/ Köln
+M252,M252: Predigt von Christi Geburt (M/G T 38)</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,zwischen 1145 und 1153,Religion,Predigt,P,bairisch-ostalemannisch
+M253,M253: Pariser Frauengebete</h4>,13_1,bair,P-X,13_1-bair-P-X,"13,1","13, Anfang",Religion,Gebet,P,bairisch
+M254,M254: Pierpont Morgan-Gebet</h4>,13_1,bair,P-X,13_1-bair-P-X,"13,1","13, 2. Jahrzehnt",Religion,Gebet,P,bairisch
+M255,M255: Pierpont Morgan-Gebet</h4>,13_1,bair,P-X,13_1-bair-P-X,"13,1","13,2. Jahrzehnt",Religion,Bildbeischriften,P,bairisch
+M301,M301: Athis und Prophilias</h4>,13_2,omd,PV-G,13_2-omd-PV-G,"13,1 (um oder nach 1215-20?)","13,3V",Poesie,Antikenroman,V,hessisch-thüringisch
+M302,M302: Bartholomäus (M1)</h4>,13_2,bair,PV-G,13_2-bair-PV-G,"12,E (VL 1, 609)","13,3V (bald nach 1250)",Wissen(-schaft),Arzneibuch,P,bairisch
+M303,M303: Amtleutebuch von St. Brigida</h4>,13_2,mfrk,PUV-G,13_2-mfrk-PUV-G,–,"spätes 13. Jh. (K. Schneider); 13,M (Marburger Repertorium)",Recht,städtische Rechtssatzungen,P,ripuarisch/ Köln
+M304,M304: Dietrichs Flucht (R)</h4>,13_2,bair,PV-G,13_2-bair-PV-G,ca. 1220-1300,um 1300,Poesie,Heldenepik,V,bairisch/ (wohl aus Niederösterr.)
+M305,M305: Leben der heiligen Elisabeth (A)</h4>,14_1,rhfrhess,V-G,14_1-rhfrhess-V-G,nach 1297 (um oder kurz nach 1300),um 1320-30,"Religion, Poesie",Heiligenlegende,V,zentralhessisch/ Wetterau oder Marburg
+M306,M306: Die Erlösung (B1)</h4>,14_1,rhfrhess,V-G,14_1-rhfrhess-V-G,"14,1D",1337,"Religion, Poesie",heilsgeschichtliche Erzählung,V,"rheinfränkisch-hessisch/ Mainzer Raum?, westliches Hessen?"
+M307,M307: Frauenfelder Flore (Bruchstücke)</h4>,13_1,alem,PV-G,13_1-alem-PV-G,"um 1220? (VL 2, 744)","13,2V",Poesie,höfischer Roman,V,hochalemannisch
+M308,"M308: Schlacht bei Göllheim,  Böhmenschlacht, Minnehof</h4>",14_1,mfrk,PUV-G,14_1-mfrk-PUV-G,"Aug./Sept. 1298 (Schlacht bei Göllheim) (Bach 1930, ⌡ 8); nach 1281 (Bach 1930, ⌡ 10); nach 1297 (Minnehof) (Bach 1930, ⌡ 12)","14,A",Poesie,"historische Kleindichtungen, Preisreden, Minnerede",V,ripuarisch
+M309,M309: Hartwig von dem Hage: Margaretenlegende. Tagzeiten</h4>,14_1,bairalem,PUV-G,14_1-bairalem-PUV-G,"spätestens 13,3V",1348 (?),"Religion, Poesie","Heiligenlegende, Tagzeiten",V,bairisch-ostalemannisch (ostschwäbisch)/ Augsburg?
+M310,M310: Marien Himmelfahrt</h4>,13_2,rhfrhess,PV-G,13_2-rhfrhess-PV-G,1258 oder 1269,1278 (vgl. S. 366) oder wenig später,"Religion, Poesie",Mariendichtung,V,rheinfränkisch-hessisch
+M311,M311: Heinrich von Freiberg: Tristan (F)</h4>,14_1,omd,V-G,14_1-omd-V-G,"etwa 1285-1290 (Bernt 1906, 185f.)","14,1",Poesie,höfischer Roman,V,ostmitteldeutsch (böhmisch)
+M312,M312: Hartmann von Aue: Iwein (B)</h4>,13_1,obd,V-G,13_1-obd-V-G,"um 1200 (vgl. VL 3, 502)","13,2V (K. Schneider 1987a, 149).",Poesie,höfischer Roman,V,bairisch
+M313,M313: Karl und Galie (D)</h4>,13_2,mfrk,PUV-G,13_2-mfrk-PUV-G,"ca. 1215-25 (Beckers 1994, 3)","13,E",Poesie,Karlsdichtung,V,ripuarisch
+M314,M314: Ulrich von Liechtenstein: Frauendienst (M)</h4>,13_2,bair,PV-G,13_2-bair-PV-G,"13,M","13,E / um 1300",Poesie,fiktive Autobiographie,V,bairisch/ Niederösterreich
+M315,M315: Landgraf Ludwigs Kreuzfahrt</h4>,14_1,omd,V-G,14_1-omd-V-G,"1301 (Naumann 1923, 194)",Anfang 14. Jh.,Poesie,Kreuzzugsdichtung,V,ostmitteldeutsch (schlesisch)
+M316,M316: Lupold Hornburg: Reden</h4>,14_1,ofrk,V-G,14_1-ofrk-V-G,1347 (Rede IV) und 1348 (Rede I-III),um 1350,Poesie,Reimpaarreden,V,ostfränkisch/ Würzburg
+M317,M317: Hugo von Langenstein: Martina</h4>,14_1,alem,V-G,14_1-alem-V-G,abgeschlossen 1293,um oder bald nach 1300,"Religion, Poesie",Heiligenlegende,V,alemannisch/ Raum Zürich
+M318,M318: Evangelienbuch des Matthias von Beheim</h4>,14_1,omd,PU-G,14_1-omd-PU-G,–,1343,Religion,Bibelübersetzung,P,ostmitteldeutsch
+M319,M319: Maria Magdalena' (Verslegende I)</h4>,14_1,bair,PUV-G,14_1-bair-PUV-G,"noch im 13. Jh. (Eis 1935, 237)","14,1V","Religion, Poesie",Heiligenlegende,V,südbairisch/ Steiermark
+M320,M320: Mühlhäuser Rechtsbuch (N)</h4>,13_2,omd,PV-G,13_2-omd-PV-G,"ca. 1220-1230 (1224-1231?) (Eckhardt 1959, 459)","13,E",Recht,Stadtrechtsbuch,P,nordthüringisch/ Nordhausen?
+M321,M321: Nibelungenlied</h4>,13_1,obd,V-G,13_1-obd-V-G,"ca. 1180-1210 (VL 6, 932)","13,1, wohl 13,2V (K. Schneider 1987a, 142, 144)",Poesie,Heldenepik,V,westbairisch-ostalemannisch
+M322,M322: Nikolaus von Straßburg: Predigten (C)</h4>,14_1,alem,PU-G,14_1-alem-PU-G,um 1330,"etwa ab Jahrhundertmitte bis in die 70er Jahre des 14. Jahrhunderts (Karin Schneider, brieflich)",Religion,Predigten,P,alemannisch
+M323,M323: Oberaltaicher Evangelistar</h4>,14_1,bair,PUV-G,14_1-bair-PUV-G,–,"14,A",Religion,Evangelistar,P,(ostmittel)bairisch
+M324,M324: Oxforder Benediktinerregel</h4>,14_1,rhfrhess,PU-G,14_1-rhfrhess-PU-G,–,"14,1","Religion, Recht",Ordensregel,P,nordrheinfränkisch-hessisch/ Kloster Eberbach?
+M325,M325: Wolfram von Eschenbach: Parzival (D)</h4>,13_1,obd,V-G,13_1-obd-V-G,"13,A, (ca. 1200-1210, VL 10, 1378)","nicht später als im 2. Viertel des 13. Jahrhunderts (K. Schneider 1987a, 142; 2. D. 13. Jh. (K. Klein 1994, 89).",Poesie,höfischer Roman,V,westbairisch-ostalemannisch
+M326,M326: Passional (A)</h4>,14_1,omd,V-G,14_1-omd-V-G,"13,E","14,2V","Religion, Poesie",Heiligenlegenden,V,ostmitteldeutsch
+M327,M327: Die Lilie (Prosateil)</h4>,13_2,mfrk,PUV-G,13_2-mfrk-PUV-G,"13,3D / nach 1260",späte 1270er oder 1280er Jahre,Religion,Allegorie,P,ripuarisch
+M328,M328: Mitteldeutsche Predigten (Fr/G/H1)</h4>,13_2,rhfrhess,PV-G,13_2-rhfrhess-PV-G,"um 1200 / 13,1V","13,E",Religion,Predigt,P,rheinfränkisch
+M329,M329: Millstätter Predigtsammlung</h4>,13_1,bair,PV-G,13_1-bair-PV-G,–,"13,M",Religion,Predigt,P,bairisch
+M330,M330: Mitteldeutsche Predigten (K)</h4>,13_1,thurhess,PV-G,13_1-thurhess-PV-G,"um 1200 / 13,1V","13,M",Religion,Predigt,P,hessisch-thüringisch?
+M331,M331: Hessische Reimpredigten</h4>,14_1,rhfrhess,V-G,14_1-rhfrhess-V-G,"14,1V","14,1V Ende / 14,2V Anfang","Religion, Poesie",Predigten,V,zentralhessisch
+M332,M332: Schwarzwälder Predigten (Gr)</h4>,13_2,alem,PU-G,13_2-alem-PU-G,–,1280-1300,Religion,Predigt,P,alemannisch/ Schwaben oder südostalemannischer Raum
+M333,M333: Rappoltsteiner Parzifal (Philipp Colin und Claus Wisse: 'Der Nüwe Parzefal')</h4>,14_1,alem,V-G,14_1-alem-V-G,"1331-1336 (Schorbach 1888, XX)",1331-1336.,Poesie,Epische Kompilation,V,alemannisch (elsässisch)/ Straßburg
+M334,M334: Hugo von Trimberg: Renner (E)</h4>,14_1,ofrk,V-G,14_1-ofrk-V-G,1300 vollendet,1347,Poesie,Lehrdichtung,V,ostfränkisch (nürnbergisch)/ Nürnberg
+M335,M335: Rheinisches Marienlob</h4>,13_1,wmd,PV-G,13_1-wmd-PV-G,–,"13,2V","Religion, Poesie",Mariendichtung,V,ripuarisch
+M336,M336: Rudolf von Ems: Wilhelm von Orlens (M)</h4>,13_2,alem,V-G,13_2-alem-V-G,"Begonnen ca. 1235-1241/42?, dem Tod Konrads II von Öttingen (VL 8, 323f.)","13,4V",Poesie,Minne- und Aventiureroman,V,alemannisch/ Zürich?
+M337,"M337: Salomons Haus (+ 'Von den Zeichen der Messe' S. 105-138, Vaterunserauslegung S. 138-148, 'Gespräch zwischen Christus und der minnenden Seele' S. 148-162)</h4>",13_2,rhfrhess,PV-G,13_2-rhfrhess-PV-G,"13. Jh. (VL 8, 524) bzw. vor ca. 1278",1278 (vgl. S. 366) oder wenig später,Religion,allegorischer Traktat,P,rheinfränkisch-hessisch
+M338,M338: Nürnberger Stadtbuch (Satzungsbuch I/A)</h4>,14_1,ofrk,PU-G,14_1-ofrk-PU-G,1302-ca. 1310,1302-ca. 1310,Recht,Stadtrechtsbuch,P,ostfränkisch/ Nürnberg
+M339,M339: Schwabenspiegel</h4>,13_2,alem,PU-G,13_2-alem-PU-G,"1275-76 (VL 8, 898)","23. August 1287 (Oppitz 1990, 466f.)",Recht,Rechtsbuch,P,alemannisch
+M340,M340: Johannes Tauler: Predigten (W2)</h4>,14_1,mfrk,PUV-G,14_1-mfrk-PUV-G,–,"14,4V",Religion,Predigten,P,ripuarisch/ Köln?
+M341,M341: Gottfried von Straßburg: Tristan (f1/f + m)</h4>,13_1,alem,PV-G,13_1-alem-PV-G,ca. 1200-1210,"13,M",Poesie,höfischer Roman,V,westalemannisch
+M342,M342: Gottfried von Straßburg: Tristan</h4>,13_1,obd,V-G,13_1-obd-V-G,ca. 1200-1210,"13,2V; etwa fünftes Jahrzehnt des 13. Jh.s. (Montag , Gichtel 1979, Bd. 2, 5 u. 36; auch Klemm 1998, Nr. 202); ""gegen die Jahrhundertmitte"" (K. Schneider 1987a, 152).",Poesie,höfischer Roman,V,westbairisch-ostalemannisch
+M343,M343: Ulrich von Türheim: Rennewart (B)</h4>,14_1,bairalem,PUV-G,14_1-bairalem-PUV-G,nach 1243,1320er Jahre,Poesie,höfischer Roman,V,bairisch-ostalemannisch (ostschwäbisch)
+M344,M344: Augsburger Urkunden</h4>,13_2,bairalem,PV-G,13_2-bairalem-PV-G,–,1279-1285,Recht,Urkunden,U,ostschwäbisch/ Augsburg
+M345,M345: Augsburger Urkunden</h4>,14_1,bairalem,PUV-G,14_1-bairalem-PUV-G,–,1336-1341,Recht,Urkunden,U,bairisch-ostalemannisch (ostschwäbisch)/ Augsburg
+M346,M346: Freiburger Urkunden (1284-1298)</h4>,13_2,alem,PU-G,13_2-alem-PU-G,–,1284-1298,Recht,Urkunden,U,alemannisch/ Freiburg
+M347,M347: Freiburger Urkunden</h4>,14_1,alem,PU-G,14_1-alem-PU-G,–,1316-1320,Recht,Urkunden,U,alemannisch/ Freiburg
+M348,M348: Jena-Weidaer Urkunden</h4>,14_1,omd,PU-G,14_1-omd-PU-G,–,1317-1333,Recht,Urkunden,U,"thüringisch/ Jena, Weida"
+M349,M349: Gottfried Hagen: Kölner Urkunden</h4>,13_2,mfrk,PUV-G,13_2-mfrk-PUV-G,–,1261-1274,Recht,Urkunden,U,ripuarisch/ Köln
+M350,M350: Kölner Urkunden</h4>,14_1,mfrk,PUV-G,14_1-mfrk-PUV-G,–,1302-1320,Recht,Urkunden,U,ripuarisch/ Köln
+M351,M351: Landshuter Urkunden</h4>,14_1,bair,PUV-G,14_1-bair-PUV-G,–,1333-1345,Recht,Urkunden,U,"mittelbairisch/ Landshut, Kloster Seligenthal"
+M352,M352: Mainzer Urkunden</h4>,14_1,rhfrhess,PU-G,14_1-rhfrhess-PU-G,1346-1350,1346-1350,Recht,Urkunden,U,rheinfränkisch/ Mainz
+M353,M353: Nürnberger Urkunden</h4>,14_1,ofrk,PU-G,14_1-ofrk-PU-G,1335-1341,1335-1341,Recht,Urkunden,U,ostfränkisch/ Nürnberg
+M354,M354: Die Lilie (Versteil)</h4>,13_2,mfrk,PUV-G,13_2-mfrk-PUV-G,"13,3D / nach 1260",späte 1270er oder 1280er Jahre,"Religion, Poesie",Allegorie,V,ripuarisch?
+M355,M355: Winsbeke und Winsbekin (I[J])</h4>,13_2,bairalem,PV-G,13_2-bairalem-PV-G,"Winsbecke 1210-20, später nicht ausgeschlossen; ""Winsbeckin"" etwas jünger (VL 10, 1224f.)",um 1300,Poesie,Lehrdichtung,V,bairisch-ostalemannisch/ Tirol?
+M356,M356: Würzburger Polizeisätze</h4>,14_1,ofrk,PU-G,14_1-ofrk-PU-G,1342-43,ca. 1347-1350,Recht,Rechtssatzungen,P,ostfränkisch/ Würzburg
+M357,M357: Bruder Hermann: 'Das Leben der Gräfin Yolanda von Vianden' (M)</h4>,14_1,mfrk,PUV-G,14_1-mfrk-PUV-G,"nach 1283, vielleicht 1293-1297 (Mielke-Vandenhouten 1998, 58f.)","14,1V Ende","Religion, Poesie",Heiligenlegende,V,westmoselfränkisch/ Kloster Marienthal?
+M358,M358: Zwifaltener Benediktinerregel</h4>,13_1,bairalem,PV-G,13_1-bairalem-PV-G,–,"13,1V","Religion, Recht",Ordensregel,P,ostalemannisch
+M359,M359: Rudolf von Ems: Weltchronik (Z)</h4>,13_2,alem,V-G,13_2-alem-V-G,"um 1250 (VL 8, 323f.)","13,E","Wissen(-schaft), Poesie",Geschichtsdichtung,V,alemannisch/ Freiburg?
+M401,M401: Baumgarten geistlicher Herzen (L)</h4>,14_1,bairalem,PUV-G,14_1-bairalem-PUV-G,"1270-1290 (Unger 1969, 182)","13,E",Religion,"Gebete, Predigten, Traktate",P,bairisch-ostalemannisch (ostschwäbisch)/ Augsburg?
+M402,M402: Berliner Evangelistar</h4>,14_1,omd,PU-G,14_1-omd-PU-G,–,"14,M",Religion,Bibelübersetzung,P,thüringisch-obersächsisch
+M402Y,M402Y: Berliner Evangelistar</h4>,14_1,omd,PV-X,14_1-omd-PV-X,–,"14,M",Religion,Bibelübersetzung,P,thüringisch-obersächsisch
+M403,M403: Buch der Könige (D1)</h4>,13_2,bair,PV-G,13_2-bair-PV-G,"1274/75-1282 (VL 1, 1091)","13,4V (80er Jahre)",Religion,biblische Erzählung,P,bairisch/ Regensburg
+M403Y,M403Y: Buch der Könige (D1)</h4>,13_2,bair,P-X,13_2-bair-P-X,"1274/75-1282 (VL 1, 1091)","13,4V (80er Jahre)",Religion,biblische Erzählung,P,bairisch/ Regensburg
+M404,M404: Rede von den 15 Graden (P)</h4>,14_1,mfrk,PUV-G,14_1-mfrk-PUV-G,"nicht vor 13,3D (VL 7, 1063)",vor 1350,Religion,mystischer Traktat,P,mittelfränkisch (ripuarisch)
+M405,"M405: David von Augsburg, Traktate</h4>",13_2,bairalem,PV-G,13_2-bairalem-PV-G,bis 1272,kurz vor oder um 1300,Religion,Traktate,P,westl. mittelbairisch
+M405Y,M405Y: David von Augsburg: Traktate</h4>,13_2,bairalem,PV-X,13_2-bairalem-PV-X,bis 1272,kurz vor/um 1300,Religion,Traktate,P,mittelbairisch (westlich)
+M406,M406: Christine Ebner: 'Engelthaler Schwesternbuch' ('Von der genaden uberlast') (N2)</h4>,14_1,ofrk,PU-G,14_1-ofrk-PU-G,1340-vor 1346,um die Mitte oder höchstens kurz nach der Mitte des 14. Jh.s,Religion,Schwesternbuch,P,"ostfränkisch, nordbairisch/ Kloster Engelthal?"
+M406Y,M406Y: Christine Ebner: 'Engelthaler Schwesternbuch' ('Von der genaden uberlast') (N2)</h4>,14_1,ofrk,P-X,14_1-ofrk-P-X,1340-vor 1346,um die Mitte oder höchstens kurz nach der Mitte des 14. Jh.s,Religion,Schwesternbuch,P,"ostfränkisch, nordbairisch/ Kloster Engelthal?"
+M407,M407: Hermann von Fritzlar: Heiligenleben</h4>,14_1,rhfrhess,PU-G,14_1-rhfrhess-PU-G,–,1349?,Religion,"Heiligenlegenden, Predigten",P,hessisch-thüringisch
+M407Y,M407Y: Hermann von Fritzlar: Heiligenleben</h4>,14_1,rhfrhess,PV-X,14_1-rhfrhess-PV-X,–,1349?,Religion,"Heiligenlegenden, Predigten",P,hessisch-thüringisch
+M408,M408: Jenaer Martyrologium</h4>,13_2,omd,PV-G,13_2-omd-PV-G,–,"13,E / um 1300",Religion,"Heiligenlegende, Martyrologium",P,thüringisch
+M409,M409: St. Pauler Predigten</h4>,13_1,bair,PV-G,13_1-bair-PV-G,–,"13,2V",Religion,Predigt,P,bairisch
+M410,M410: Ruprecht von Freising: Freisinger Rechtsbuch</h4>,14_1,bair,PUV-G,14_1-bair-PUV-G,"1328 (VL 8, 416)","nach 1328 (Claußen 1940, 3)",Recht,Stadtrechtsbuch,P,mittelbairisch/ Freising
+M411,M411: Augsburger Stadtbuch</h4>,13_2,bairalem,PV-G,13_2-bairalem-PV-G,1276-81,1276-81,Recht,Stadtrechtsbuch,P,ostschwäbisch/ Augsburg
+M501,M501: Lilienfelder Andachtsbuch</h4>,13_1,bair,V-X,13_1-bair-V-X,–,–,Religion,Andachtsbuch,V,bairisch-österreichisch
+M503,M503: Albert von Augsburg: Leben des heiligen Ulrich</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,–,"13,1V","Religion, Poesie",Heiligenlegende,V,"ostalemannisch, mitteldeutsch"
+M504,M504: Mitteldeutsche Predigten (H2)</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,–,"13,E",Religion,Predigt,P,rheinfrkänkisch
+M505,M505: Lancelot M</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,"13,1","13,M",Poesie,Artusroman,P,mittelfränkisch (moselfränkisch?)
+M506,M506: Hohenfurter Benediktinerregel</h4>,13_1,thurhess,PV-X,13_1-thurhess-PV-X,–,um/kurz nach 1250,"Religion, Recht",Ordensregel,P,"mitteldeutsch, oberdeutsch"
+M507,"M507: Sedulius, Carmen paschale, dt. Interlinearübersetzung</h4>",13_1,thurhess,PV-X,13_1-thurhess-PV-X,–,"13,A",Religion,Interlinearversion,P,thüringisch
+M508,M508: Admonter Benediktinerregel</h4>,13_2,bair,P-X,13_2-bair-P-X,–,"13,E","Religion, Recht",Ordensregel,P,bairisch-österreichisch/ Admont
+M509,M509: Mettener Predigtsammlung II [Leipziger Predigten Me]</h4>,13_2,bair,P-X,13_2-bair-P-X,–,"13,3V",Religion,Predigt,P,bairisch
+M510,M510: Gundacker von Judenburg: Christi Hort</h4>,13_2,bair,V-X,13_2-bair-V-X,–,"14,1V",Religion,Bibeldichtung,V,bairisch-österreichisch
+M512,M512: Vorauer Novelle</h4>,13_2,bairalem,PV-X,13_2-bairalem-PV-X,–,"13,3V","Religion, Poesie",Mirakelerzählung,V,alemannisch
+M513,"M513: Hugo von St. Victor: Expositio in regulam S. Augustini, dt. [Katharinenthaler] Übersetzung) (Zu1)</h4>",13_2,alem,PV-X,13_2-alem-PV-X,–,"13,E oder um 1300","Religion, Recht",Ordensregel,P,alemannisch/ Dominikanerinnenkloster St. Katharinental bei Diessenhofen
+M514,M514: Reinmar von Zweter</h4>,13_2,alem,PV-X,13_2-alem-PV-X,–,um 1300,Poesie,Spruchdichtung,V,alemannisch
+M516,M516: Der Sünden Widerstreit (G)</h4>,13_2,md,V-X,13_2-md-V-X,–,1278 (vgl. S. 366),Religion,allegorisches Gedicht,V,rheinfränkisch-hessisch
+M517,M517: Freidank: Bescheidenheit (A)</h4>,13_2,md,V-X,13_2-md-V-X,–,"13,4V",Poesie,Sinnsprüche,V,südrheinfränkisch
+M518,M518: Gebetbuch für Nonnen</h4>,14_1,obd,PV-X,14_1-obd-PV-X,–,um 1310,Religion,Gebet,PV,bairisch
+M520,M520: Österreichischer Bibelübersetzer: Klosterneuburger Evangelienwerk</h4>,14_1,obd,PV-X,14_1-obd-PV-X,–,um 1340,Religion,Bibelübersetzung,P,niederösterreichisch
+M521,M521: Franziskanerregel (Augsburger Drittordensregel)</h4>,14_1,obd,PV-X,14_1-obd-PV-X,–,"14,A","Religion, Recht",Ordensregel,P,schwäbisch-alemannisch
+M522,M522: Sigenot</h4>,14_1,obd,PV-X,14_1-obd-PV-X,–,"14,2V",Poesie,Heldendichtung,V,ostalemannisch
+M523,M523: Hugo von Konstanz: Predigten</h4>,14_1,obd,PV-X,14_1-obd-PV-X,–,"14,A",Religion,Predigt,P,alemannisch
+M524,M524: Caecilia (Verslegende)</h4>,14_1,obd,PV-X,14_1-obd-PV-X,–,"14,A",Religion,Heiligenlegende,V,hochalemannisch/ Dominikanerinnenkloster St. Katharinental bei Diessenhofen
+M525,"M525: Speculum humanae salvationis, Kremsmünsterer Reimparaphrase</h4>",14_1,obd,PV-X,14_1-obd-PV-X,"14,1",um 1350,Religion,Bibeldichtung,V,alemannisch
+M527,M527: Deutschordensregeln und -statuten</h4>,14_1,mfrk,P-X,14_1-mfrk-P-X,–,um/kurz nach 1300,"Religion, Recht",Ordensregel,P,mittelfränkisch
+M528,M528: Kölner Eidbücher</h4>,14_1,mfrk,P-X,14_1-mfrk-P-X,1321,1321,Recht,Eidbuch,P,ripuarisch
+M529,M529: Gottfried Hagen: Reimchronik der Stadt Köln (D)</h4>,14_1,mfrk,P-X,14_1-mfrk-P-X,1270,Ende 1. Viertel 14. Jh.,Wissen(-schaft),Geschichtsdichtung,V,ripuarisch
+M530,M530: Rheinischer Merlin (Merlin und Lüthild)</h4>,14_1,mfrk,P-X,14_1-mfrk-P-X,"13,M-14,2V",1330-50,Poesie,"Lebensgeschichte, Heiligenlegende",V,ripuarisch
+M531,"M531: Das Turnier', 'Ritterfahrt', 'Ritterpreis'</h4>",14_1,mfrk,P-X,14_1-mfrk-P-X,–,–,Poesie,höfische Epik,V,moselfränkisch
+M532,M532: St. Galler (mittelrheinisches) Passionsspiel</h4>,14_1,rhfrhess,PV-X,14_1-rhfrhess-PV-X,–,1320-1340,Religion,Bibeldichtung,V,rheinfränkisch
+M533,M533: Klagschrift der Gesellschaft der alten Geschlechter zu Mainz gegen die Zweiundzwanzig von der Gemeinde</h4>,14_1,rhfrhess,PV-X,14_1-rhfrhess-PV-X,–,1322,Recht,Klagschrift,P,rheinfränkisch-hessisch
+M536,M536: Leipziger Predigten (Hs. A)</h4>,14_1,omd,PV-X,14_1-omd-PV-X,–,–,Religion,Predigt,P,hochdeutsch
+M537,M537: Christherre-Chronik</h4>,14_1,omd,PV-X,14_1-omd-PV-X,–,–,Religion,Bibeldichtung,V,ostmitteldeutsch
+M538,M538: (Buch) Daniel</h4>,14_1,omd,PV-X,14_1-omd-PV-X,–,nicht vor 1331,Poesie,Deutschordensdichtung,V,ostmitteldeutsch
+M539,M539: Das Buch von guter Speise (A)</h4>,14_1,ofrk,P-X,14_1-ofrk-P-X,–,1345-1354,"Wissen(-schaft), Alltag",Kochbuch,PV,ostfränkisch
+M540,M540: Nürnberger Stadtbuch</h4>,14_1,ofrk,P-X,14_1-ofrk-P-X,–,um 1320/23-1360/62,Recht,Satzung,P,ostfränkisch (nürnbergisch)/ Nürnberg
+M541B,M541B: Herbort von Fritzlar: 'Liet von Troye' (B)</h4>,14_1,thurhess,V_Herb2-X,14_1-thurhess-V_Herb2-X,nach 1190,um 1300,Poesie,Antikenroman,V,"hessisch, ostfränkisch (?)"
+M541H,M541H: Herbort von Fritzlar: 'Liet von Troye' (H)</h4>,14_1,thurhess,V_Herb-X,14_1-thurhess-V_Herb-X,nach 1190,1333,Poesie,Antikenroman,V,unterostfränkisch-mitteldeutsch/ Würzburg
+M541S,M541S: Herbort von Fritzlar: 'Liet von Troye' (S)</h4>,14_1,rhfrhess,PV-X,14_1-rhfrhess-PV-X,nach 1190,"13,3V",Poesie,Antikenroman,V,hessisch
+M543,M543: Hamburger Beichte</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,–,"13,2V",Religion,Beichte,P,rheinfränkisch (teilweise)
+M544A,M544A: Mittelfränkische Urkunden 1248-1275 (Erweiterung von M349)</h4>,13_2,mfrk,U-X,13_2-mfrk-U-X,"13,2",1248-1275,Recht,Urkunden,U,mittelfränkisch (teils rheinfränkisch)
+M544B,M544B: Mittelfränkische Urkunden 1275-1299 (Erweiterung von M349)</h4>,13_2,mfrk,U-X,13_2-mfrk-U-X,"13,2, 1275-1299",–,Recht,Urkunden,U,mittelfränkisch (teils rheinfränkisch)
+M544C,M544C: Mittelfränkische Urkunden 13. Jh. (Erweiterung von M349)</h4>,13_2,mfrk,U-X,13_2-mfrk-U-X,"13,2, 1275-1284",–,Recht,Urkunden,U,–
+M544D,M544D: Mittelfränkische Urkunden 13. Jh. (Erweiterung von M349)</h4>,13_2,mfrk,U-X,13_2-mfrk-U-X,"13,2, 1279-1299",–,Recht,Urkunden,U,mittelfränkisch
+M545,M545: Mittelfränkische Urkunden des 14. Jh.s</h4>,14_1,mfrk,U-X,14_1-mfrk-U-X,"13,2",–,Recht,Urkunden,U,rheinfränkisch (teilweise)
+M546,M546: Flors inde Blanzeflors</h4>,13_2,md,V-X,13_2-md-V-X,–,"13,E",Poesie,höfischer Roman,V,ripuarisch
+M547,M547: Kölner Klosterpredigten</h4>,14_1,mfrk,P-X,14_1-mfrk-P-X,–,–,Religion,Predigt,P,ripuarisch
+M548,M548: Prosa-Lancelot Msp</h4>,13_2,wmd,P-X,13_2-wmd-P-X,"13,2","13, 3. Viertel",Poesie,Artusroman,P,"südrheinfränkisch, alemannisch"
+M549,M549: Mainzer Friedgebot von 1300</h4>,14_1,wmd,U-X,14_1-wmd-U-X,"14,1",1300,Recht,Urkunden,U,rheinfränkisch
+M550,M550: Rheinfränkische Urkunden des 13. Jh.</h4>,13_2,wmd,U-X,13_2-wmd-U-X,"13,2","13,2",Recht,Urkunden,U,rheinfränkisch (alemannisch)
+M551,M551: Hessische Urkunden des 13. Jh.</h4>,13_2,wmd,U-X,13_2-wmd-U-X,"13,2","13,2",Recht,Urkunden,U,"hessisch (hessisch-thüringisch), rheinfränkisch, ostmitteldeutsch"
+M552,M552: Ostmitteldeutsche Urkunden des 13. Jh.</h4>,13_2,omd,U-X,13_2-omd-U-X,"13,2","13,2",Recht,Urkunden,U,ostmitteldeutsch (oberdeutsch)

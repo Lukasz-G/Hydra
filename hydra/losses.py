@@ -45,5 +45,12 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
         total = total + cfg.w_lemma_cls * l_cls
         parts["loss_lemma_cls"] = float(l_cls.detach())
 
+    if out.mlm_logits is not None and "mlm" in batch:
+        l_mlm = F.cross_entropy(out.mlm_logits.reshape(-1, out.mlm_logits.shape[-1]),
+                                batch["mlm"].reshape(-1), ignore_index=IGNORE)
+        l_mlm = torch.where(torch.isnan(l_mlm), zero, l_mlm)
+        total = total + cfg.w_mlm * l_mlm
+        parts["loss_mlm"] = float(l_mlm.detach())
+
     parts["loss"] = float(total.detach())
     return total, parts

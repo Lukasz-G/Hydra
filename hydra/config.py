@@ -38,6 +38,8 @@ class DataConfig:
     # a multi-item token, so upsampling them rebalances nothing
     multi_item_upsample: int = 1
     lemma_type_min_freq: int = 1  # train freq threshold for the lemma-classifier vocab
+    word_type_min_freq: int = 2   # train freq threshold for the masked-LM word vocab
+    mask_prob: float = 0.15       # fraction of tokens blanked for the masked-LM aux
     num_workers: int = 0
 
     def __post_init__(self) -> None:
@@ -60,7 +62,10 @@ class ModelConfig:
     ctx_tcn_dilations: tuple[int, ...] = (1, 2, 4)
     d_dec: int = 256
     lemma_cross_attention: bool = True
-    lemma_classifier: bool = False  # classify-or-generate hybrid head
+    lemma_classifier: bool = False   # classify-or-generate hybrid head
+    tcn_channel_gate: bool = False   # ECA-style channel gating in encoder TCN blocks
+    ctx_self_attention: bool = False # one self-attention layer after the context TCN
+    masked_lm: bool = False          # masked-token auxiliary head on the context encoder
     dropout: float = 0.15
 
 
@@ -70,6 +75,7 @@ class LossConfig:
     w_morph: float = 1.0
     w_lemma: float = 1.5
     w_lemma_cls: float = 1.0
+    w_mlm: float = 0.5
     null_weight: float = 0.2
 
 

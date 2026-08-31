@@ -27,7 +27,8 @@ def load_model_for_inference(model_path: str | Path,
     model = HydraModel(cfg.model, len(vocabs.chars), len(vocabs.pos), len(vocabs.morph),
                        cfg.data.max_word_len, cfg.data.max_lemma_len,
                        cfg.data.chunk_len, cfg.data.halo,
-                       n_lemma_types=len(vocabs.lemma_types)).to(device)
+                       n_lemma_types=len(vocabs.lemma_types),
+                       n_word_types=len(vocabs.word_types)).to(device)
     model.load_state_dict(payload["model"])
     model.eval()
     return model, vocabs, cfg

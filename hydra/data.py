@@ -172,6 +172,7 @@ class EncodedDoc:
     morph: np.ndarray    # (n, n_slots) int16
     lemma: np.ndarray    # (n, n_slots, max_lemma_len) int16
     lemtype: np.ndarray  # (n, n_slots) int32: lemma-type id (UNK if rare/unseen) | IGNORE
+    wtype: np.ndarray    # (n,) int32: word-type id of the surface (masked-LM target)
     n_items: np.ndarray  # (n,) int8, 0 for context-only
     surfaces: list[str]
     gold: list[tuple[str, str, str] | None]  # '+'-joined (lemma, pos, morph) or None
@@ -185,9 +186,11 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
     morph = np.full((n, n_slots), IGNORE, dtype=np.int16)
     lemma = np.full((n, n_slots, max_lemma_len), IGNORE, dtype=np.int16)
     lemtype = np.full((n, n_slots), IGNORE, dtype=np.int32)
+    wtype = np.full(n, IGNORE, dtype=np.int32)
     n_items = np.zeros(n, dtype=np.int8)
     truncated = 0
     for i, tok in enumerate(tokens):
+        wtype[i] = vocabs.word_types.encode(tok.surface)
         ids = vocabs.chars.encode(tok.surface) or [UNK]
         if len(ids) > max_word_len:
             ids = ids[:max_word_len]
@@ -210,7 +213,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
         log.warning("%d surfaces longer than %d chars were truncated", truncated, max_word_len)
     gold = [None if t.lemmas is None else
             ("+".join(t.lemmas), "+".join(t.pos), "+".join(t.morph)) for t in tokens]
-    return EncodedDoc(chars, pos, morph, lemma, lemtype, n_items,
+    return EncodedDoc(chars, pos, morph, lemma, lemtype, wtype, n_items,
                       [t.surface for t in tokens], gold)
 
 
@@ -226,11 +229,13 @@ class HydraDataset(Dataset):
     """
 
     def __init__(self, docs: list[list[Token]], vocabs: Vocabs, cfg: DataConfig,
-                 n_slots: int, training: bool = False):
+                 n_slots: int, training: bool = False, mask_tokens: bool = False):
         self.cfg = cfg
         self.n_slots = n_slots
         self.T = cfg.chunk_len
         self.H = cfg.halo
+        # masked-LM transform: blank tokens and supervise their word type
+        self.mask_prob = cfg.mask_prob if (training and mask_tokens) else 0.0
         self.docs = [encode_document(d, vocabs, cfg.max_word_len, cfg.max_lemma_len, n_slots)
                      for d in docs]
         self.chunks: list[tuple[int, int]] = []  # (doc_id, start)
@@ -266,13 +271,34 @@ class HydraDataset(Dataset):
         morph = self._slice_padded(doc.morph, start, start + T, IGNORE)
         lemma = self._slice_padded(doc.lemma, start, start + T, IGNORE)
         lemtype = self._slice_padded(doc.lemtype, start, start + T, IGNORE)
+        wtype = self._slice_padded(doc.wtype, start, start + T, IGNORE)
         n_items = self._slice_padded(doc.n_items, start, start + T, 0)
+
+        mlm = np.full(T, IGNORE, dtype=np.int64)
+        if self.mask_prob > 0:
+            # blank a fraction of real tokens: the encoder sees a zeroed slot
+            # (all-PAD chars) and the MLM head must recover the word type;
+            # a blanked token can no longer be tagged, so its tagging targets
+            # are ignored. torch RNG is per-DataLoader-worker safe.
+            candidates = np.flatnonzero(wtype != IGNORE)
+            if len(candidates):
+                draw = torch.rand(len(candidates)).numpy() < self.mask_prob
+                for t in candidates[draw]:
+                    mlm[t] = wtype[t]
+                    chars[H + t] = PAD
+                    pos[t] = IGNORE
+                    morph[t] = IGNORE
+                    lemma[t] = IGNORE
+                    lemtype[t] = IGNORE
+                    n_items[t] = 0
+
         return {
             "chars": torch.from_numpy(chars.astype(np.int64)),
             "pos": torch.from_numpy(pos.astype(np.int64)),
             "morph": torch.from_numpy(morph.astype(np.int64)),
             "lemma": torch.from_numpy(lemma.astype(np.int64)),
             "lemtype": torch.from_numpy(lemtype.astype(np.int64)),
+            "mlm": torch.from_numpy(mlm),
             "token_mask": torch.from_numpy(n_items > 0),
             "n_items": torch.from_numpy(n_items.astype(np.int64)),
         }

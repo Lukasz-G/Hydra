@@ -23,12 +23,15 @@ class ModelOutput:
     morph_logits: torch.Tensor  # (B, T, K, M)
     lemma_logits: torch.Tensor  # (B, T, K, L, C)
     lemma_cls_logits: torch.Tensor | None = None  # (B, T, K, n_lemma_types)
+    mlm_logits: torch.Tensor | None = None        # (B, T, n_word_types)
 
 
 class TCNBlock(nn.Module):
-    """Non-causal pre-norm residual block: LN -> dilated conv -> GELU -> conv."""
+    """Non-causal pre-norm residual block: LN -> dilated conv -> GELU -> conv,
+    optionally followed by ECA-style channel gating (no token-to-token mixing)."""
 
-    def __init__(self, channels: int, kernel_size: int, dilation: int, dropout: float):
+    def __init__(self, channels: int, kernel_size: int, dilation: int, dropout: float,
+                 channel_gate: bool = False):
         super().__init__()
         pad = dilation * (kernel_size - 1) // 2
         self.norm = nn.LayerNorm(channels)
@@ -36,17 +39,23 @@ class TCNBlock(nn.Module):
         self.conv2 = nn.Conv1d(channels, channels, kernel_size, dilation=dilation, padding=pad)
         self.act = nn.GELU()
         self.dropout = nn.Dropout(dropout)
+        self.gate = nn.Conv1d(1, 1, kernel_size=5, padding=2, bias=False) if channel_gate else None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # (N, L, C)
         y = self.norm(x).transpose(1, 2)
         y = self.act(self.conv1(y))
-        y = self.conv2(y).transpose(1, 2)
+        y = self.conv2(y)
+        if self.gate is not None:
+            g = torch.sigmoid(self.gate(y.mean(dim=2).unsqueeze(1)))  # (N, 1, C)
+            y = y * g.transpose(1, 2)
+        y = y.transpose(1, 2)
         return x + self.dropout(y)
 
 
 def tcn_stack(channels: int, kernel_size: int, dilations: tuple[int, ...],
-              dropout: float) -> nn.Sequential:
-    return nn.Sequential(*[TCNBlock(channels, kernel_size, d, dropout) for d in dilations])
+              dropout: float, channel_gate: bool = False) -> nn.Sequential:
+    return nn.Sequential(*[TCNBlock(channels, kernel_size, d, dropout, channel_gate)
+                           for d in dilations])
 
 
 class LemmaDecoder(nn.Module):
@@ -96,7 +105,7 @@ class LemmaDecoder(nn.Module):
 class HydraModel(nn.Module):
     def __init__(self, cfg: ModelConfig, n_chars: int, n_pos: int, n_morph: int,
                  max_word_len: int, max_lemma_len: int, chunk_len: int, halo: int,
-                 n_lemma_types: int = 0):
+                 n_lemma_types: int = 0, n_word_types: int = 0):
         super().__init__()
         self.cfg = cfg
         self.T = chunk_len
@@ -106,8 +115,22 @@ class HydraModel(nn.Module):
         self.char_emb = nn.Embedding(n_chars, cfg.d_char, padding_idx=PAD)
         self.char_in = nn.Linear(cfg.d_char, cfg.d_tok)
         self.char_pos_emb = nn.Embedding(max_word_len, cfg.d_tok)
-        self.char_tcn = tcn_stack(cfg.d_tok, cfg.kernel_size, cfg.char_tcn_dilations, cfg.dropout)
-        self.ctx_tcn = tcn_stack(cfg.d_tok, cfg.kernel_size, cfg.ctx_tcn_dilations, cfg.dropout)
+        self.char_tcn = tcn_stack(cfg.d_tok, cfg.kernel_size, cfg.char_tcn_dilations,
+                                  cfg.dropout, cfg.tcn_channel_gate)
+        self.ctx_tcn = tcn_stack(cfg.d_tok, cfg.kernel_size, cfg.ctx_tcn_dilations,
+                                 cfg.dropout, cfg.tcn_channel_gate)
+
+        self.ctx_attn = self.ctx_attn_norm = None
+        if cfg.ctx_self_attention:
+            self.ctx_attn = nn.MultiheadAttention(cfg.d_tok, num_heads=8, batch_first=True,
+                                                  dropout=cfg.dropout)
+            self.ctx_attn_norm = nn.LayerNorm(cfg.d_tok)
+
+        self.mlm_head = None
+        if cfg.masked_lm:
+            if n_word_types <= 0:
+                raise ValueError("masked_lm=true requires n_word_types > 0")
+            self.mlm_head = nn.Linear(cfg.d_tok, n_word_types)
 
         self.fuse = nn.Sequential(
             nn.Linear(2 * cfg.d_tok, cfg.d_model), nn.GELU(), nn.LayerNorm(cfg.d_model))
@@ -150,6 +173,12 @@ class HydraModel(nn.Module):
         tok = tok.view(B, S, -1)                       # (B, S, d_tok)
 
         ctx = self.ctx_tcn(tok)                        # (B, S, d_tok)
+        if self.ctx_attn is not None:
+            kpm = ~token_valid                         # True = ignore
+            kpm = kpm.clone()
+            kpm[kpm.all(dim=-1), 0] = False            # avoid NaN on all-pad rows
+            att, _ = self.ctx_attn(ctx, ctx, ctx, key_padding_mask=kpm, need_weights=False)
+            ctx = self.ctx_attn_norm(ctx + att)
 
         center = slice(H, H + T)
         h = self.fuse(torch.cat([tok[:, center], ctx[:, center]], dim=-1))  # (B, T, d_model)
@@ -160,6 +189,7 @@ class HydraModel(nn.Module):
         pos_logits = self.pos_head(hs)
         morph_logits = self.morph_head(hs)
         lemma_cls_logits = self.lemma_cls_head(hs) if self.lemma_cls_head is not None else None
+        mlm_logits = self.mlm_head(ctx[:, center]) if self.mlm_head is not None else None
 
         flat = hs.reshape(B * T * K, -1)
         char_states = char_pad_mask = None
@@ -172,4 +202,4 @@ class HydraModel(nn.Module):
         lemma_logits = self.lemma_decoder(flat, char_states, char_pad_mask)
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
-        return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits)
+        return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits, mlm_logits)

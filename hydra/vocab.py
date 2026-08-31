@@ -74,7 +74,9 @@ class Vocabs:
 
     def __init__(self, chars: CharVocab, pos: LabelVocab, morph: LabelVocab,
                  train_surfaces: set[str], lemma_counts: dict[str, int] | None = None,
-                 lemma_type_min_freq: int = 1):
+                 lemma_type_min_freq: int = 1,
+                 surface_counts: dict[str, int] | None = None,
+                 word_type_min_freq: int = 2):
         self.chars = chars
         self.pos = pos
         self.morph = morph
@@ -83,22 +85,30 @@ class Vocabs:
         self.lemma_type_min_freq = lemma_type_min_freq
         self.lemma_types = LabelVocab.build(
             [l for l, c in self.lemma_counts.items() if c >= lemma_type_min_freq])
+        # word types for the masked-token auxiliary objective (UNK = rare)
+        self.surface_counts = surface_counts or {}
+        self.word_type_min_freq = word_type_min_freq
+        self.word_types = LabelVocab.build(
+            [w for w, c in self.surface_counts.items() if c >= word_type_min_freq])
 
     @property
     def lemma_inventory(self) -> set[str]:
         return set(self.lemma_counts)
 
     @classmethod
-    def build(cls, tokens: "list", lemma_type_min_freq: int = 1) -> "Vocabs":
+    def build(cls, tokens: "list", lemma_type_min_freq: int = 1,
+              word_type_min_freq: int = 2) -> "Vocabs":
         """Build from a list of data.Token from the train split (tagged tokens only)."""
         strings: set[str] = set()
         pos_labels: set[str] = set()
         morph_labels: set[str] = set()
         surfaces: set[str] = set()
         lemma_counts: dict[str, int] = {}
+        surface_counts: dict[str, int] = {}
         for tok in tokens:
             surfaces.add(tok.surface)
             strings.add(tok.surface)
+            surface_counts[tok.surface] = surface_counts.get(tok.surface, 0) + 1
             if tok.lemmas is None:
                 continue
             strings.update(tok.lemmas)
@@ -108,7 +118,7 @@ class Vocabs:
                 lemma_counts[l] = lemma_counts.get(l, 0) + 1
         return cls(CharVocab.build(strings), LabelVocab.build(pos_labels),
                    LabelVocab.build(morph_labels), surfaces, lemma_counts,
-                   lemma_type_min_freq)
+                   lemma_type_min_freq, surface_counts, word_type_min_freq)
 
     def save(self, path: str | Path) -> None:
         payload = {
@@ -118,6 +128,8 @@ class Vocabs:
             "train_surfaces": sorted(self.train_surfaces),
             "lemma_counts": dict(sorted(self.lemma_counts.items())),
             "lemma_type_min_freq": self.lemma_type_min_freq,
+            "surface_counts": dict(sorted(self.surface_counts.items())),
+            "word_type_min_freq": self.word_type_min_freq,
         }
         Path(path).write_text(json.dumps(payload, ensure_ascii=False, indent=1),
                               encoding="utf-8")
@@ -127,4 +139,5 @@ class Vocabs:
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
         return cls(CharVocab(payload["chars"]), LabelVocab(payload["pos"]),
                    LabelVocab(payload["morph"]), set(payload["train_surfaces"]),
-                   payload.get("lemma_counts"), payload.get("lemma_type_min_freq", 1))
+                   payload.get("lemma_counts"), payload.get("lemma_type_min_freq", 1),
+                   payload.get("surface_counts"), payload.get("word_type_min_freq", 2))

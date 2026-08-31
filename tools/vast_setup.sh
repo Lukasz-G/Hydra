@@ -15,7 +15,7 @@ if [ ! -d hydra/.git ]; then
 fi
 cd hydra
 git pull --ff-only
-pip install -q -e . gdown
+pip install -q -e '.[dev]' gdown
 
 mkdir -p "$WORK/data"
 if [ ! -f "$WORK/data/.corpus_ok" ]; then

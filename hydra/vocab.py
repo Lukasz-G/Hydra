@@ -76,7 +76,8 @@ class Vocabs:
                  train_surfaces: set[str], lemma_counts: dict[str, int] | None = None,
                  lemma_type_min_freq: int = 1,
                  surface_counts: dict[str, int] | None = None,
-                 word_type_min_freq: int = 2):
+                 word_type_min_freq: int = 2,
+                 joint_counts: dict[str, int] | None = None):
         self.chars = chars
         self.pos = pos
         self.morph = morph
@@ -90,6 +91,9 @@ class Vocabs:
         self.word_type_min_freq = word_type_min_freq
         self.word_types = LabelVocab.build(
             [w for w, c in self.surface_counts.items() if c >= word_type_min_freq])
+        # combined POS|morph tags for the joint-tag auxiliary head
+        self.joint_counts = joint_counts or {}
+        self.joint_types = LabelVocab.build(list(self.joint_counts))
 
     @property
     def lemma_inventory(self) -> set[str]:
@@ -105,6 +109,7 @@ class Vocabs:
         surfaces: set[str] = set()
         lemma_counts: dict[str, int] = {}
         surface_counts: dict[str, int] = {}
+        joint_counts: dict[str, int] = {}
         for tok in tokens:
             surfaces.add(tok.surface)
             strings.add(tok.surface)
@@ -116,9 +121,13 @@ class Vocabs:
             morph_labels.update(tok.morph)
             for l in tok.lemmas:
                 lemma_counts[l] = lemma_counts.get(l, 0) + 1
+            for p, m in zip(tok.pos, tok.morph):
+                j = f"{p}|{m}"
+                joint_counts[j] = joint_counts.get(j, 0) + 1
         return cls(CharVocab.build(strings), LabelVocab.build(pos_labels),
                    LabelVocab.build(morph_labels), surfaces, lemma_counts,
-                   lemma_type_min_freq, surface_counts, word_type_min_freq)
+                   lemma_type_min_freq, surface_counts, word_type_min_freq,
+                   joint_counts)
 
     def save(self, path: str | Path) -> None:
         payload = {
@@ -130,6 +139,7 @@ class Vocabs:
             "lemma_type_min_freq": self.lemma_type_min_freq,
             "surface_counts": dict(sorted(self.surface_counts.items())),
             "word_type_min_freq": self.word_type_min_freq,
+            "joint_counts": dict(sorted(self.joint_counts.items())),
         }
         Path(path).write_text(json.dumps(payload, ensure_ascii=False, indent=1),
                               encoding="utf-8")
@@ -140,4 +150,5 @@ class Vocabs:
         return cls(CharVocab(payload["chars"]), LabelVocab(payload["pos"]),
                    LabelVocab(payload["morph"]), set(payload["train_surfaces"]),
                    payload.get("lemma_counts"), payload.get("lemma_type_min_freq", 1),
-                   payload.get("surface_counts"), payload.get("word_type_min_freq", 2))
+                   payload.get("surface_counts"), payload.get("word_type_min_freq", 2),
+                   payload.get("joint_counts"))

@@ -66,6 +66,8 @@ class ModelConfig:
     tcn_channel_gate: bool = False   # ECA-style channel gating in encoder TCN blocks
     ctx_self_attention: bool = False # one self-attention layer after the context TCN
     masked_lm: bool = False          # masked-token auxiliary head on the context encoder
+    attention_pooling: bool = False  # learned-query pooling over char states (vs max-pool)
+    joint_tag: bool = False          # auxiliary head over combined POS|morph tags
     dropout: float = 0.15
 
 
@@ -76,6 +78,7 @@ class LossConfig:
     w_lemma: float = 1.5
     w_lemma_cls: float = 1.0
     w_mlm: float = 0.5
+    w_joint_tag: float = 0.5
     null_weight: float = 0.2
 
 

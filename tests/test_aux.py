@@ -50,6 +50,38 @@ def test_masking_transform(corpus_dir, data_cfg, model_cfg):
     assert (ds_eval[0]["mlm"] == IGNORE).all()
 
 
+def test_attention_pooling_and_joint_tag(model_cfg):
+    cfg = dataclasses.replace(model_cfg, attention_pooling=True, joint_tag=True)
+    model = HydraModel(cfg, n_chars=30, n_pos=10, n_morph=12, max_word_len=12,
+                       max_lemma_len=16, chunk_len=8, halo=4, n_joint_types=25).eval()
+    g = torch.Generator().manual_seed(0)
+    chars = torch.randint(3, 30, (2, 16, 12), generator=g)
+    chars[0, 3] = PAD  # fully padded token must not produce NaN via softmax pooling
+    out = model(chars)
+    assert out.joint_logits is not None and out.joint_logits.shape == (2, 8, 4, 25)
+    for t in (out.pos_logits, out.lemma_logits, out.joint_logits):
+        assert not torch.isnan(t).any()
+    # warm-start: only pool_scores and joint_head are new
+    base = HydraModel(model_cfg, 30, 10, 12, 12, 16, 8, 4)
+    missing, unexpected = model.load_state_dict(base.state_dict(), strict=False)
+    assert not unexpected
+    assert all(("pool_scores" in k) or ("joint_head" in k) for k in missing)
+
+
+def test_joint_tag_targets(corpus_dir, data_cfg):
+    from hydra.data import HydraDataset, load_split_tokens
+    docs = load_split_tokens([str(corpus_dir / "doc1.txt")], "skip", 4)
+    vocabs = Vocabs.build([t for d in docs for t in d])
+    assert "APPR|c.D" in vocabs.joint_types.stoi  # from 'inhandon' item 0
+    ds = HydraDataset(docs, vocabs, data_cfg, 4)
+    item = ds[0]
+    # token 2 = inhandon (2 items): joint set for slots 0-1, IGNORE beyond
+    j = item["joint"][2]
+    assert j[0] == vocabs.joint_types.encode("APPR|c.D")
+    assert j[1] == vocabs.joint_types.encode("NA|Dat.Pl")
+    assert (j[2:] == IGNORE).all()
+
+
 def test_mlm_loss(model_cfg, corpus_dir, data_cfg):
     import dataclasses as dc
     cfg = dc.replace(model_cfg, masked_lm=True)

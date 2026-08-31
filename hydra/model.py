@@ -24,6 +24,7 @@ class ModelOutput:
     lemma_logits: torch.Tensor  # (B, T, K, L, C)
     lemma_cls_logits: torch.Tensor | None = None  # (B, T, K, n_lemma_types)
     mlm_logits: torch.Tensor | None = None        # (B, T, n_word_types)
+    joint_logits: torch.Tensor | None = None      # (B, T, K, n_joint_types)
 
 
 class TCNBlock(nn.Module):
@@ -105,7 +106,7 @@ class LemmaDecoder(nn.Module):
 class HydraModel(nn.Module):
     def __init__(self, cfg: ModelConfig, n_chars: int, n_pos: int, n_morph: int,
                  max_word_len: int, max_lemma_len: int, chunk_len: int, halo: int,
-                 n_lemma_types: int = 0, n_word_types: int = 0):
+                 n_lemma_types: int = 0, n_word_types: int = 0, n_joint_types: int = 0):
         super().__init__()
         self.cfg = cfg
         self.T = chunk_len
@@ -131,6 +132,16 @@ class HydraModel(nn.Module):
             if n_word_types <= 0:
                 raise ValueError("masked_lm=true requires n_word_types > 0")
             self.mlm_head = nn.Linear(cfg.d_tok, n_word_types)
+
+        # multi-head attentive pooling over character states (suffix/edge-aware,
+        # unlike max-pool); channels are split across 4 heads
+        self.pool_scores = nn.Linear(cfg.d_tok, 4) if cfg.attention_pooling else None
+
+        self.joint_head = None
+        if cfg.joint_tag:
+            if n_joint_types <= 0:
+                raise ValueError("joint_tag=true requires n_joint_types > 0")
+            self.joint_head = nn.Linear(cfg.d_model, n_joint_types)
 
         self.fuse = nn.Sequential(
             nn.Linear(2 * cfg.d_tok, cfg.d_model), nn.GELU(), nn.LayerNorm(cfg.d_model))
@@ -165,10 +176,16 @@ class HydraModel(nn.Module):
         x = self.char_in(x) + self.char_pos_emb.weight.unsqueeze(0)
         x = self.char_tcn(x)                           # (B*S, W, d_tok)
 
-        # masked max-pool over character positions -> token vectors
+        # pool character positions -> token vectors
         neg = torch.finfo(x.dtype).min
         pool_mask = char_valid.view(B * S, W, 1)
-        tok = x.masked_fill(~pool_mask, neg).max(dim=1).values
+        if self.pool_scores is not None:
+            scores = self.pool_scores(x).masked_fill(~pool_mask, neg)   # (B*S, W, 4)
+            alpha = torch.nan_to_num(scores.softmax(dim=1))             # all-pad rows -> 0
+            xh = x.view(B * S, W, 4, -1)
+            tok = (alpha.unsqueeze(-1) * xh).sum(dim=1).reshape(B * S, -1)
+        else:
+            tok = x.masked_fill(~pool_mask, neg).max(dim=1).values
         tok = tok * token_valid.view(B * S, 1)         # zero all-pad tokens
         tok = tok.view(B, S, -1)                       # (B, S, d_tok)
 
@@ -190,6 +207,7 @@ class HydraModel(nn.Module):
         morph_logits = self.morph_head(hs)
         lemma_cls_logits = self.lemma_cls_head(hs) if self.lemma_cls_head is not None else None
         mlm_logits = self.mlm_head(ctx[:, center]) if self.mlm_head is not None else None
+        joint_logits = self.joint_head(hs) if self.joint_head is not None else None
 
         flat = hs.reshape(B * T * K, -1)
         char_states = char_pad_mask = None
@@ -202,4 +220,5 @@ class HydraModel(nn.Module):
         lemma_logits = self.lemma_decoder(flat, char_states, char_pad_mask)
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
-        return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits, mlm_logits)
+        return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits,
+                           mlm_logits, joint_logits)

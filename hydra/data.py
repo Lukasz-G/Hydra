@@ -172,6 +172,7 @@ class EncodedDoc:
     morph: np.ndarray    # (n, n_slots) int16
     lemma: np.ndarray    # (n, n_slots, max_lemma_len) int16
     lemtype: np.ndarray  # (n, n_slots) int32: lemma-type id (UNK if rare/unseen) | IGNORE
+    joint: np.ndarray    # (n, n_slots) int32: combined POS|morph tag id | IGNORE
     wtype: np.ndarray    # (n,) int32: word-type id of the surface (masked-LM target)
     n_items: np.ndarray  # (n,) int8, 0 for context-only
     surfaces: list[str]
@@ -186,6 +187,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
     morph = np.full((n, n_slots), IGNORE, dtype=np.int16)
     lemma = np.full((n, n_slots, max_lemma_len), IGNORE, dtype=np.int16)
     lemtype = np.full((n, n_slots), IGNORE, dtype=np.int32)
+    joint = np.full((n, n_slots), IGNORE, dtype=np.int32)
     wtype = np.full(n, IGNORE, dtype=np.int32)
     n_items = np.zeros(n, dtype=np.int8)
     truncated = 0
@@ -204,6 +206,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
             pos[i, s] = vocabs.pos.encode(tok.pos[s])
             morph[i, s] = vocabs.morph.encode(tok.morph[s])
             lemtype[i, s] = vocabs.lemma_types.encode(tok.lemmas[s])
+            joint[i, s] = vocabs.joint_types.encode(f"{tok.pos[s]}|{tok.morph[s]}")
             lids = vocabs.chars.encode(tok.lemmas[s])[:max_lemma_len - 1]
             lemma[i, s, :len(lids)] = lids
             lemma[i, s, len(lids)] = EOW
@@ -213,7 +216,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
         log.warning("%d surfaces longer than %d chars were truncated", truncated, max_word_len)
     gold = [None if t.lemmas is None else
             ("+".join(t.lemmas), "+".join(t.pos), "+".join(t.morph)) for t in tokens]
-    return EncodedDoc(chars, pos, morph, lemma, lemtype, wtype, n_items,
+    return EncodedDoc(chars, pos, morph, lemma, lemtype, joint, wtype, n_items,
                       [t.surface for t in tokens], gold)
 
 
@@ -271,6 +274,7 @@ class HydraDataset(Dataset):
         morph = self._slice_padded(doc.morph, start, start + T, IGNORE)
         lemma = self._slice_padded(doc.lemma, start, start + T, IGNORE)
         lemtype = self._slice_padded(doc.lemtype, start, start + T, IGNORE)
+        joint = self._slice_padded(doc.joint, start, start + T, IGNORE)
         wtype = self._slice_padded(doc.wtype, start, start + T, IGNORE)
         n_items = self._slice_padded(doc.n_items, start, start + T, 0)
 
@@ -290,6 +294,7 @@ class HydraDataset(Dataset):
                     morph[t] = IGNORE
                     lemma[t] = IGNORE
                     lemtype[t] = IGNORE
+                    joint[t] = IGNORE
                     n_items[t] = 0
 
         return {
@@ -298,6 +303,7 @@ class HydraDataset(Dataset):
             "morph": torch.from_numpy(morph.astype(np.int64)),
             "lemma": torch.from_numpy(lemma.astype(np.int64)),
             "lemtype": torch.from_numpy(lemtype.astype(np.int64)),
+            "joint": torch.from_numpy(joint.astype(np.int64)),
             "mlm": torch.from_numpy(mlm),
             "token_mask": torch.from_numpy(n_items > 0),
             "n_items": torch.from_numpy(n_items.astype(np.int64)),

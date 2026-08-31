@@ -98,7 +98,8 @@ def train(cfg: Config, resume: str | None = None,
                        cfg.data.max_word_len, cfg.data.max_lemma_len,
                        cfg.data.chunk_len, cfg.data.halo,
                        n_lemma_types=len(vocabs.lemma_types),
-                       n_word_types=len(vocabs.word_types)).to(info.device)
+                       n_word_types=len(vocabs.word_types),
+                       n_joint_types=len(vocabs.joint_types)).to(info.device)
     if init_weights and not resume:
         # warm-start from a compatible checkpoint: matching keys only, fresh
         # optimizer/schedule (e.g. adding the lemma classifier to a trained model)
@@ -164,7 +165,7 @@ def train(cfg: Config, resume: str | None = None,
             optimizer.zero_grad(set_to_none=True)
             chars = batch["chars"].to(info.device, non_blocking=True)
             targets = {k: batch[k].to(info.device, non_blocking=True)
-                       for k in ("pos", "morph", "lemma", "lemtype", "mlm")}
+                       for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm")}
             with torch.autocast(info.device.type, dtype=torch.float16, enabled=use_amp):
                 out = model(chars)
                 loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos))

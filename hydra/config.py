@@ -98,8 +98,9 @@ class InferConfig:
     batch_chunks: int = 32
     snap_lemmas: bool = True  # lexicon-constrained snapping of generated lemmas
     # classify-or-generate: use the classifier's lemma only when its softmax
-    # probability clears this bar; otherwise trust the character generator
-    classifier_min_prob: float = 0.5
+    # probability clears this bar; otherwise trust the character generator.
+    # 0.3 won the dev sweep {0.3, 0.5, 0.7, 0.9} (nearly flat to 0.5)
+    classifier_min_prob: float = 0.3
 
 
 @dataclass(frozen=True)

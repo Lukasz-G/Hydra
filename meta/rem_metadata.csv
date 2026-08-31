@@ -1,10 +1,10 @@
 sigle,title,period,dialect,typecode,ANNIS-Gruppe,Datierung (Text),Datierung (Hs.),Textbereich,Textsorte,Textart,Sprache (Hs.)/ Schreibort
 M001,M001: Ad equum errehet</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,11-12,–,"Religion, Alltag",Segen,PV,rheinfränkisch
 M002,M002: Ad fluxum sanguinis narium</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,11-12,–,"Religion, Alltag",Segen,P,rheinfränkisch
-M003,"M003: Ad restringendum sanguinem [=Blutsegen, Erfurter]</h4>",,,,12_2-omd_ofrk-PV-X,12,–,"Religion, Alltag",Segen,P,ostmitteldeutsch
+M003,"M003: Ad restringendum sanguinem [=Blutsegen, Erfurter]</h4>",12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,12,–,"Religion, Alltag",Segen,P,ostmitteldeutsch
 M004,M004: Adelbrecht: Johannes Baptista</h4>,12_2,bair,V_1-X,12_2-bair-V_1-X,um 1150 (?),"12,E-13,A","Religion, Poesie",Heiligenlegende,V,bairisch
 M005,"M005: Aegidius, Trierer</h4>",12_2,thurhess,PV-G,12_2-thurhess-PV-G,um 1160,"um 1200 / 13,A","Religion, Poesie",Heiligenlegende,V,hessisch
-M006,M006: Höxterer Aegidius</h4>,,,,12_2-omd_ofrk-PV-X,12,um 1200,"Religion, Poesie",Heiligenlegende,V,hessisch-thüringisch
+M006,M006: Höxterer Aegidius</h4>,12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,12,um 1200,"Religion, Poesie",Heiligenlegende,V,hessisch-thüringisch
 M007,M007: Albanus</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,12,"13,2V","Religion, Poesie",Heiligenlegende,V,moselfränkisch
 M008,M008: Straßburger Alexander</h4>,13_1,thurhess,PV-G,13_1-thurhess-PV-G,"12,3D","13,1F?",Poesie,Antikenroman,V,hessisch-thüringisch
 M009,M009: Pfaffe Lambrecht: 'Alexanderlied' (V ['Vorauer Alexander])</h4>,12_2,bair,V_3-X,12_2-bair-V_3-X,um 1150/60,"12,3V",Wissen(-schaft),Geschichtsdichtung,V,"mittelfränkisch,  bairisch"
@@ -31,7 +31,7 @@ M029,M029: Von der Bedeutung der Buchstaben</h4>,12_2,obd,PV-X,12_2-obd-PV-X,–
 M030,M030: Benediktbeuer Gebet zum Messopfer</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,–,"13,1V",Religion,Gebet,V,bairisch
 M031,M031: Blutsegen (Millstätter)</h4>,13_1,bairalem,PV-X,13_1-bairalem-PV-X,–,"13,2V","Religion, Alltag",Segen,P,bairisch-alemannisch
 M032,"M032: Blutsegen, Abdinghofer</h4>",12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,"12,M","Religion, Alltag",Segen,P,rheinfränkisch
-M033,M033: Bamberger Blutsegen</h4>,,,,12_2-omd_ofrk-PV-X,12?,"12,3V","Religion, Alltag",Segen,PV,ostfränkisch
+M033,M033: Bamberger Blutsegen</h4>,12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,12?,"12,3V","Religion, Alltag",Segen,PV,ostfränkisch
 M034,M034: Blutsegen Contra fluxum sanguinis</h4>,12_2,obd,PV-X,12_2-obd-PV-X,12?,–,"Religion, Alltag",Segen,PV,alemannisch (?)
 M035,"M035: Blutsegen, Millstätter (St. Blasianer)</h4>",11-12_1,obd,PV-X,11-12_1-obd-PV-X,–,"12,A","Religion, Alltag",–,P,westniederalemannisch/  St. Blasien (?)
 M036,M036: Schlettstädter Blutsegen</h4>,11-12_1,rhfrhess,PV-X,11-12_1-rhfrhess-PV-X,11 (?),–,"Religion, Poesie",Segen,V,rheinfränkisch (?)
@@ -127,7 +127,7 @@ M113Y,M113Y: St. Trudperter Hohelied (A)</h4>,13_1,alem,PV-X,13_1-alem-PV-X,–,
 M114,M114: Idsteiner Sprüche der Väter</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,–,"13,M","Religion, Poesie",religiöse Unterweisung,V,rheinfränkisch
 M115,M115: Baumgartenberger Johannes Baptista</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,"12,1",–,"Religion, Poesie",Heiligenlegende,V,bairisch
 M116,M116: Vorauer Joseph (Bücher Mosis 2)</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,–,–,"Religion, Poesie",Bibeldichtung,V,bairisch
-M117,M117: Erfurter Judeneid</h4>,,,,12_2-omd_ofrk-PV-X,12,"um 1200/13,A",Recht,Eid,P,mitteldeutsch
+M117,M117: Erfurter Judeneid</h4>,12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,12,"um 1200/13,A",Recht,Eid,P,mitteldeutsch
 M118,M118: Pfälzer Judeneid</h4>,13_1,wmd,PV-X,13_1-wmd-PV-X,"12-13,A",–,Recht,Eid,P,(süd)rheinfränkisch
 M119,M119: Die Jüngere Judith</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,um 1140?,"12,4V",Religion,Bibeldichtung,V,bairisch (?)
 M120,"M120: Jüngstes Gericht, Hamburger</h4>",13_1,wmd,PV-X,13_1-wmd-PV-X,"12,1(?)","13,M",Religion,Bibeldichtung,V,(süd)rheinfränkisch
@@ -206,7 +206,7 @@ M187,M187: Schleizer Psalmenfragmente</h4>,12-13_1,mdnd,PV-X,12-13_1-mdnd-PV-X,1
 M188,M188: Trierer Interlinearversion zum Psalter</h4>,12_2,wmd,PV-G,12_2-wmd-PV-G,12,um 1200,Religion,Psalmenübersetzung,P,"rheinfränkisch, alemannisch"
 M188Y,M188Y: Trierer Interlinearversion zum Psalter</h4>,12_2,wmd,PVU-X,12_2-wmd-PVU-X,–,um 1200,Religion,Psalmenübersetzung,P,rheinfränkisch
 M189,M189: Wiggertsche Psalmenfragmente</h4>,12-13_1,mdnd,PV-X,12-13_1-mdnd-PV-X,12,"12,M",Religion,Psalmenübersetzung,P,"niederdeutsch, hochdeutsch"
-M191,M191: Schlierbacher Psalmenfragmente</h4>,,,,12_2-omd_ofrk-PV-X,–,um 1200,Religion,Psalmenübersetzung,P,"ostfränkisch, bairisch"
+M191,M191: Schlierbacher Psalmenfragmente</h4>,12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,–,um 1200,Religion,Psalmenübersetzung,P,"ostfränkisch, bairisch"
 M192,M192: Gereimte Psalter-Paraphrase (Ps. 58-61)</h4>,13_1,obd,PV-X,13_1-obd-PV-X,"12-13,A","13,1V","Religion, Poesie",Psalmendichtung,V,oberdeutsch
 M193,M193: Millstätter Interlinearversion zum Psalter und zu den Hymnen des Römischen Breviers</h4>,12_2,bair,P-X,12_2-bair-P-X,–,nicht vor 1200 (Schneider S. 37),Religion,Psalmenübersetzung,P,bairisch
 M194,M194: Sonnenburger Psalmenfragmente</h4>,13_1,bair,P-X,13_1-bair-P-X,13,–,Religion,Psalmenübersetzung,P,(süd)bairisch
@@ -217,8 +217,8 @@ M197,M197: Geistliche Ratschläge</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11 (?),
 M198,M198: Vom Rechte</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"um 1200 oder 13,A (Schneider 1987, S. 88)","Religion, Poesie",–,V,bairisch (mit Alemannismen)
 M199A,M199A: Mittelfränkische Reimbibel (A)</h4>,12_2,wmd,PV-G,12_2-wmd-PV-G,um 1100,"12,2D","Religion, Poesie",Bibeldichtung,V,"mittelfränkisch, niederfränkisch, westfälisch/ Werden?"
 M199B,M199B: Mittelfränkische Reimbibel (B)</h4>,12_2,obd,PV-X,12_2-obd-PV-X,um 1100,"12,M","Religion, Poesie",Bibeldichtung,V,"mittelfränkisch, bairisch"
-M199C,M199C: Mittelfränkische Reimbibel (C)</h4>,,,,12_2-omd_ofrk-PV-X,um 1100,"12,3D oder um 1200",Religion,Bibeldichtung,V,"mittelfränkisch, ostfälisch (?)"
-M200,M200: Londoner Reisesegen und Bruchstücke eines Gebets</h4>,,,,12_2-omd_ofrk-PV-X,12,"12,E","Religion, Alltag","Segen, Gebetsanweisung",P,"ostfränkisch, südthüringisch"
+M199C,M199C: Mittelfränkische Reimbibel (C)</h4>,12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,um 1100,"12,3D oder um 1200",Religion,Bibeldichtung,V,"mittelfränkisch, ostfälisch (?)"
+M200,M200: Londoner Reisesegen und Bruchstücke eines Gebets</h4>,12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,12,"12,E","Religion, Alltag","Segen, Gebetsanweisung",P,"ostfränkisch, südthüringisch"
 M201,M201: Weingartner Reisesegen</h4>,13_2,md,V-X,13_2-md-V-X,12/13 (?),–,"Religion, Alltag",Segen,PV,rheinfränkisch
 M202,M202: Codex Falkensteinensis: Rezept gegen den Stein</h4>,12_2,bair,P-X,12_2-bair-P-X,–,"1168-1195 (Noichl, S. 67, 140 und 164)",Wissen(-schaft),Rezept,P,südbairisch
 M203,M203: Rezept gegen Lähmung  'Contra paralisin id est vergiht'</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV-X,11,–,Wissen(-schaft),Rezept,P,oberdeutsch
@@ -263,7 +263,7 @@ M235,M235: Windberger Vaterunser-Erklärung</h4>,11-12_1,obd,PV-X,11-12_1-obd-PV
 M236,M236: Verfahren beim Gottesurteil</h4>,13_1,bair,P-X,13_1-bair-P-X,–,"13,1V",Recht,–,P,bairisch
 M238,M238: Die Wahrheit</h4>,12_2,bair,V_2-X,12_2-bair-V_2-X,"12,M","12,4V",Religion,Bußmahnung,V,bairisch
 M239,M239: Wernher v. Niederrhein: Die vier schiven</h4>,13_2,md,V-X,13_2-md-V-X,"12,M","13,3V",Religion,Reimtheologie,V,mittelfränkisch
-M240B,"M240B: Wernher von Elmendorf, Fragm. B</h4>",,,,12_2-omd_ofrk-PV-X,–,"12,E; um 1200","Wissen(-schaft), Poesie",Lehrdichtung,V,nordmitteldeutsch
+M240B,"M240B: Wernher von Elmendorf, Fragm. B</h4>",12_2,omd_ofrk,PV-X,12_2-omd_ofrk-PV-X,–,"12,E; um 1200","Wissen(-schaft), Poesie",Lehrdichtung,V,nordmitteldeutsch
 M241,M241: Priester Wernher: Driu liet von der maget (D)</h4>,13_1,bair,PV-G,13_1-bair-PV-G,1172,"13,1V","Religion, Poesie",Mariendichtung,V,bairisch
 M241E,M241E: Priester Wernher: Driu liet von der maget (E)</h4>,13_1,alem,PV-X,13_1-alem-PV-X,–,"13,A (Wesle S. XLII)","Religion, Poesie",Mariendichtung,V,alemannisch
 M241I,M241I: Priester Wernher: Driu liet von der maget (D: Spruchbänder)</h4>,13_1,bair,V-X,13_1-bair-V-X,–,"13,1V (Schneider S. 83)","Religion, Poesie",Mariendichtung,V,mittelbairisch/ Regensburger Raum(?)

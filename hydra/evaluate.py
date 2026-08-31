@@ -25,11 +25,15 @@ def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
     acc_all = EvalAccumulator()
     acc_clean = EvalAccumulator()
     snap_ok_all = snap_ok_clean = 0
+    use_amp = device.type == "cuda"
+    if use_amp:
+        torch.cuda.empty_cache()  # release training caches before the big eval tensors
     with torch.inference_mode():
         for lo in range(0, len(ds), batch_chunks):
             idxs = list(range(lo, min(lo + batch_chunks, len(ds))))
             batch = collate([ds[i] for i in idxs])
-            out = model(batch["chars"].to(device))
+            with torch.autocast(device.type, dtype=torch.float16, enabled=use_amp):
+                out = model(batch["chars"].to(device))
             surfaces = [ds.chunk_surfaces(i) for i in idxs]
             preds = decode_batch(out, vocabs, surfaces, cls_min_prob)
             golds = [ds.chunk_gold(i) for i in idxs]

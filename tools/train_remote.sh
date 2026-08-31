@@ -10,6 +10,7 @@
 #   metrics to gdrive:hydra_runs/<name> every 5 minutes and once at the end.
 set -uo pipefail
 cd /workspace/hydra
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 RUN_DIR="${1:?usage: train_remote.sh RUN_DIR [--set ...]}"
 shift || true

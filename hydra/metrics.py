@@ -37,8 +37,11 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
 
     cls_ids = None
     if out.lemma_cls_logits is not None:
-        probs = out.lemma_cls_logits[..., 1:].float().softmax(dim=-1)
-        cls_prob, cls_arg = probs.max(dim=-1)
+        # confidence without materializing a softmax over ~36k classes:
+        # p(argmax) = exp(max_logit - logsumexp); only (B,T,K)-sized outputs
+        cls = out.lemma_cls_logits[..., 1:]
+        cls_max, cls_arg = cls.max(dim=-1)
+        cls_prob = (cls_max.float() - torch.logsumexp(cls, dim=-1).float()).exp()
         cls_arg = cls_arg + 1                                      # undo NULL skip
         cls_arg[cls_prob < cls_min_prob] = LABEL_UNK               # low confidence -> generate
         cls_ids = cls_arg.cpu().numpy()                            # (B, T, K)

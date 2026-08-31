@@ -180,7 +180,10 @@ class HydraModel(nn.Module):
         neg = torch.finfo(x.dtype).min
         pool_mask = char_valid.view(B * S, W, 1)
         if self.pool_scores is not None:
-            scores = self.pool_scores(x).masked_fill(~pool_mask, neg)   # (B*S, W, 4)
+            scores = self.pool_scores(x)                                # (B*S, W, 4)
+            # under autocast scores may be fp16 while x is fp32: fill with
+            # the minimum of the scores' own dtype
+            scores = scores.masked_fill(~pool_mask, torch.finfo(scores.dtype).min)
             alpha = torch.nan_to_num(scores.softmax(dim=1))             # all-pad rows -> 0
             xh = x.view(B * S, W, 4, -1)
             tok = (alpha.unsqueeze(-1) * xh).sum(dim=1).reshape(B * S, -1)

@@ -57,10 +57,12 @@ ds = HydraDataset(dev_docs, vocabs, cfg.data, cfg.model.n_slots)
 
 records = []  # (surface, gold_lemma, gold_pos, gold_morph, pred_lemma, pred_pos, pred_morph, gold_n)
 with torch.inference_mode():
-    for lo in range(0, len(ds), 32):
-        idxs = list(range(lo, min(lo + 32, len(ds))))
+    for lo in range(0, len(ds), 8):
+        idxs = list(range(lo, min(lo + 8, len(ds))))
         batch = collate([ds[i] for i in idxs])
-        out = model(batch["chars"].to(device))
+        with torch.autocast(device.type, dtype=torch.float16,
+                            enabled=device.type == "cuda"):
+            out = model(batch["chars"].to(device))
         surfaces = [ds.chunk_surfaces(i) for i in idxs]
         preds = decode_batch(out, vocabs, surfaces)
         n_items = batch["n_items"].numpy()

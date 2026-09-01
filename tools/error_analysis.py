@@ -15,7 +15,7 @@ CKPT = sys.argv[2] if len(sys.argv) > 2 else "best.pt"
 OUT = RUN / "error_analysis.txt"
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-model, vocabs, cfg = load_model_for_inference(RUN / "best.pt", device)
+model, vocabs, cfg = load_model_for_inference(RUN / CKPT, device)
 splits = json.loads((RUN / "split.json").read_text(encoding="utf-8"))
 
 # ---- train-side inventories -------------------------------------------------

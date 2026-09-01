@@ -81,6 +81,10 @@ def parse_tsv_file(path: str | Path, on_mismatch: str = "skip",
             if not line.strip() or line.startswith("@"):
                 continue
             cols = line.split("\t")
+            if len(cols) == 1 and cols[0].strip():
+                # surface-only line (raw/unannotated corpus): clean context token
+                tokens.append(Token(cols[0].strip(), None, None, None))
+                continue
             if len(cols) < 4 or not cols[0].strip():
                 if on_mismatch == "error":
                     raise ValueError(f"{path}:{lineno}: expected 4 tab-separated columns: {line!r}")

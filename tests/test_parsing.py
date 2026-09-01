@@ -63,6 +63,15 @@ def test_mismatch_error_raises(corpus_dir):
         parse_tsv_file(corpus_dir / "doc1.txt", on_mismatch="error", n_slots=4)
 
 
+def test_surface_only_lines_are_clean_context(tmp_path):
+    f = tmp_path / "raw.txt"
+    f.write_text("swer\nan\nrehte\n", encoding="utf-8")
+    tokens, skipped = parse_tsv_file(f, n_slots=4)
+    assert skipped == 0  # raw corpus lines are not "malformed"
+    assert len(tokens) == 3 and all(t.lemmas is None for t in tokens)
+    assert tokens[0].surface == "swer"
+
+
 def test_empty_morph_item_is_context_only(tmp_path):
     # '--' is the corpus's "no morphology" value; an EMPTY item is malformed
     f = tmp_path / "d.txt"

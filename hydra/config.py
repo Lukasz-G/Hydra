@@ -34,6 +34,12 @@ class DataConfig:
     # "chunk": random chunks within all files (protocol comparable to Pie/Schmid)
     split_mode: str = "file"
     metadata_csv: str | None = None
+    # directory of additional UNANNOTATED text files (one token per line),
+    # added to the training set as context-only tokens (masked-LM signal)
+    extra_train_dir: str | None = None
+    # use this existing vocab.json instead of building one — required when a
+    # fine-tune must share embeddings with a pretraining run's vocabulary
+    vocab_file: str | None = None
     limit_files: int = 0  # >0: cap files per split (smoke runs)
     max_word_len: int = 48
     max_lemma_len: int = 32

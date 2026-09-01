@@ -26,10 +26,13 @@ def train_main(argv: list[str] | None = None) -> None:
     p.add_argument("--resume", default=None, help="checkpoint to resume from (e.g. last.pt)")
     p.add_argument("--init-weights", default=None,
                    help="warm-start weights from a checkpoint (matching keys only, fresh optimizer)")
+    p.add_argument("--reset-patience", action="store_true",
+                   help="on --resume, restore the configured early-stopping patience")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     cfg = load_config(args.config, args.overrides)
-    train(cfg, resume=args.resume, init_weights=args.init_weights)
+    train(cfg, resume=args.resume, init_weights=args.init_weights,
+          reset_patience=args.reset_patience)
 
 
 def tag_main(argv: list[str] | None = None) -> None:

@@ -9,7 +9,9 @@ from hydra.data import HydraDataset, collate, load_split_tokens, split_lemma_ite
 from hydra.metrics import decode_batch, levenshtein
 from hydra.tag import load_model_for_inference
 
-RUN = Path("runs/mhd_base")
+import sys
+RUN = Path(sys.argv[1] if len(sys.argv) > 1 else "runs/mhd_base")
+CKPT = sys.argv[2] if len(sys.argv) > 2 else "best.pt"
 OUT = RUN / "error_analysis.txt"
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

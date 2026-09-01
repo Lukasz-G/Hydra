@@ -80,7 +80,8 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
 
 
 def train(cfg: Config, resume: str | None = None,
-          init_weights: str | None = None) -> dict[str, float]:
+          init_weights: str | None = None,
+          reset_patience: bool = False) -> dict[str, float]:
     info = init_distributed(cfg.distributed.backend)
     seed_everything(cfg.run.seed)
     run_dir = Path(cfg.run.run_dir)
@@ -124,7 +125,19 @@ def train(cfg: Config, resume: str | None = None,
                         shuffle=sampler is None, sampler=sampler, collate_fn=collate,
                         num_workers=cfg.data.num_workers, drop_last=False)
 
-    optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.train.lr,
+    head_names = ("lemma_cls_head", "mlm_head", "joint_head")
+    if cfg.train.cls_head_lr_mult != 1.0:
+        head_params = [p for n, p in model.named_parameters()
+                       if any(h in n for h in head_names)]
+        base_params = [p for n, p in model.named_parameters()
+                       if not any(h in n for h in head_names)]
+        param_groups = [
+            {"params": base_params, "lr": cfg.train.lr},
+            {"params": head_params, "lr": cfg.train.lr * cfg.train.cls_head_lr_mult},
+        ]
+    else:
+        param_groups = model.parameters()
+    optimizer = torch.optim.AdamW(param_groups, lr=cfg.train.lr,
                                   weight_decay=cfg.train.weight_decay, betas=(0.9, 0.98))
     total_steps = len(loader) * cfg.train.max_epochs
     scheduler = build_scheduler(optimizer, cfg.train.warmup_steps, total_steps,
@@ -148,7 +161,9 @@ def train(cfg: Config, resume: str | None = None,
         start_epoch = payload["epoch"] + 1
         step = payload["step"]
         best_metric = payload["best_metric"]
-        patience_left = payload["patience_left"]
+        # an early-stopped checkpoint stores exhausted patience; --reset-patience
+        # restores the configured budget when extending a run
+        patience_left = cfg.train.patience if reset_patience else payload["patience_left"]
         restore_rng_states(payload["rng"])
         if info.is_main:
             logger.log(event="resume", from_epoch=start_epoch, best=best_metric)

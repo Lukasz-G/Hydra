@@ -106,6 +106,9 @@ class TrainConfig:
     patience: int = 8
     min_delta: float = 0.0005
     log_every_steps: int = 50
+    # LR multiplier for the large classification heads (lemma_cls/mlm/joint),
+    # which train slower than the pretrained/warm encoder at big d_model
+    cls_head_lr_mult: float = 1.0
 
 
 @dataclass(frozen=True)

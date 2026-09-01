@@ -28,6 +28,12 @@ class DataConfig:
     dev_fraction: float = 0.05
     test_fraction: float = 0.05
     split_seed: int = 42
+    # "file": random whole manuscripts held out (hard protocol, historical default)
+    # "stratified": whole manuscripts held out, balanced by dialect x period x type
+    #               (requires metadata_csv), token-weighted
+    # "chunk": random chunks within all files (protocol comparable to Pie/Schmid)
+    split_mode: str = "file"
+    metadata_csv: str | None = None
     limit_files: int = 0  # >0: cap files per split (smoke runs)
     max_word_len: int = 48
     max_lemma_len: int = 32
@@ -45,6 +51,10 @@ class DataConfig:
     def __post_init__(self) -> None:
         if self.on_mismatch not in ("skip", "error"):
             raise ValueError(f"data.on_mismatch must be 'skip' or 'error', got {self.on_mismatch!r}")
+        if self.split_mode not in ("file", "stratified", "chunk"):
+            raise ValueError(f"data.split_mode must be file|stratified|chunk, got {self.split_mode!r}")
+        if self.split_mode == "stratified" and not self.metadata_csv:
+            raise ValueError("data.split_mode='stratified' requires data.metadata_csv")
         if self.corpus_dir is None and self.train_dir is None:
             raise ValueError("config must set data.corpus_dir or data.train_dir")
         if self.train_dir is not None and (self.dev_dir is None):

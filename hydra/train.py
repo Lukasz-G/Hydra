@@ -65,12 +65,17 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
     barrier(info)
     vocabs = Vocabs.load(vocab_path)
 
+    chunk_mode = cfg.data.split_mode == "chunk" and cfg.data.train_dir is None
     train_ds = HydraDataset(train_docs, vocabs, cfg.data, cfg.model.n_slots,
-                            training=True, mask_tokens=cfg.model.masked_lm)
+                            training=True, mask_tokens=cfg.model.masked_lm,
+                            role="train" if chunk_mode else None)
     dev_ds = None
     if info.is_main:
-        dev_docs = load_split_tokens(splits["dev"], cfg.data.on_mismatch, cfg.model.n_slots)
-        dev_ds = HydraDataset(dev_docs, vocabs, cfg.data, cfg.model.n_slots)
+        if chunk_mode:
+            dev_ds = HydraDataset(train_docs, vocabs, cfg.data, cfg.model.n_slots, role="dev")
+        else:
+            dev_docs = load_split_tokens(splits["dev"], cfg.data.on_mismatch, cfg.model.n_slots)
+            dev_ds = HydraDataset(dev_docs, vocabs, cfg.data, cfg.model.n_slots)
     return vocabs, train_ds, dev_ds
 
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import random
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -132,14 +133,80 @@ def split_corpus_files(files: list[Path], dev_fraction: float, test_fraction: fl
     }
 
 
+def count_tokens(path: str | Path) -> int:
+    with open(path, "r", encoding="utf-8") as fh:
+        return sum(1 for ln in fh if ln.strip() and not ln.startswith("@"))
+
+
+def file_sigle(path: str | Path) -> str:
+    m = re.match(r"(M\d{3}[A-Z]?)", Path(path).name)
+    return m.group(1) if m else Path(path).stem
+
+
+def load_strata(metadata_csv: str | Path) -> dict[str, str]:
+    """sigle -> stratum ('dialect/period') from the ReM metadata table."""
+    import csv
+    strata: dict[str, str] = {}
+    with open(metadata_csv, encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            strata[row["sigle"]] = f"{row.get('dialect') or '?'}/{row.get('period') or '?'}"
+    return strata
+
+
+def stratified_split_files(files: list[Path], metadata_csv: str | Path,
+                           dev_fraction: float, test_fraction: float,
+                           seed: int) -> dict[str, list[str]]:
+    """Manuscript-held-out split balanced by stratum, weighted by token count:
+    within each stratum, files are assigned to dev/test until each holds its
+    token-fraction of the stratum."""
+    strata_of = load_strata(metadata_csv)
+    groups: dict[str, list[tuple[str, int]]] = {}
+    for f in files:
+        stratum = strata_of.get(file_sigle(f), "unknown")
+        groups.setdefault(stratum, []).append((str(f), count_tokens(f)))
+    rng = random.Random(seed)
+    out: dict[str, list[str]] = {"train": [], "dev": [], "test": []}
+    for stratum in sorted(groups):
+        members = sorted(groups[stratum])
+        rng.shuffle(members)
+        total = sum(n for _, n in members)
+        want = {"dev": total * dev_fraction, "test": total * test_fraction}
+        got = {"dev": 0.0, "test": 0.0}
+        held_out_budget = max(0, len(members) - 1)  # keep >=1 file per stratum in train
+        for name, n in members:
+            role = "train"
+            if held_out_budget > 0:
+                # offer the file to whichever role is furthest behind its token
+                # budget; take it only if it roughly fits (large manuscripts
+                # must not blow past the fraction)
+                for cand in sorted(("dev", "test"),
+                                   key=lambda r: got[r] / max(want[r], 1)):
+                    if got[cand] < want[cand] and got[cand] + n <= want[cand] * 1.5 + 200:
+                        role = cand
+                        break
+            if role != "train":
+                got[role] += n
+                held_out_budget -= 1
+            out[role].append(name)
+    return {k: sorted(v) for k, v in out.items()}
+
+
 def resolve_splits(cfg: DataConfig, run_dir: Path | None = None) -> dict[str, list[str]]:
-    """Explicit train/dev/test dirs if given, else split corpus_dir by file."""
+    """Explicit train/dev/test dirs if given, else split corpus_dir by file.
+    split_mode='chunk' puts every file in every split (roles are assigned at
+    chunk level inside HydraDataset)."""
     if cfg.train_dir is not None:
         splits = {
             "train": [str(f) for f in list_corpus_files(cfg.train_dir)],
             "dev": [str(f) for f in list_corpus_files(cfg.dev_dir)],
             "test": [str(f) for f in list_corpus_files(cfg.test_dir)] if cfg.test_dir else [],
         }
+    elif cfg.split_mode == "chunk":
+        names = sorted(str(f) for f in list_corpus_files(cfg.corpus_dir))
+        splits = {"train": names, "dev": names, "test": names}
+    elif cfg.split_mode == "stratified":
+        splits = stratified_split_files(list_corpus_files(cfg.corpus_dir), cfg.metadata_csv,
+                                        cfg.dev_fraction, cfg.test_fraction, cfg.split_seed)
     else:
         files = list_corpus_files(cfg.corpus_dir)
         splits = split_corpus_files(files, cfg.dev_fraction, cfg.test_fraction, cfg.split_seed)
@@ -232,7 +299,10 @@ class HydraDataset(Dataset):
     """
 
     def __init__(self, docs: list[list[Token]], vocabs: Vocabs, cfg: DataConfig,
-                 n_slots: int, training: bool = False, mask_tokens: bool = False):
+                 n_slots: int, training: bool = False, mask_tokens: bool = False,
+                 role: str | None = None):
+        """role: with cfg.split_mode='chunk', keep only this role's random
+        chunk subset (train/dev/test assigned by cfg fractions and split_seed)."""
         self.cfg = cfg
         self.n_slots = n_slots
         self.T = cfg.chunk_len
@@ -246,6 +316,14 @@ class HydraDataset(Dataset):
             n = len(doc.n_items)
             for start in range(0, n, self.T):
                 self.chunks.append((d, start))
+        if role is not None:
+            order = list(range(len(self.chunks)))
+            random.Random(cfg.split_seed).shuffle(order)
+            n_dev = max(1, round(len(order) * cfg.dev_fraction))
+            n_test = max(1, round(len(order) * cfg.test_fraction))
+            picked = {"dev": order[:n_dev], "test": order[n_dev:n_dev + n_test],
+                      "train": order[n_dev + n_test:]}[role]
+            self.chunks = [self.chunks[i] for i in sorted(picked)]
         if training and cfg.multi_item_upsample > 1:
             extra = []
             for (d, start) in self.chunks:

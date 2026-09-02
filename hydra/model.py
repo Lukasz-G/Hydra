@@ -25,16 +25,25 @@ class ModelOutput:
     lemma_cls_logits: torch.Tensor | None = None  # (B, T, K, n_lemma_types)
     mlm_logits: torch.Tensor | None = None        # (B, T, n_word_types)
     joint_logits: torch.Tensor | None = None      # (B, T, K, n_joint_types)
+    # AR decoding state (set when lemma_decoder='ar_tcn' runs without teacher):
+    slot_states: torch.Tensor | None = None       # (B*T*K, d_model)
+    char_states: torch.Tensor | None = None       # (B*T*K, W, d_tok)
+    char_pad_mask: torch.Tensor | None = None     # (B*T*K, W)
 
 
 class TCNBlock(nn.Module):
-    """Non-causal pre-norm residual block: LN -> dilated conv -> GELU -> conv,
-    optionally followed by ECA-style channel gating (no token-to-token mixing)."""
+    """Pre-norm residual block: LN -> dilated conv -> GELU -> conv.
+
+    Non-causal by default (symmetric padding: encoder use — right context must
+    flow). causal=True pads left only, so position t sees positions <= t: the
+    WaveNet-style variant for autoregressive decoding. Optional ECA-style
+    channel gating (no token-to-token mixing)."""
 
     def __init__(self, channels: int, kernel_size: int, dilation: int, dropout: float,
-                 channel_gate: bool = False):
+                 channel_gate: bool = False, causal: bool = False):
         super().__init__()
-        pad = dilation * (kernel_size - 1) // 2
+        self.left_pad = dilation * (kernel_size - 1) if causal else 0
+        pad = 0 if causal else dilation * (kernel_size - 1) // 2
         self.norm = nn.LayerNorm(channels)
         self.conv1 = nn.Conv1d(channels, channels, kernel_size, dilation=dilation, padding=pad)
         self.conv2 = nn.Conv1d(channels, channels, kernel_size, dilation=dilation, padding=pad)
@@ -44,7 +53,11 @@ class TCNBlock(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # (N, L, C)
         y = self.norm(x).transpose(1, 2)
+        if self.left_pad:
+            y = torch.nn.functional.pad(y, (self.left_pad, 0))
         y = self.act(self.conv1(y))
+        if self.left_pad:
+            y = torch.nn.functional.pad(y, (self.left_pad, 0))
         y = self.conv2(y)
         if self.gate is not None:
             g = torch.sigmoid(self.gate(y.mean(dim=2).unsqueeze(1)))  # (N, 1, C)
@@ -54,8 +67,9 @@ class TCNBlock(nn.Module):
 
 
 def tcn_stack(channels: int, kernel_size: int, dilations: tuple[int, ...],
-              dropout: float, channel_gate: bool = False) -> nn.Sequential:
-    return nn.Sequential(*[TCNBlock(channels, kernel_size, d, dropout, channel_gate)
+              dropout: float, channel_gate: bool = False,
+              causal: bool = False) -> nn.Sequential:
+    return nn.Sequential(*[TCNBlock(channels, kernel_size, d, dropout, channel_gate, causal)
                            for d in dilations])
 
 
@@ -101,6 +115,64 @@ class LemmaDecoder(nn.Module):
             x = self.attn_norm(x + att)
         x = self.refine(x)
         return self.out(x)
+
+
+class LemmaDecoderAR(nn.Module):
+    """Autoregressive fully-convolutional lemma decoder (WaveNet-style).
+
+    Input position t holds the embedding of char t-1 (PAD acts as BOS) plus the
+    slot conditioning vector and a positional embedding; a CAUSAL TCN ensures
+    output position t depends only on chars < t. Training is one parallel
+    teacher-forced pass; generation feeds predictions back step by step."""
+
+    def __init__(self, cfg: ModelConfig, max_lemma_len: int, n_chars: int,
+                 char_emb: nn.Embedding):
+        super().__init__()
+        d = cfg.d_dec
+        self.char_emb = char_emb  # shared with the encoder
+        self.in_proj = nn.Linear(char_emb.embedding_dim, d)
+        self.cond = nn.Linear(cfg.d_model, d)
+        self.pos_emb = nn.Embedding(max_lemma_len, d)
+        self.tcn = tcn_stack(d, cfg.kernel_size, (1, 2, 4, 8), cfg.dropout, causal=True)
+        self.use_attn = cfg.lemma_cross_attention
+        if self.use_attn:
+            self.attn = nn.MultiheadAttention(d, num_heads=4, batch_first=True,
+                                              kdim=cfg.d_tok, vdim=cfg.d_tok,
+                                              dropout=cfg.dropout)
+            self.attn_norm = nn.LayerNorm(d)
+        self.out = nn.Linear(d, n_chars)
+
+    def forward(self, slot_vec: torch.Tensor, prev_chars: torch.Tensor,
+                char_states: torch.Tensor | None,
+                char_pad_mask: torch.Tensor | None) -> torch.Tensor:
+        """slot_vec (N, d_model); prev_chars (N, L) int64 (char t-1 at pos t,
+        PAD as BOS/filler). Returns logits (N, L, n_chars)."""
+        L = prev_chars.shape[1]
+        x = self.in_proj(self.char_emb(prev_chars)) \
+            + self.cond(slot_vec).unsqueeze(1) + self.pos_emb.weight[:L].unsqueeze(0)
+        x = self.tcn(x)
+        if self.use_attn and char_states is not None:
+            kpm = char_pad_mask.clone()
+            kpm[kpm.all(dim=-1), 0] = False
+            att, _ = self.attn(x, char_states, char_states, key_padding_mask=kpm,
+                               need_weights=False)
+            x = self.attn_norm(x + att)
+        return self.out(x)
+
+    @torch.inference_mode()
+    def generate(self, slot_vec: torch.Tensor, char_states: torch.Tensor | None,
+                 char_pad_mask: torch.Tensor | None, max_len: int) -> torch.Tensor:
+        """Greedy generation; returns char ids (N, max_len)."""
+        n = slot_vec.shape[0]
+        prev = torch.full((n, max_len), PAD, dtype=torch.long, device=slot_vec.device)
+        outp = torch.full((n, max_len), PAD, dtype=torch.long, device=slot_vec.device)
+        for t in range(max_len):
+            logits = self.forward(slot_vec, prev, char_states, char_pad_mask)
+            step = logits[:, t].argmax(dim=-1)
+            outp[:, t] = step
+            if t + 1 < max_len:
+                prev[:, t + 1] = step
+        return outp
 
 
 class HydraModel(nn.Module):
@@ -156,7 +228,13 @@ class HydraModel(nn.Module):
 
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
-        self.lemma_decoder = LemmaDecoder(cfg, max_lemma_len, n_chars)
+        self.max_lemma_len = max_lemma_len
+        if cfg.lemma_decoder == "ar_tcn":
+            self.lemma_decoder = LemmaDecoderAR(cfg, max_lemma_len, n_chars, self.char_emb)
+        elif cfg.lemma_decoder == "grid":
+            self.lemma_decoder = LemmaDecoder(cfg, max_lemma_len, n_chars)
+        else:
+            raise ValueError(f"unknown lemma_decoder {cfg.lemma_decoder!r}")
         # classify-or-generate: type-level lemma classifier, factored projection
         # to keep the ~37k-class output affordable; class UNK = "generate"
         self.lemma_cls_head = None
@@ -167,8 +245,11 @@ class HydraModel(nn.Module):
                 nn.Linear(cfg.d_model, cfg.d_dec), nn.GELU(),
                 nn.Linear(cfg.d_dec, n_lemma_types))
 
-    def forward(self, chars: torch.Tensor) -> ModelOutput:
-        """chars: (B, S, W) int64 with S = T + 2H."""
+    def forward(self, chars: torch.Tensor,
+                lemma_teacher: torch.Tensor | None = None) -> ModelOutput:
+        """chars: (B, S, W) int64 with S = T + 2H.
+        lemma_teacher: gold lemma char grid (B, T, K, L) for teacher-forced
+        training of the AR decoder (ignored by the grid decoder)."""
         B, S, W = chars.shape
         T, H, K = self.T, self.H, self.K
         char_valid = chars != PAD                      # (B, S, W)
@@ -228,7 +309,18 @@ class HydraModel(nn.Module):
                            .reshape(B * T * K, W, -1))
             cm = ~char_valid[:, center]                # True = padding
             char_pad_mask = cm.unsqueeze(2).expand(B, T, K, W).reshape(B * T * K, W)
-        lemma_logits = self.lemma_decoder(flat, char_states, char_pad_mask)
+
+        if isinstance(self.lemma_decoder, LemmaDecoderAR):
+            if lemma_teacher is None:
+                # generation happens outside (metrics.decode_batch drives it)
+                return ModelOutput(pos_logits, morph_logits, None, lemma_cls_logits,
+                                   mlm_logits, joint_logits, flat, char_states,
+                                   char_pad_mask)
+            gold = lemma_teacher.reshape(B * T * K, -1).clamp_min(PAD)  # IGNORE -> PAD
+            prev = torch.cat([gold.new_full((gold.shape[0], 1), PAD), gold[:, :-1]], dim=1)
+            lemma_logits = self.lemma_decoder(flat, prev, char_states, char_pad_mask)
+        else:
+            lemma_logits = self.lemma_decoder(flat, char_states, char_pad_mask)
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
         return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits,

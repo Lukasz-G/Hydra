@@ -79,6 +79,7 @@ class ModelConfig:
     d_dec: int = 256
     lemma_cross_attention: bool = True
     lemma_classifier: bool = False   # classify-or-generate hybrid head
+    lemma_decoder: str = "grid"      # "grid" (parallel) | "ar_tcn" (causal-TCN autoregressive)
     tcn_channel_gate: bool = False   # ECA-style channel gating in encoder TCN blocks
     ctx_self_attention: bool = False # one self-attention layer after the context TCN
     masked_lm: bool = False          # masked-token auxiliary head on the context encoder

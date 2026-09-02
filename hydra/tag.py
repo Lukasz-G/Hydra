@@ -68,7 +68,7 @@ def tag_document(model: torch.nn.Module, vocabs: Vocabs, cfg: Config,
             out = model(batch["chars"].to(device))
             chunk_surfaces = [ds.chunk_surfaces(i) for i in idxs]
             preds = decode_batch(out, vocabs, chunk_surfaces,
-                                 cfg.infer.classifier_min_prob)
+                                 cfg.infer.classifier_min_prob, model=model)
             for b, i in enumerate(idxs):
                 _, start = ds.chunks[i]
                 n_here = min(cfg.data.chunk_len, len(surfaces) - start)

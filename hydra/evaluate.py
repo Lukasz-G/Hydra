@@ -35,7 +35,7 @@ def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
             with torch.autocast(device.type, dtype=torch.float16, enabled=use_amp):
                 out = model(batch["chars"].to(device))
             surfaces = [ds.chunk_surfaces(i) for i in idxs]
-            preds = decode_batch(out, vocabs, surfaces, cls_min_prob)
+            preds = decode_batch(out, vocabs, surfaces, cls_min_prob, model=model)
             golds = [ds.chunk_gold(i) for i in idxs]
             n_items = batch["n_items"].numpy()
             for b in range(len(idxs)):

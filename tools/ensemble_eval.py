@@ -54,6 +54,9 @@ with torch.inference_mode():
             with torch.autocast(device.type, dtype=torch.float16,
                                 enabled=device.type == "cuda"):
                 out = m(chars)
+            if out.lemma_logits is None:
+                sys.exit("ensemble_eval supports grid-decoder models only (AR models "
+                         "produce no parallel lemma logits to average)")
             pos = out.pos_logits.float() if pos is None else pos + out.pos_logits.float()
             morph = out.morph_logits.float() if morph is None else morph + out.morph_logits.float()
             lemma = out.lemma_logits.float() if lemma is None else lemma + out.lemma_logits.float()

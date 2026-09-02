@@ -198,7 +198,7 @@ def train(cfg: Config, resume: str | None = None,
             targets = {k: batch[k].to(info.device, non_blocking=True)
                        for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm")}
             with torch.autocast(info.device.type, dtype=torch.float16, enabled=use_amp):
-                out = model(chars)
+                out = model(chars, lemma_teacher=targets["lemma"])
                 loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos))
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)

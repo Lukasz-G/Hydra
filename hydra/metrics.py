@@ -20,7 +20,7 @@ class Prediction:
 
 
 def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
-                 cls_min_prob: float = 0.5) -> list[list[Prediction]]:
+                 cls_min_prob: float = 0.5, model=None) -> list[list[Prediction]]:
     """Greedy prefix decoding: read slots until the first NULL POS (slot 0 is
     forced non-NULL). Lemma chars up to the first EOW; empty lemma falls back
     to the surface form. With the classify-or-generate head, a slot's lemma is
@@ -33,7 +33,14 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
     pos_ids[..., 0] = pos_ids0.argmax(dim=-1)
     # argmax over classes >= 1 skips NULL without materializing a masked copy
     morph_ids = out.morph_logits[..., 1:].argmax(dim=-1) + 1       # (B, T, K)
-    char_ids = out.lemma_logits.argmax(dim=-1)                     # (B, T, K, L)
+    if out.lemma_logits is not None:
+        char_ids = out.lemma_logits.argmax(dim=-1)                 # (B, T, K, L)
+    else:
+        # autoregressive decoder: generate char ids step by step
+        Bq, Tq, Kq = pos_ids.shape
+        gen = model.lemma_decoder.generate(out.slot_states, out.char_states,
+                                           out.char_pad_mask, model.max_lemma_len)
+        char_ids = gen.view(Bq, Tq, Kq, -1)
 
     cls_ids = None
     if out.lemma_cls_logits is not None:

@@ -7,6 +7,10 @@ Each token is rewritten character by character: multi-char rule contexts are
 tried first (longest match), then single characters; the replacement is
 sampled from the learned distribution. `strength` in [0,1] (default 1.0)
 scales the probability of applying a non-identity replacement.
+
+Output lines are `noised<TAB>clean` (the clean source form rides along as the
+normalised masked-LM target — parse_tsv_file reads 2-column lines as
+surface+norm context tokens); unchanged tokens are written as a single column.
 """
 import json
 import random
@@ -57,6 +61,8 @@ for f in sorted(src.glob("*.txt")):
     noised = [noise_token(t) for t in toks]
     n_changed += sum(1 for a, b in zip(toks, noised) if a.lower() != b)
     n_tok += len(toks)
-    (out / f.name).write_text("\n".join(noised) + "\n", encoding="utf-8")
+    lines = [b if a.lower() == b else f"{b}\t{a.lower()}"
+             for a, b in zip(toks, noised)]
+    (out / f.name).write_text("\n".join(lines) + "\n", encoding="utf-8")
     n_files += 1
 print(f"{n_files} files, {n_tok} tokens, {n_changed} changed ({n_changed / max(1, n_tok):.1%})")

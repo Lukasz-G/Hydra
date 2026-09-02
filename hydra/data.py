@@ -32,6 +32,9 @@ class Token:
     lemmas: list[str] | None  # None => context-only: untagged, skipped, or inference
     pos: list[str] | None
     morph: list[str] | None
+    # normalised form carried by the corpus itself (2-column unannotated files,
+    # e.g. noised MHDBDB with its clean source form); overrides the lookup
+    norm: str | None = None
 
     @property
     def n_items(self) -> int:
@@ -84,6 +87,12 @@ def parse_tsv_file(path: str | Path, on_mismatch: str = "skip",
             if len(cols) == 1 and cols[0].strip():
                 # surface-only line (raw/unannotated corpus): clean context token
                 tokens.append(Token(cols[0].strip(), None, None, None))
+                continue
+            if len(cols) == 2 and cols[0].strip():
+                # surface + normalised form (noised unannotated corpus): the
+                # clean form becomes the masked-LM target for this token
+                tokens.append(Token(cols[0].strip(), None, None, None,
+                                    norm=cols[1].strip() or None))
                 continue
             if len(cols) < 4 or not cols[0].strip():
                 if on_mismatch == "error":
@@ -221,6 +230,19 @@ def resolve_splits(cfg: DataConfig, run_dir: Path | None = None) -> dict[str, li
     return splits
 
 
+def load_norm_lookup(path: str | Path) -> dict[str, str]:
+    """surface -> normalised form (non-identity mappings only; the runtime
+    default for an absent surface is the surface itself). Built by
+    tools/build_norm_lookup.py from the aligned ReM layers."""
+    lookup: dict[str, str] = {}
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) == 2:
+                lookup[parts[0]] = parts[1]
+    return lookup
+
+
 def load_split_tokens(files: list[str], on_mismatch: str, n_slots: int) -> list[list[Token]]:
     """Parse each file into its own document (token list)."""
     docs = []
@@ -251,7 +273,8 @@ class EncodedDoc:
 
 
 def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
-                    max_lemma_len: int, n_slots: int) -> EncodedDoc:
+                    max_lemma_len: int, n_slots: int,
+                    norm: dict[str, str] | None = None) -> EncodedDoc:
     n = len(tokens)
     chars = np.full((n, max_word_len), PAD, dtype=np.int16)
     pos = np.full((n, n_slots), IGNORE, dtype=np.int16)
@@ -263,7 +286,15 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
     n_items = np.zeros(n, dtype=np.int8)
     truncated = 0
     for i, tok in enumerate(tokens):
-        wtype[i] = vocabs.word_types.encode(tok.surface)
+        # masked-LM target: the normalised type where known (corpus-carried
+        # norm first, then the lookup), so spelling variants share one class
+        if tok.norm is not None:
+            wkey = tok.norm
+        elif norm is not None:
+            wkey = norm.get(tok.surface, tok.surface)
+        else:
+            wkey = tok.surface
+        wtype[i] = vocabs.word_types.encode(wkey)
         ids = vocabs.chars.encode(tok.surface) or [UNK]
         if len(ids) > max_word_len:
             ids = ids[:max_word_len]
@@ -313,7 +344,17 @@ class HydraDataset(Dataset):
         self.H = cfg.halo
         # masked-LM transform: blank tokens and supervise their word type
         self.mask_prob = cfg.mask_prob if (training and mask_tokens) else 0.0
-        self.docs = [encode_document(d, vocabs, cfg.max_word_len, cfg.max_lemma_len, n_slots)
+        # train-time spelling augmentation: rewrite input chars of a sampled
+        # fraction of tokens with the learned diplomatic-noise model; targets
+        # (and eval surfaces) stay untouched
+        self.vocabs = vocabs
+        self.noiser = None
+        if training and cfg.spelling_noise > 0:
+            from .noise import SpellingNoiser
+            self.noiser = SpellingNoiser(cfg.noise_rules, seed=cfg.split_seed)
+        norm = load_norm_lookup(cfg.norm_lookup) if cfg.norm_lookup else None
+        self.docs = [encode_document(d, vocabs, cfg.max_word_len, cfg.max_lemma_len,
+                                     n_slots, norm=norm)
                      for d in docs]
         self.chunks: list[tuple[int, int]] = []  # (doc_id, start)
         for d, doc in enumerate(self.docs):
@@ -359,6 +400,21 @@ class HydraDataset(Dataset):
         joint = self._slice_padded(doc.joint, start, start + T, IGNORE)
         wtype = self._slice_padded(doc.wtype, start, start + T, IGNORE)
         n_items = self._slice_padded(doc.n_items, start, start + T, 0)
+
+        if self.noiser is not None:
+            # halo tokens are noised too: they are input context like any other
+            lo = start - H
+            draw = torch.rand(chars.shape[0]).numpy() < self.cfg.spelling_noise
+            for j in np.flatnonzero(draw):
+                t = lo + int(j)
+                if not (0 <= t < len(doc.surfaces)):
+                    continue
+                noised = self.noiser.noise(doc.surfaces[t])
+                if noised == doc.surfaces[t]:
+                    continue
+                ids = (self.vocabs.chars.encode(noised) or [UNK])[:self.cfg.max_word_len]
+                chars[j] = PAD
+                chars[j, :len(ids)] = ids
 
         mlm = np.full(T, IGNORE, dtype=np.int64)
         if self.mask_prob > 0:

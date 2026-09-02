@@ -33,7 +33,8 @@ def restore_rng_states(states: dict[str, Any]) -> None:
 def save_checkpoint(path: str | Path, *, model: torch.nn.Module,
                     optimizer: torch.optim.Optimizer, scheduler, scaler,
                     epoch: int, step: int, best_metric: float, patience_left: int,
-                    config_dict: dict[str, Any]) -> None:
+                    config_dict: dict[str, Any],
+                    ema: dict[str, torch.Tensor] | None = None) -> None:
     payload = {
         "model": model.state_dict(),
         "optimizer": optimizer.state_dict(),
@@ -45,6 +46,7 @@ def save_checkpoint(path: str | Path, *, model: torch.nn.Module,
         "patience_left": patience_left,
         "config": config_dict,
         "rng": collect_rng_states(),
+        "ema": ema,
     }
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

@@ -18,6 +18,10 @@ halo = 16
 on_mismatch = "skip"       # "skip" | "error"
 multi_item_upsample = 1
 num_workers = 0
+# --- regularisation / normalisation (off by default) ---
+# spelling_noise = 0.15                            # train-time diplomatic noise
+# noise_rules = "meta/rem_layers/noise_rules.json"
+# norm_lookup = "meta/norm_lookup.tsv"             # normalised masked-LM targets
 
 [model]
 d_char = 64

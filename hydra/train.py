@@ -32,6 +32,35 @@ def seed_everything(seed: int) -> None:
     torch.manual_seed(seed)
 
 
+class EMA:
+    """Exponential moving average of the float entries of a state_dict.
+
+    Dev evaluation and best.pt use the averaged weights; last.pt keeps the raw
+    weights plus the shadow for exact resume.
+    """
+
+    def __init__(self, model: torch.nn.Module, decay: float):
+        self.decay = decay
+        self.shadow = {k: v.detach().clone().float()
+                       for k, v in model.state_dict().items()
+                       if torch.is_floating_point(v)}
+
+    @torch.no_grad()
+    def update(self, model: torch.nn.Module) -> None:
+        for k, v in model.state_dict().items():
+            if k in self.shadow:
+                self.shadow[k].lerp_(v.detach().float(), 1.0 - self.decay)
+
+    def apply_to(self, model: torch.nn.Module) -> dict[str, torch.Tensor]:
+        """Load averaged weights into the model; returns the raw state to restore."""
+        raw = {k: v.detach().clone() for k, v in model.state_dict().items()}
+        merged = dict(raw)
+        for k, s in self.shadow.items():
+            merged[k] = s.to(dtype=raw[k].dtype, device=raw[k].device)
+        model.load_state_dict(merged)
+        return raw
+
+
 def build_scheduler(optimizer: torch.optim.Optimizer, warmup_steps: int,
                     total_steps: int, lr: float, lr_min: float):
     floor = lr_min / lr
@@ -70,9 +99,13 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
             import shutil
             shutil.copyfile(cfg.data.vocab_file, vocab_path)
         else:
+            norm_of = None
+            if cfg.data.norm_lookup:
+                from .data import load_norm_lookup
+                norm_of = load_norm_lookup(cfg.data.norm_lookup)
             all_train_tokens = [t for doc in train_docs for t in doc]
             Vocabs.build(all_train_tokens, cfg.data.lemma_type_min_freq,
-                         cfg.data.word_type_min_freq).save(vocab_path)
+                         cfg.data.word_type_min_freq, norm_of=norm_of).save(vocab_path)
     barrier(info)
     vocabs = Vocabs.load(vocab_path)
 
@@ -159,6 +192,7 @@ def train(cfg: Config, resume: str | None = None,
     start_epoch, step = 0, 0
     best_metric = -1.0
     patience_left = cfg.train.patience
+    ema = EMA(unwrap(model), cfg.train.ema_decay) if cfg.train.ema_decay > 0 else None
     if resume:
         # load to CPU: state_dicts move to the model's device on load_state_dict,
         # and RNG states must stay on CPU
@@ -175,6 +209,8 @@ def train(cfg: Config, resume: str | None = None,
         # an early-stopped checkpoint stores exhausted patience; --reset-patience
         # restores the configured budget when extending a run
         patience_left = cfg.train.patience if reset_patience else payload["patience_left"]
+        if ema is not None and payload.get("ema"):
+            ema.shadow = {k: v.float() for k, v in payload["ema"].items()}
         restore_rng_states(payload["rng"])
         if info.is_main:
             logger.log(event="resume", from_epoch=start_epoch, best=best_metric)
@@ -206,6 +242,8 @@ def train(cfg: Config, resume: str | None = None,
             scaler.step(optimizer)
             scaler.update()
             scheduler.step()
+            if ema is not None:
+                ema.update(unwrap(model))
             step += 1
             for k, v in parts.items():
                 running[k] = running.get(k, 0.0) + v
@@ -220,6 +258,9 @@ def train(cfg: Config, resume: str | None = None,
         stop = False
         if info.is_main:
             metric = best_metric
+            # with EMA, the averaged weights are what gets evaluated and what
+            # best.pt ships; the raw weights come back for training and last.pt
+            raw_state = ema.apply_to(unwrap(model)) if ema is not None else None
             if dev_ds is not None and len(dev_ds) > 0 and not cfg.model.pretrain_mlm:
                 last_dev = evaluate_dataset(unwrap(model), dev_ds, vocabs, info.device,
                                             cfg.infer.batch_chunks, snapper=snapper,
@@ -233,13 +274,16 @@ def train(cfg: Config, resume: str | None = None,
                 patience_left = cfg.train.patience
             else:
                 patience_left -= 1
-            ckpt_args = dict(model=unwrap(model), optimizer=optimizer, scheduler=scheduler,
+            ckpt_args = dict(optimizer=optimizer, scheduler=scheduler,
                              scaler=scaler, epoch=epoch, step=step, best_metric=best_metric,
-                             patience_left=patience_left, config_dict=cfg.to_dict())
-            save_checkpoint(run_dir / "last.pt", **ckpt_args)
+                             patience_left=patience_left, config_dict=cfg.to_dict(),
+                             ema=ema.shadow if ema is not None else None)
             if improved:
-                save_checkpoint(run_dir / "best.pt", **ckpt_args)
+                save_checkpoint(run_dir / "best.pt", model=unwrap(model), **ckpt_args)
                 logger.log(event="best", epoch=epoch, metric=best_metric)
+            if raw_state is not None:
+                unwrap(model).load_state_dict(raw_state)
+            save_checkpoint(run_dir / "last.pt", model=unwrap(model), **ckpt_args)
             stop = patience_left <= 0
         stop = broadcast_flag(info, stop)
         if stop:

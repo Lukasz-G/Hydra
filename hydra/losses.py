@@ -27,13 +27,15 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
 
     weight = torch.ones(n_pos, device=out.pos_logits.device, dtype=out.pos_logits.dtype)
     weight[NULL] = cfg.null_weight
+    ls = cfg.label_smoothing
 
     l_pos = F.cross_entropy(out.pos_logits.reshape(-1, out.pos_logits.shape[-1]),
-                            pos_t.reshape(-1), weight=weight, ignore_index=IGNORE)
+                            pos_t.reshape(-1), weight=weight, ignore_index=IGNORE,
+                            label_smoothing=ls)
     l_morph = F.cross_entropy(out.morph_logits.reshape(-1, out.morph_logits.shape[-1]),
-                              morph_t.reshape(-1), ignore_index=IGNORE)
+                              morph_t.reshape(-1), ignore_index=IGNORE, label_smoothing=ls)
     l_lemma = F.cross_entropy(out.lemma_logits.reshape(-1, out.lemma_logits.shape[-1]),
-                              lemma_t.reshape(-1), ignore_index=IGNORE)
+                              lemma_t.reshape(-1), ignore_index=IGNORE, label_smoothing=ls)
 
     # a head with no supervised targets in the batch yields NaN -> treat as 0
     zero = out.pos_logits.sum() * 0.0
@@ -49,14 +51,15 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
         lemtype_t = batch["lemtype"]
         l_cls = F.cross_entropy(
             out.lemma_cls_logits.reshape(-1, out.lemma_cls_logits.shape[-1]),
-            lemtype_t.reshape(-1), ignore_index=IGNORE)
+            lemtype_t.reshape(-1), ignore_index=IGNORE, label_smoothing=ls)
         l_cls = torch.where(torch.isnan(l_cls), zero, l_cls)
         total = total + cfg.w_lemma_cls * l_cls
         parts["loss_lemma_cls"] = float(l_cls.detach())
 
     if out.joint_logits is not None and "joint" in batch:
         l_joint = F.cross_entropy(out.joint_logits.reshape(-1, out.joint_logits.shape[-1]),
-                                  batch["joint"].reshape(-1), ignore_index=IGNORE)
+                                  batch["joint"].reshape(-1), ignore_index=IGNORE,
+                                  label_smoothing=ls)
         l_joint = torch.where(torch.isnan(l_joint), zero, l_joint)
         total = total + cfg.w_joint_tag * l_joint
         parts["loss_joint"] = float(l_joint.detach())

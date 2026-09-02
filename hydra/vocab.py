@@ -101,8 +101,14 @@ class Vocabs:
 
     @classmethod
     def build(cls, tokens: "list", lemma_type_min_freq: int = 1,
-              word_type_min_freq: int = 2) -> "Vocabs":
-        """Build from a list of data.Token from the train split (tagged tokens only)."""
+              word_type_min_freq: int = 2,
+              norm_of: "dict[str, str] | None" = None) -> "Vocabs":
+        """Build from a list of data.Token from the train split (tagged tokens only).
+
+        norm_of: surface -> normalised form; when given, the masked-LM word-type
+        vocabulary is built over normalised forms (a token's own .norm wins),
+        folding spelling variants onto one class. Everything else — chars,
+        train_surfaces, OOV bookkeeping — stays surface-level."""
         strings: set[str] = set()
         pos_labels: set[str] = set()
         morph_labels: set[str] = set()
@@ -113,7 +119,10 @@ class Vocabs:
         for tok in tokens:
             surfaces.add(tok.surface)
             strings.add(tok.surface)
-            surface_counts[tok.surface] = surface_counts.get(tok.surface, 0) + 1
+            wkey = getattr(tok, "norm", None)
+            if wkey is None:
+                wkey = norm_of.get(tok.surface, tok.surface) if norm_of else tok.surface
+            surface_counts[wkey] = surface_counts.get(wkey, 0) + 1
             if tok.lemmas is None:
                 continue
             strings.update(tok.lemmas)

@@ -52,6 +52,17 @@ class DataConfig:
     lemma_type_min_freq: int = 1  # train freq threshold for the lemma-classifier vocab
     word_type_min_freq: int = 2   # train freq threshold for the masked-LM word vocab
     mask_prob: float = 0.15       # fraction of tokens blanked for the masked-LM aux
+    # train-time spelling augmentation: fraction of training tokens passed
+    # through the learned diplomatic-noise sampler (input chars only; targets
+    # untouched). Requires noise_rules. Within a chosen token the learned
+    # identity mass still applies, so the changed-token rate is lower than this.
+    spelling_noise: float = 0.0
+    noise_rules: str | None = None  # path to meta/rem_layers/noise_rules.json
+    # surface -> normalised-form lookup (tools/build_norm_lookup.py): the
+    # masked-LM word-type targets are built over normalised forms, folding
+    # spelling variants onto one class; a token's corpus-carried norm
+    # (2-column unannotated files) takes precedence over the lookup
+    norm_lookup: str | None = None
     num_workers: int = 0
 
     def __post_init__(self) -> None:
@@ -61,6 +72,8 @@ class DataConfig:
             raise ValueError(f"data.split_mode must be file|stratified|chunk, got {self.split_mode!r}")
         if self.split_mode == "stratified" and not self.metadata_csv:
             raise ValueError("data.split_mode='stratified' requires data.metadata_csv")
+        if self.spelling_noise > 0 and not self.noise_rules:
+            raise ValueError("data.spelling_noise > 0 requires data.noise_rules")
         if self.corpus_dir is None and self.train_dir is None:
             raise ValueError("config must set data.corpus_dir or data.train_dir")
         if self.train_dir is not None and (self.dev_dir is None):
@@ -98,6 +111,10 @@ class LossConfig:
     w_mlm: float = 0.5
     w_joint_tag: float = 0.5
     null_weight: float = 0.2
+    # label smoothing for the tagging/classification heads (pos, morph, lemma
+    # chars, lemma classifier, joint tag); the masked-LM aux stays unsmoothed —
+    # its long-tail word-type distribution is diffuse enough already
+    label_smoothing: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -116,6 +133,9 @@ class TrainConfig:
     # LR multiplier for the large classification heads (lemma_cls/mlm/joint),
     # which train slower than the pretrained/warm encoder at big d_model
     cls_head_lr_mult: float = 1.0
+    # exponential moving average of weights (0 = off; typical 0.999). Dev eval
+    # and best.pt use the EMA weights; last.pt keeps raw weights + shadow.
+    ema_decay: float = 0.0
 
 
 @dataclass(frozen=True)

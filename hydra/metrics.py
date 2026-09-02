@@ -36,9 +36,11 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
     if out.lemma_logits is not None:
         char_ids = out.lemma_logits.argmax(dim=-1)                 # (B, T, K, L)
     else:
-        # autoregressive decoder: generate char ids step by step
+        # autoregressive decoder: generate char ids step by step (states may be
+        # fp16 from an autocast forward; generation runs in fp32)
         Bq, Tq, Kq = pos_ids.shape
-        gen = model.lemma_decoder.generate(out.slot_states, out.char_states,
+        cs = out.char_states.float() if out.char_states is not None else None
+        gen = model.lemma_decoder.generate(out.slot_states.float(), cs,
                                            out.char_pad_mask, model.max_lemma_len)
         char_ids = gen.view(Bq, Tq, Kq, -1)
 

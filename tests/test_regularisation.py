@@ -17,6 +17,9 @@ def test_spelling_noiser_deterministic_and_case_safe(tmp_path):
     out1 = [n1.noise(w) for w in words]
     out2 = [n2.noise(w) for w in words]
     assert out1 == out2  # same seed, same stream
+    # strength 0 keeps every token verbatim (identity mass only)
+    n0 = SpellingNoiser(p, strength=0.0, seed=7)
+    assert [n0.noise(w) for w in words] == words
     # uppercase S untouched; lowercase a/s rewritten with high probability
     assert out1[1][0] == "S"
     assert any(o != w for o, w in zip(out1, words))

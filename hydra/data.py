@@ -351,7 +351,9 @@ class HydraDataset(Dataset):
         self.noiser = None
         if training and cfg.spelling_noise > 0:
             from .noise import SpellingNoiser
-            self.noiser = SpellingNoiser(cfg.noise_rules, seed=cfg.split_seed)
+            self.noiser = SpellingNoiser(cfg.noise_rules,
+                                         strength=cfg.spelling_noise_strength,
+                                         seed=cfg.split_seed)
         norm = load_norm_lookup(cfg.norm_lookup) if cfg.norm_lookup else None
         self.docs = [encode_document(d, vocabs, cfg.max_word_len, cfg.max_lemma_len,
                                      n_slots, norm=norm)

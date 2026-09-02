@@ -58,6 +58,12 @@ class DataConfig:
     # identity mass still applies, so the changed-token rate is lower than this.
     spelling_noise: float = 0.0
     noise_rules: str | None = None  # path to meta/rem_layers/noise_rules.json
+    # within a chosen token, scales the non-identity replacement mass (the
+    # offline MHDBDB pipeline used 0.3). spelling_noise=1.0 with strength 0.3
+    # reproduces that regime, resampled fresh every epoch: clean corpora fed
+    # via extra_train_dir are then seen alternately clean and noised — the
+    # normalised/diplomatic input swap
+    spelling_noise_strength: float = 1.0
     # surface -> normalised-form lookup (tools/build_norm_lookup.py): the
     # masked-LM word-type targets are built over normalised forms, folding
     # spelling variants onto one class; a token's corpus-carried norm

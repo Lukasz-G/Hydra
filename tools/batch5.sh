@@ -89,7 +89,7 @@ stage s_norm bash tools/train_remote.sh runs/s_norm $BIG $STRAT $NORM \
     --set train.cls_head_lr_mult=3.0 \
     --set train.batch_chunks=4 --set infer.batch_chunks=8 \
     --init-weights runs/pre_norm/last.pt
-stage s_norm_sweep python tools/sweep_eval.py runs/s_norm
+[ -f "$MARK/s_norm.done" ] && stage s_norm_sweep python tools/sweep_eval.py runs/s_norm
 
 # --------------------------------------- stage 3+4: regularisation, small recipe
 SMALL="--set model.ctx_tcn_dilations=[1,2,4,8,16] --set model.lemma_classifier=true \
@@ -100,12 +100,12 @@ REG="--set loss.label_smoothing=0.1 --set train.ema_decay=0.999 \
 
 stage s_reg bash tools/train_remote.sh runs/s_reg $SMALL $STRAT $REG \
     --set train.max_epochs=30
-stage s_reg_sweep python tools/sweep_eval.py runs/s_reg
+[ -f "$MARK/s_reg.done" ] && stage s_reg_sweep python tools/sweep_eval.py runs/s_reg
 
 stage c_reg bash tools/train_remote.sh runs/c_reg $SMALL $REG \
     --set data.split_mode=chunk --set data.halo=64 \
     --set train.max_epochs=30
-stage c_reg_sweep python tools/sweep_eval.py runs/c_reg
+[ -f "$MARK/c_reg.done" ] && stage c_reg_sweep python tools/sweep_eval.py runs/c_reg
 
 # ---------------------------------------------------------- stage 5: Pie
 run_pie() {

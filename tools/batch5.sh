@@ -69,7 +69,7 @@ BIG="--set model.d_char=96 --set model.d_tok=384 --set model.d_model=768 \
  --set model.d_dec=320 --set model.char_tcn_dilations=[1,2,4,8,8] \
  --set model.ctx_tcn_dilations=[1,2,4,8,16] --set model.lemma_classifier=true \
  --set model.ctx_self_attention=true --set model.masked_lm=true \
- --set model.joint_tag=true --set train.batch_chunks=8"
+ --set model.joint_tag=true --set train.batch_chunks=8 --set train.amp_dtype=bf16"
 STRAT="--set data.split_mode=stratified --set data.metadata_csv=meta/rem_metadata.csv \
  --set data.halo=64"
 NORM="--set data.norm_lookup=meta/norm_lookup.tsv"
@@ -93,7 +93,7 @@ stage s_norm_sweep python tools/sweep_eval.py runs/s_norm
 # --------------------------------------- stage 3+4: regularisation, small recipe
 SMALL="--set model.ctx_tcn_dilations=[1,2,4,8,16] --set model.lemma_classifier=true \
  --set model.ctx_self_attention=true --set model.masked_lm=true \
- --set model.joint_tag=true --set train.batch_chunks=12"
+ --set model.joint_tag=true --set train.batch_chunks=12 --set train.amp_dtype=bf16"
 REG="--set loss.label_smoothing=0.1 --set train.ema_decay=0.999 \
  --set data.spelling_noise=0.15 --set data.noise_rules=meta/rem_layers/noise_rules.json"
 

@@ -187,7 +187,9 @@ def train(cfg: Config, resume: str | None = None,
     scheduler = build_scheduler(optimizer, cfg.train.warmup_steps, total_steps,
                                 cfg.train.lr, cfg.train.lr_min)
     use_amp = cfg.train.amp and info.device.type == "cuda"
-    scaler = torch.amp.GradScaler("cuda", enabled=use_amp)
+    amp_dtype = torch.bfloat16 if cfg.train.amp_dtype == "bf16" else torch.float16
+    # bf16 needs no loss scaling; a disabled scaler is a clean passthrough
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp and amp_dtype == torch.float16)
 
     start_epoch, step = 0, 0
     best_metric = -1.0
@@ -233,7 +235,7 @@ def train(cfg: Config, resume: str | None = None,
             chars = batch["chars"].to(info.device, non_blocking=True)
             targets = {k: batch[k].to(info.device, non_blocking=True)
                        for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm")}
-            with torch.autocast(info.device.type, dtype=torch.float16, enabled=use_amp):
+            with torch.autocast(info.device.type, dtype=amp_dtype, enabled=use_amp):
                 out = model(chars, lemma_teacher=targets["lemma"])
                 loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos))
             scaler.scale(loss).backward()

@@ -133,6 +133,9 @@ class TrainConfig:
     weight_decay: float = 0.01
     clip_norm: float = 1.0
     amp: bool = True
+    # "fp16" (GradScaler) or "bf16" (fp32-range exponent, no scaler — cures
+    # activation overflows on large models; needs Ampere+)
+    amp_dtype: str = "fp16"
     patience: int = 8
     min_delta: float = 0.0005
     log_every_steps: int = 50

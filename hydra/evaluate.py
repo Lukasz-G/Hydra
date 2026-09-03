@@ -26,13 +26,17 @@ def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
     acc_clean = EvalAccumulator()
     snap_ok_all = snap_ok_clean = 0
     use_amp = device.type == "cuda"
+    # bf16 where the GPU supports it: fp32-range exponent avoids activation
+    # overflow on large models (and matches bf16-trained runs)
+    amp_dtype = (torch.bfloat16 if use_amp and torch.cuda.is_bf16_supported()
+                 else torch.float16)
     if use_amp:
         torch.cuda.empty_cache()  # release training caches before the big eval tensors
     with torch.inference_mode():
         for lo in range(0, len(ds), batch_chunks):
             idxs = list(range(lo, min(lo + batch_chunks, len(ds))))
             batch = collate([ds[i] for i in idxs])
-            with torch.autocast(device.type, dtype=torch.float16, enabled=use_amp):
+            with torch.autocast(device.type, dtype=amp_dtype, enabled=use_amp):
                 out = model(batch["chars"].to(device))
             surfaces = [ds.chunk_surfaces(i) for i in idxs]
             preds = decode_batch(out, vocabs, surfaces, cls_min_prob, model=model)

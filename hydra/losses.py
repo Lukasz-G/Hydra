@@ -14,7 +14,9 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
                  cfg: LossConfig, n_pos: int) -> tuple[torch.Tensor, dict[str, float]]:
     # MLM-only pretraining: tagging heads absent from the output
     if out.pos_logits is None:
-        zero = out.mlm_logits.sum() * 0.0
+        # fp32 sum: an fp16 sum over millions of logits overflows to inf,
+        # poisoning the NaN replacement with NaN (diverged pre_norm, batch 5)
+        zero = out.mlm_logits.float().sum() * 0.0
         l_mlm = F.cross_entropy(out.mlm_logits.reshape(-1, out.mlm_logits.shape[-1]),
                                 batch["mlm"].reshape(-1), ignore_index=IGNORE)
         l_mlm = torch.where(torch.isnan(l_mlm), zero, l_mlm)
@@ -38,7 +40,8 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
                               lemma_t.reshape(-1), ignore_index=IGNORE, label_smoothing=ls)
 
     # a head with no supervised targets in the batch yields NaN -> treat as 0
-    zero = out.pos_logits.sum() * 0.0
+    # (fp32 sum: fp16 overflows to inf on large logit tensors)
+    zero = out.pos_logits.float().sum() * 0.0
     l_pos = torch.where(torch.isnan(l_pos), zero, l_pos)
     l_morph = torch.where(torch.isnan(l_morph), zero, l_morph)
     l_lemma = torch.where(torch.isnan(l_lemma), zero, l_lemma)

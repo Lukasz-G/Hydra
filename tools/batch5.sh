@@ -61,7 +61,7 @@ stage baseline_data prep_baseline_data
 
 stage pie_env bash -c '
     python -m venv /workspace/pie_env &&
-    /workspace/pie_env/bin/pip install -q nlp-pie'
+    /workspace/pie_env/bin/pip install -q papie'
 
 # ------------------------------------------------------- stage 1: pre_norm MLM
 # (train_remote.sh supplies corpus_dir/num_workers/run_dir and auto-resume)

@@ -11,6 +11,7 @@
 set -uo pipefail
 cd /workspace/hydra
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+export OMP_NUM_THREADS=8
 
 RUN_DIR="${1:?usage: train_remote.sh RUN_DIR [--set ...]}"
 shift || true

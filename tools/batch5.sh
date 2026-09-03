@@ -87,6 +87,7 @@ stage s_norm bash tools/train_remote.sh runs/s_norm $BIG $STRAT $NORM \
     --set data.vocab_file=runs/pre_norm/vocab.json \
     --set train.max_epochs=30 --set train.patience=10 \
     --set train.cls_head_lr_mult=3.0 \
+    --set train.batch_chunks=4 --set infer.batch_chunks=8 \
     --init-weights runs/pre_norm/last.pt
 stage s_norm_sweep python tools/sweep_eval.py runs/s_norm
 

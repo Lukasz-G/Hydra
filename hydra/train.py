@@ -240,12 +240,22 @@ def train(cfg: Config, resume: str | None = None,
                 loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos))
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.train.clip_norm)
-            scaler.step(optimizer)
+            grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(),
+                                                       cfg.train.clip_norm)
+            if torch.isfinite(grad_norm):
+                scaler.step(optimizer)
+                if ema is not None:
+                    ema.update(unwrap(model))
+            else:
+                # a non-finite gradient would write NaN into the weights via
+                # the inf-scaled clip; skip the update (GradScaler does this
+                # for fp16 — bf16 and full precision need it done by hand)
+                optimizer.zero_grad(set_to_none=True)
+                if info.is_main:
+                    logger.log(event="skip_step", step=step, epoch=epoch,
+                               loss=float(loss.detach()))
             scaler.update()
             scheduler.step()
-            if ema is not None:
-                ema.update(unwrap(model))
             step += 1
             for k, v in parts.items():
                 running[k] = running.get(k, 0.0) + v

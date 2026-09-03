@@ -16,6 +16,21 @@ import torch.nn as nn
 from .config import ModelConfig
 from .vocab import PAD
 
+try:
+    from torch.nn.attention import SDPBackend, sdpa_kernel
+
+    def _math_sdpa():
+        """The fused mem-efficient SDPA kernel returns NaN in backward for
+        heavily key-padded rows (tiny documents inside a mostly-padded chunk)
+        — even in fp32. The math backend computes the masked softmax
+        correctly; these attentions are small, the cost is negligible."""
+        return sdpa_kernel(SDPBackend.MATH)
+except ImportError:  # torch < 2.3
+    import contextlib
+
+    def _math_sdpa():
+        return contextlib.nullcontext()
+
 
 @dataclass
 class ModelOutput:
@@ -110,8 +125,9 @@ class LemmaDecoder(nn.Module):
         if self.use_attn and char_states is not None:
             kpm = char_pad_mask.clone()
             kpm[kpm.all(dim=-1), 0] = False  # avoid NaN on fully-padded tokens
-            att, _ = self.attn(x, char_states, char_states, key_padding_mask=kpm,
-                               need_weights=False)
+            with _math_sdpa():
+                att, _ = self.attn(x, char_states, char_states, key_padding_mask=kpm,
+                                   need_weights=False)
             x = self.attn_norm(x + att)
         x = self.refine(x)
         return self.out(x)
@@ -154,8 +170,9 @@ class LemmaDecoderAR(nn.Module):
         if self.use_attn and char_states is not None:
             kpm = char_pad_mask.clone()
             kpm[kpm.all(dim=-1), 0] = False
-            att, _ = self.attn(x, char_states, char_states, key_padding_mask=kpm,
-                               need_weights=False)
+            with _math_sdpa():
+                att, _ = self.attn(x, char_states, char_states, key_padding_mask=kpm,
+                                   need_weights=False)
             x = self.attn_norm(x + att)
         return self.out(x)
 
@@ -280,7 +297,9 @@ class HydraModel(nn.Module):
             kpm = ~token_valid                         # True = ignore
             kpm = kpm.clone()
             kpm[kpm.all(dim=-1), 0] = False            # avoid NaN on all-pad rows
-            att, _ = self.ctx_attn(ctx, ctx, ctx, key_padding_mask=kpm, need_weights=False)
+            with _math_sdpa():
+                att, _ = self.ctx_attn(ctx, ctx, ctx, key_padding_mask=kpm,
+                                       need_weights=False)
             ctx = self.ctx_attn_norm(ctx + att)
 
         center = slice(H, H + T)

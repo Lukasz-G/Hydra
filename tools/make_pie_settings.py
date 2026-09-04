@@ -14,11 +14,13 @@ import sys
 from pathlib import Path
 
 import pie
+from json_minify import json_minify  # pie's own defaults file is JSONC (// comments)
 
 data_dir, model_dir, out_json = Path(sys.argv[1]), Path(sys.argv[2]), Path(sys.argv[3])
 name = sys.argv[4] if len(sys.argv) > 4 else data_dir.name
 
-defaults = json.loads((Path(pie.__file__).parent / "default_settings.json").read_text())
+defaults_text = (Path(pie.__file__).parent / "default_settings.json").read_text()
+defaults = json.loads(json_minify(defaults_text))
 defaults.update({
     "modelname": name,
     "modelpath": str(model_dir),

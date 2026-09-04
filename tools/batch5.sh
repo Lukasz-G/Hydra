@@ -127,14 +127,15 @@ stage rnn_unzip bash -c '
 ' "$MARK"
 
 RT=/workspace/RNNTagger
+PATIENT="python tools/rnn_train_patience.py --patience 10 --min-epochs 15 --"
 train_tagger() {  # train_tagger DATA_DIR PARAM
-    python $RT/PyRNN/rnn-train.py --gpu 0 \
+    $PATIENT $RT/PyRNN/rnn-train.py --gpu 0 \
         --char_embedding_size 100 --char_recurrent_size 400 \
         --word_recurrent_size 400 --word_rnn_depth 2 --dropout_rate 0.5 \
         "$1/tagger/train.tsv" "$1/tagger/dev.tsv" "$2"
 }
 train_lem() {  # train_lem DATA_DIR PARAM
-    python $RT/PyNMT/nmt-train.py --gpu 0 --tie_embeddings \
+    $PATIENT $RT/PyNMT/nmt-train.py --gpu 0 --tie_embeddings \
         --word_emb_size 100 --enc_rnn_size 400 --dec_rnn_size 400 \
         --enc_depth 2 --dec_depth 2 --dropout_rate 0.5 \
         "$1/lemmatizer/train.src" "$1/lemmatizer/train.tgt" \

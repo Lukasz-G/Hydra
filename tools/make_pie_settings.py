@@ -42,6 +42,11 @@ defaults.update({
     "include_lm": True,   # their joint-LM auxiliary (Manjavacas et al. 2019)
     "device": "cuda",
     "verbose": True,
+    # pie's own default (epochs=500, patience=100) is unboundedly expensive;
+    # pie already keeps the best-dev checkpoint regardless of patience, so a
+    # tighter budget costs nothing in model quality, only wall-clock (mirrors
+    # the RNNTagger patience wrapper's reasoning and value)
+    "patience": 15,
 })
 model_dir.mkdir(parents=True, exist_ok=True)
 out_json.write_text(json.dumps(defaults, indent=1), encoding="utf-8")

@@ -33,19 +33,39 @@ defaults.update({
     "breakline_ref": None,
     "max_sent_len": 35,
     "tasks": [
+        # each task needs its OWN "schedule" dict (even if empty): pie's
+        # settings.merge_task_defaults() does `task[k] = task.get(k, default)`
+        # without copying, so any task missing "schedule" shares the SAME
+        # dict object as every other task missing it. TaskScheduler then does
+        # `tasks[name] = task.get('schedule', {}); tasks[name]['target'] = ...`
+        # against that shared object, so setting pos/morph's target=False
+        # after lemma's target=True silently clobbers lemma's flag back to
+        # False too (verified by reproducing settings_from_file() + check_settings()
+        # + TaskScheduler() on the actual generated settings.json). With
+        # target permanently False, pie never saves a checkpoint (torch.save
+        # is gated on is_target) and patience/early-stop can never fire
+        # either -- training would run to the full epochs=500 cap and
+        # produce nothing. Giving each task its own dict avoids the aliasing.
         {"name": "lemma", "target": True, "context": "sentence", "level": "char",
-         "decoder": "attentional", "settings": {"bos": True, "eos": True,
-                                                "lower": False, "target": "lemma"}},
-        {"name": "pos"},
-        {"name": "morph"},
+         "decoder": "attentional", "schedule": {},
+         "settings": {"bos": True, "eos": True, "lower": False, "target": "lemma"}},
+        {"name": "pos", "schedule": {}},
+        {"name": "morph", "schedule": {}},
     ],
     "include_lm": True,   # their joint-LM auxiliary (Manjavacas et al. 2019)
     "device": "cuda",
     "verbose": True,
+    # NOTE: do NOT set run_test=True here -- despite the name, pie's
+    # scripts/train.py gates its final model.save() on `not settings.run_test`
+    # (run_test=True is meant for hyperparameter-search runs that don't need
+    # a persisted model). The test-set evaluation print ("Evaluating best
+    # model on test set") happens unconditionally whenever test_path is set,
+    # regardless of run_test, so the default (False) already gives us both
+    # the test score AND a saved model.
     # pie's own default (epochs=500, patience=100) is unboundedly expensive;
-    # pie already keeps the best-dev checkpoint regardless of patience, so a
-    # tighter budget costs nothing in model quality, only wall-clock (mirrors
-    # the RNNTagger patience wrapper's reasoning and value)
+    # with the schedule-aliasing bug above fixed, pie's checkpointing and
+    # early-stop now actually work, so this tighter budget costs nothing in
+    # model quality, only wall-clock (mirrors the RNNTagger patience wrapper)
     "patience": 15,
 })
 model_dir.mkdir(parents=True, exist_ok=True)

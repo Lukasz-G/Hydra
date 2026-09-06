@@ -135,9 +135,16 @@ train_tagger() {  # train_tagger DATA_DIR PARAM
         "$1/tagger/train.tsv" "$1/tagger/dev.tsv" "$2"
 }
 train_lem() {  # train_lem DATA_DIR PARAM
+    # max_{src,tgt}_vocab_size default to 0 in nmt-train.py, which is NOT
+    # "unlimited" -- Counter.most_common(0) returns [], so build_dict's
+    # `words, _ = zip(*word_freq.most_common(0))` always raises ValueError
+    # ("not enough values to unpack") before a single epoch runs. This data
+    # is character-level (~231 src / ~112 tgt symbols observed on the
+    # stratified split), so 500 is a generous cap that's a no-op in practice.
     $PATIENT $RT/PyNMT/nmt-train.py --gpu 0 --tie_embeddings \
         --word_emb_size 100 --enc_rnn_size 400 --dec_rnn_size 400 \
         --enc_depth 2 --dec_depth 2 --dropout_rate 0.5 \
+        --max_src_vocab_size 500 --max_tgt_vocab_size 500 \
         "$1/lemmatizer/train.src" "$1/lemmatizer/train.tgt" \
         "$1/lemmatizer/dev.src" "$1/lemmatizer/dev.tgt" "$2"
 }

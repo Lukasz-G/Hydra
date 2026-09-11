@@ -33,6 +33,9 @@ char_tcn_dilations = [1, 2, 4, 8]
 ctx_tcn_dilations = [1, 2, 4]
 d_dec = 256
 lemma_cross_attention = true
+# predict-then-condition cascade: "off" | "lemma" | "morph+lemma".
+# Gold tags are teacher-forced in training, predicted at inference.
+tag_condition = "off"
 dropout = 0.15
 
 [loss]
@@ -59,3 +62,8 @@ backend = "auto"           # "auto" | "gloo" | "nccl"
 
 [infer]
 batch_chunks = 32
+# tag_condition gate: trust a predicted tag as conditioning only above this
+# softmax probability, else use the learned "unsure" embedding. 0.0 = always
+# trust the argmax. tag_cond_oracle feeds GOLD tags instead — diagnostic only.
+tag_cond_min_prob = 0.0
+tag_cond_oracle = false

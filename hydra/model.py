@@ -245,6 +245,32 @@ class HydraModel(nn.Module):
 
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
+
+        # predict-then-condition cascade. The conditioning projections are
+        # ZERO-INITIALISED, so at step 0 the model is bit-identical to an
+        # unconditioned one: warm-starting a mature checkpoint is safe by
+        # construction (cf. the ungated lemma classifier, which clobbered a
+        # trained generator and crashed epoch-0 dev lemma to 73%).
+        # Index n_pos / n_morph is the learned "unsure" slot used when the
+        # confidence gate rejects a prediction or a target is IGNORE.
+        self.pos_cond_emb = self.morph_cond_emb = None
+        self.tag_to_morph = self.tag_to_lemma = None
+        self.n_pos, self.n_morph = n_pos, n_morph
+        # inference-time gate, set from cfg.infer.tag_cond_min_prob by the
+        # eval/tag entry points; 0.0 = always trust the argmax
+        self.tag_cond_min_prob = 0.0
+        if cfg.tag_condition != "off":
+            dt = cfg.tag_cond_dim
+            self.pos_cond_emb = nn.Embedding(n_pos + 1, dt)
+            self.morph_cond_emb = nn.Embedding(n_morph + 1, dt)
+            self.tag_to_lemma = nn.Linear(2 * dt, cfg.d_model)
+            nn.init.zeros_(self.tag_to_lemma.weight)
+            nn.init.zeros_(self.tag_to_lemma.bias)
+            if cfg.tag_condition == "morph+lemma":
+                self.tag_to_morph = nn.Linear(dt, cfg.d_model)
+                nn.init.zeros_(self.tag_to_morph.weight)
+                nn.init.zeros_(self.tag_to_morph.bias)
+
         self.max_lemma_len = max_lemma_len
         if cfg.lemma_decoder == "ar_tcn":
             self.lemma_decoder = LemmaDecoderAR(cfg, max_lemma_len, n_chars, self.char_emb)
@@ -262,11 +288,29 @@ class HydraModel(nn.Module):
                 nn.Linear(cfg.d_model, cfg.d_dec), nn.GELU(),
                 nn.Linear(cfg.d_dec, n_lemma_types))
 
+    def _cond_ids(self, logits: torch.Tensor, teacher: torch.Tensor | None,
+                  n_classes: int) -> torch.Tensor:
+        """Resolve tag ids for the conditioning path: gold when teacher-forced,
+        otherwise the (optionally confidence-gated) argmax. IGNORE targets and
+        rejected low-confidence predictions both map to the learned "unsure"
+        index n_classes. Discrete by design — no gradient flows back into the
+        upstream head through this path."""
+        if teacher is not None:
+            return torch.where(teacher < 0, n_classes, teacher.long())
+        if self.tag_cond_min_prob > 0:
+            conf, ids = logits.float().softmax(dim=-1).max(dim=-1)
+            return torch.where(conf >= self.tag_cond_min_prob, ids,
+                               torch.full_like(ids, n_classes))
+        return logits.argmax(dim=-1)
+
     def forward(self, chars: torch.Tensor,
-                lemma_teacher: torch.Tensor | None = None) -> ModelOutput:
+                lemma_teacher: torch.Tensor | None = None,
+                tag_teacher: tuple[torch.Tensor, torch.Tensor] | None = None) -> ModelOutput:
         """chars: (B, S, W) int64 with S = T + 2H.
         lemma_teacher: gold lemma char grid (B, T, K, L) for teacher-forced
-        training of the AR decoder (ignored by the grid decoder)."""
+        training of the AR decoder (ignored by the grid decoder).
+        tag_teacher: (pos, morph) gold ids (B, T, K) teacher-forcing the
+        model.tag_condition cascade; None -> the heads' own predictions."""
         B, S, W = chars.shape
         T, H, K = self.T, self.H, self.K
         char_valid = chars != PAD                      # (B, S, W)
@@ -315,12 +359,36 @@ class HydraModel(nn.Module):
         hs = self.slot_norm(hs + self.slot_mlp(hs))
 
         pos_logits = self.pos_head(hs)
-        morph_logits = self.morph_head(hs)
-        lemma_cls_logits = self.lemma_cls_head(hs) if self.lemma_cls_head is not None else None
+
+        cond_on = self.cfg.tag_condition != "off"
+        pos_t = tag_teacher[0] if tag_teacher is not None else None
+        morph_t = tag_teacher[1] if tag_teacher is not None else None
+
+        # cascade stage 1: POS -> morph. Morph is 88.4% correct when POS is
+        # right vs 35.1% when wrong, so the dependency is already there —
+        # this makes it explicit rather than leaving it implicit in `hs`.
+        pos_ids = self._cond_ids(pos_logits, pos_t, self.n_pos) if cond_on else None
+        if self.tag_to_morph is not None:
+            morph_logits = self.morph_head(hs + self.tag_to_morph(self.pos_cond_emb(pos_ids)))
+        else:
+            morph_logits = self.morph_head(hs)
+
+        # cascade stage 2: POS+morph -> lemma
+        hs_lem = hs
+        if cond_on:
+            morph_ids = self._cond_ids(morph_logits, morph_t, self.n_morph)
+            cond = torch.cat([self.pos_cond_emb(pos_ids),
+                              self.morph_cond_emb(morph_ids)], dim=-1)
+            hs_lem = hs + self.tag_to_lemma(cond)
+
+        cls_in = hs_lem if self.cfg.tag_condition_classifier else hs
+        lemma_cls_logits = self.lemma_cls_head(cls_in) if self.lemma_cls_head is not None else None
         mlm_logits = self.mlm_head(ctx[:, center]) if self.mlm_head is not None else None
+        # the joint head predicts POS|morph itself — conditioning it on POS
+        # would be circular, so it keeps the unconditioned representation
         joint_logits = self.joint_head(hs) if self.joint_head is not None else None
 
-        flat = hs.reshape(B * T * K, -1)
+        flat = hs_lem.reshape(B * T * K, -1)
         char_states = char_pad_mask = None
         if self.cfg.lemma_cross_attention:
             cs = x.view(B, S, W, -1)[:, center]        # (B, T, W, d_tok)

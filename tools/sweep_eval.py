@@ -63,6 +63,7 @@ def main() -> None:
         return HydraDataset(docs, vocabs, cfg.data, cfg.model.n_slots,
                             role=split if chunk_mode else None)
 
+    model.tag_cond_min_prob = cfg.infer.tag_cond_min_prob
     dev = dataset("dev")
     best_tau, best_val = taus[0], -1.0
     for tau in taus:
@@ -78,6 +79,13 @@ def main() -> None:
     m = evaluate_dataset(model, test, vocabs, device, cfg.infer.batch_chunks,
                          snapper=snapper, cls_min_prob=best_tau)
     print(f"TEST tau={best_tau}: {fmt(m)}", flush=True)
+    if cfg.model.tag_condition != "off":
+        # oracle diagnostic: same weights, GOLD tags in the cascade. The gap
+        # between this and the line above is what the tag heads' own error
+        # rate costs; a large gap argues for scheduled sampling.
+        mo = evaluate_dataset(model, test, vocabs, device, cfg.infer.batch_chunks,
+                              snapper=snapper, cls_min_prob=best_tau, tag_oracle=True)
+        print(f"TEST_ORACLE tau={best_tau}: {fmt(mo)}", flush=True)
     print("SWEEP_DONE", flush=True)
 
 

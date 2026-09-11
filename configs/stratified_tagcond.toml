@@ -1,0 +1,73 @@
+# Tag-condition cascade (POS -> morph -> lemma), stratified protocol.
+# Reproduces runs/s_joint's recipe exactly and adds model.tag_condition, so the
+# only difference against that baseline is the cascade itself.
+# Warm-start: --init-weights runs/s_joint/model_only.pt (the conditioning
+# projections are zero-initialised, so step 0 is bit-identical to s_joint).
+
+[run]
+run_dir = "runs/s_tagcond"
+seed = 1337
+
+[data]
+corpus_dir = "D:/Corpora/MHD"
+dev_fraction = 0.05
+test_fraction = 0.05
+split_seed = 42
+split_mode = "stratified"
+metadata_csv = "meta/rem_metadata.csv"
+max_word_len = 48
+max_lemma_len = 32
+chunk_len = 128
+halo = 64
+on_mismatch = "skip"
+multi_item_upsample = 1
+lemma_type_min_freq = 1
+word_type_min_freq = 2
+mask_prob = 0.15
+num_workers = 4
+
+[model]
+d_char = 64
+d_tok = 256
+d_model = 512
+n_slots = 8
+kernel_size = 3
+char_tcn_dilations = [1, 2, 4, 8]
+ctx_tcn_dilations = [1, 2, 4, 8, 16]
+d_dec = 256
+lemma_cross_attention = true
+lemma_classifier = true
+ctx_self_attention = true
+masked_lm = true
+joint_tag = true
+tag_condition = "morph+lemma"
+dropout = 0.15
+
+[loss]
+w_pos = 1.0
+w_morph = 1.0
+w_lemma = 1.5
+w_lemma_cls = 1.0
+w_mlm = 0.5
+w_joint_tag = 0.5
+null_weight = 0.2
+
+[train]
+batch_chunks = 12
+max_epochs = 30
+lr = 3e-4
+lr_min = 1e-5
+warmup_steps = 1000
+weight_decay = 0.01
+clip_norm = 1.0
+amp = true
+patience = 8
+min_delta = 0.0005
+log_every_steps = 50
+
+[infer]
+batch_chunks = 32
+snap_lemmas = true
+classifier_min_prob = 0.3
+tag_cond_min_prob = 0.0
+tag_cond_oracle = false

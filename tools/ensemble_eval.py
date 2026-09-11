@@ -29,6 +29,9 @@ models = []
 vocabs = cfg = None
 for c in ckpts:
     m, v, cf = load_model_for_inference(c, device)
+    # each member applies its own tag_condition cascade internally before its
+    # logits are averaged; the gate must match what the member was scored with
+    m.tag_cond_min_prob = cf.infer.tag_cond_min_prob
     models.append(m)
     if vocabs is None:
         vocabs, cfg = v, cf

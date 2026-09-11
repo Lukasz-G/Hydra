@@ -75,7 +75,11 @@ min_delta = 0.0005
 log_every_steps = 50
 
 [infer]
-batch_chunks = 32
+# eval is the memory peak, not training: the lemma-classifier logits are
+# (batch, 128, 8, ~36.9k) -- 2.4 GB in fp16 at batch 32, before the lemma
+# grid and activations. The local 16GB run OOM'd here at its first dev
+# eval (2026-09-11). Keep this well below train batch_chunks.
+batch_chunks = 12
 snap_lemmas = true
 classifier_min_prob = 0.3
 tag_cond_min_prob = 0.0

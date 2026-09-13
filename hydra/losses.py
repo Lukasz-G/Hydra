@@ -11,7 +11,11 @@ from .vocab import NULL
 
 
 def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
-                 cfg: LossConfig, n_pos: int) -> tuple[torch.Tensor, dict[str, float]]:
+                 cfg: LossConfig, n_pos: int,
+                 crf=None) -> tuple[torch.Tensor, dict[str, float]]:
+    """crf: the model's PosCRF when model.pos_crf is on. When given, slot 0's
+    POS cross-entropy is replaced by the CRF sequence negative log-likelihood
+    (per-token normalised, so loss.w_pos keeps its meaning)."""
     # MLM-only pretraining: tagging heads absent from the output
     if out.pos_logits is None:
         # fp32 sum: an fp16 sum over millions of logits overflows to inf,
@@ -31,9 +35,23 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
     weight[NULL] = cfg.null_weight
     ls = cfg.label_smoothing
 
-    l_pos = F.cross_entropy(out.pos_logits.reshape(-1, out.pos_logits.shape[-1]),
-                            pos_t.reshape(-1), weight=weight, ignore_index=IGNORE,
-                            label_smoothing=ls)
+    if crf is not None:
+        # slot 0's cross-entropy is replaced by the CRF's sequence likelihood;
+        # slots 1..K-1 keep per-token CE, since only slot 0 forms a sequence
+        # (it is the one slot guaranteed to carry a real tag at every position).
+        valid = pos_t[:, :, 0] != IGNORE
+        tags0 = pos_t[:, :, 0].clamp(min=0)          # IGNORE -> 0, masked out anyway
+        l_pos_crf = crf.nll(out.pos_logits[:, :, 0, :], tags0, valid)
+        l_pos_rest = F.cross_entropy(
+            out.pos_logits[:, :, 1:, :].reshape(-1, out.pos_logits.shape[-1]),
+            pos_t[:, :, 1:].reshape(-1), weight=weight, ignore_index=IGNORE,
+            label_smoothing=ls)
+        l_pos_rest = torch.nan_to_num(l_pos_rest)     # batch may hold no multi-item slot
+        l_pos = l_pos_crf + l_pos_rest
+    else:
+        l_pos = F.cross_entropy(out.pos_logits.reshape(-1, out.pos_logits.shape[-1]),
+                                pos_t.reshape(-1), weight=weight, ignore_index=IGNORE,
+                                label_smoothing=ls)
     l_morph = F.cross_entropy(out.morph_logits.reshape(-1, out.morph_logits.shape[-1]),
                               morph_t.reshape(-1), ignore_index=IGNORE, label_smoothing=ls)
     l_lemma = F.cross_entropy(out.lemma_logits.reshape(-1, out.lemma_logits.shape[-1]),

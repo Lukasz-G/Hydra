@@ -12,7 +12,7 @@
 #       --init-weights /workspace/s_joint/model_only.pt
 
 [run]
-run_dir = "runs/s_tagcond"
+run_dir = "runs/s_crf"
 seed = 1337
 
 [data]
@@ -49,6 +49,11 @@ ctx_self_attention = true
 masked_lm = true
 joint_tag = true
 tag_condition = "morph+lemma"
+# linear-chain CRF over the slot-0 POS sequence. §5.4 showed the cascade's
+# remaining headroom is gated by POS accuracy; this models the cross-token
+# label dependency the per-token heads cannot. Transitions are zero-init, so
+# warm-starting s_tagcond is a no-op at step 0 and this isolates the CRF.
+pos_crf = true
 dropout = 0.15
 
 [loss]

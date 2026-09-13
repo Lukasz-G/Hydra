@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 
 from .config import ModelConfig
-from .vocab import PAD
+from .vocab import NULL, PAD
 
 try:
     from torch.nn.attention import SDPBackend, sdpa_kernel
@@ -44,6 +44,9 @@ class ModelOutput:
     slot_states: torch.Tensor | None = None       # (B*T*K, d_model)
     char_states: torch.Tensor | None = None       # (B*T*K, W, d_tok)
     char_pad_mask: torch.Tensor | None = None     # (B*T*K, W)
+    # slot-0 Viterbi path when model.pos_crf is on and no teacher was given;
+    # decoding must prefer this over the per-token argmax
+    pos_path: torch.Tensor | None = None          # (B, T)
 
 
 class TCNBlock(nn.Module):
@@ -192,6 +195,98 @@ class LemmaDecoderAR(nn.Module):
         return outp
 
 
+class PosCRF(nn.Module):
+    """Linear-chain CRF over the slot-0 part-of-speech sequence.
+
+    §5.4's oracle diagnostic showed the tag-conditioned lemma decoder's whole
+    remaining headroom sits on tokens whose POS is predicted wrongly, so POS is
+    the throttle on the lemmatiser, not merely one metric among several. The
+    heads otherwise decide each token independently, whilst the data plainly
+    does not: morph is 88.4% correct when POS is right and 35.8% when it is
+    wrong. This models the missing dependency ACROSS tokens.
+
+    Slot 0 only. It is the one slot guaranteed to carry a real tag (decoding
+    forces it non-NULL), so the sequence is well defined at every position;
+    slots 1..K-1 keep their per-token cross-entropy. A CRF over the combined
+    POS|morph tag would be the tidier target -- it encodes a whole multi-item
+    token in one label -- but that is 3,148 states, a 9.9M-parameter transition
+    matrix that would be almost entirely unobserved. POS is 76 states, 5,776
+    transitions.
+
+    Transitions are ZERO-INITIALISED, so at step 0 the CRF contributes only the
+    emission scores and warm-starting from a non-CRF checkpoint is a no-op --
+    the same discipline the tag-conditioning projections use.
+
+    Scope limit worth stating: the sequence is one chunk (chunk_len tokens).
+    The halo feeds the encoder but is sliced off before the heads, so the
+    transition spanning two adjacent chunks is not modelled -- one transition
+    per chunk_len, which at the default 128 is negligible.
+    """
+
+    def __init__(self, n_tags: int):
+        super().__init__()
+        self.n_tags = n_tags
+        self.trans = nn.Parameter(torch.zeros(n_tags, n_tags))  # trans[i, j]: i -> j
+        self.start = nn.Parameter(torch.zeros(n_tags))
+        self.end = nn.Parameter(torch.zeros(n_tags))
+
+    def _gold_score(self, em: torch.Tensor, tags: torch.Tensor,
+                    mask: torch.Tensor) -> torch.Tensor:
+        """Score of the gold path. em (B,T,C), tags (B,T), mask (B,T) float."""
+        B, T, _ = em.shape
+        score = self.start[tags[:, 0]] + em[:, 0].gather(1, tags[:, :1]).squeeze(1)
+        for t in range(1, T):
+            step = (self.trans[tags[:, t - 1], tags[:, t]]
+                    + em[:, t].gather(1, tags[:, t:t + 1]).squeeze(1))
+            score = score + step * mask[:, t]
+        last = (mask.sum(1).long() - 1).clamp(min=0)
+        return score + self.end[tags.gather(1, last.unsqueeze(1)).squeeze(1)]
+
+    def _log_partition(self, em: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        B, T, _ = em.shape
+        alpha = self.start.unsqueeze(0) + em[:, 0]
+        for t in range(1, T):
+            nxt = torch.logsumexp(alpha.unsqueeze(2) + self.trans.unsqueeze(0),
+                                  dim=1) + em[:, t]
+            keep = mask[:, t].unsqueeze(1).bool()
+            alpha = torch.where(keep, nxt, alpha)   # padded steps carry alpha forward
+        return torch.logsumexp(alpha + self.end.unsqueeze(0), dim=1)
+
+    def nll(self, em: torch.Tensor, tags: torch.Tensor,
+            mask: torch.Tensor) -> torch.Tensor:
+        """Per-token negative log-likelihood, so loss.w_pos keeps the same
+        meaning it has for the cross-entropy it replaces."""
+        em = em.float()
+        mask = mask.float()
+        total = (self._log_partition(em, mask) - self._gold_score(em, tags, mask)).sum()
+        return total / mask.sum().clamp(min=1.0)
+
+    @torch.no_grad()
+    def viterbi(self, em: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        """Best path. Returns (B, T) tag ids; positions past the mask repeat
+        the last valid tag, which decoding ignores."""
+        em = em.float()
+        B, T, C = em.shape
+        score = self.start.unsqueeze(0) + em[:, 0]
+        ident = torch.arange(C, device=em.device).unsqueeze(0).expand(B, C)
+        backptr: list[torch.Tensor] = []
+        for t in range(1, T):
+            cand = score.unsqueeze(2) + self.trans.unsqueeze(0)      # (B, C, C)
+            best, idx = cand.max(dim=1)
+            nxt = best + em[:, t]
+            keep = mask[:, t].unsqueeze(1).bool()
+            score = torch.where(keep, nxt, score)
+            # a padded step must not advance the path: point each tag at itself,
+            # so backtracking through trailing padding is a no-op
+            backptr.append(torch.where(keep, idx, ident))
+        best_last = (score + self.end.unsqueeze(0)).argmax(dim=1)     # (B,)
+        path = [best_last]
+        for idx in reversed(backptr):
+            best_last = idx.gather(1, best_last.unsqueeze(1)).squeeze(1)
+            path.append(best_last)
+        return torch.stack(list(reversed(path)), dim=1)
+
+
 class HydraModel(nn.Module):
     def __init__(self, cfg: ModelConfig, n_chars: int, n_pos: int, n_morph: int,
                  max_word_len: int, max_lemma_len: int, chunk_len: int, halo: int,
@@ -245,6 +340,10 @@ class HydraModel(nn.Module):
 
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
+        # zero-initialised transitions: warm-starting a non-CRF checkpoint is a
+        # no-op at step 0, so a comparison isolates the CRF (same discipline as
+        # the tag-conditioning projections below)
+        self.pos_crf = PosCRF(n_pos) if cfg.pos_crf else None
 
         # predict-then-condition cascade. The conditioning projections are
         # ZERO-INITIALISED, so at step 0 the model is bit-identical to an
@@ -367,7 +466,25 @@ class HydraModel(nn.Module):
         # cascade stage 1: POS -> morph. Morph is 88.4% correct when POS is
         # right vs 35.1% when wrong, so the dependency is already there —
         # this makes it explicit rather than leaving it implicit in `hs`.
+        # Viterbi replaces the slot-0 argmax at inference: the CRF's whole point
+        # is that the best SEQUENCE differs from the best tag at each position.
+        # Only when not teacher-forced -- training conditions on gold anyway.
+        pos_path = None
+        if self.pos_crf is not None and pos_t is None:
+            # slot 0 is forced non-NULL by decoding, so NULL must be unreachable
+            # for the Viterbi path too, or the CRF could break that invariant
+            # .clone() is load-bearing: .detach().float() is a no-op view when
+            # the dtype already matches, so masking NULL would write straight
+            # back into the pos_logits this forward returns
+            em0 = pos_logits[:, :, 0, :].detach().clone().float()
+            em0[..., NULL] = torch.finfo(em0.dtype).min
+            pos_path = self.pos_crf.viterbi(em0, token_valid[:, center])
+
         pos_ids = self._cond_ids(pos_logits, pos_t, self.n_pos) if cond_on else None
+        if cond_on and pos_path is not None:
+            # slots 1..K-1 keep their per-slot argmax; only slot 0 has a CRF
+            pos_ids = pos_ids.clone()
+            pos_ids[..., 0] = pos_path
         if self.tag_to_morph is not None:
             morph_logits = self.morph_head(hs + self.tag_to_morph(self.pos_cond_emb(pos_ids)))
         else:
@@ -402,7 +519,7 @@ class HydraModel(nn.Module):
                 # generation happens outside (metrics.decode_batch drives it)
                 return ModelOutput(pos_logits, morph_logits, None, lemma_cls_logits,
                                    mlm_logits, joint_logits, flat, char_states,
-                                   char_pad_mask)
+                                   char_pad_mask, pos_path)
             gold = lemma_teacher.reshape(B * T * K, -1).clamp_min(PAD)  # IGNORE -> PAD
             prev = torch.cat([gold.new_full((gold.shape[0], 1), PAD), gold[:, :-1]], dim=1)
             lemma_logits = self.lemma_decoder(flat, prev, char_states, char_pad_mask)
@@ -411,4 +528,4 @@ class HydraModel(nn.Module):
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
         return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits,
-                           mlm_logits, joint_logits)
+                           mlm_logits, joint_logits, pos_path=pos_path)

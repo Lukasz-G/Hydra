@@ -109,6 +109,11 @@ class ModelConfig:
     # RNNTagger's tag-conditioned lemmatiser. "off" | "lemma" (feed POS+morph
     # into the lemma decoder) | "morph+lemma" (also feed POS into the morph
     # head). Gold tags are teacher-forced in training, predicted at inference.
+    # linear-chain CRF over the slot-0 POS sequence, modelling dependencies
+    # ACROSS tokens (the heads are otherwise independent per token). Motivated
+    # by §5.4: the tag-conditioned decoder's remaining headroom is entirely
+    # gated by POS accuracy. Slot 0 only -- 76 states, 5,776 transitions.
+    pos_crf: bool = False
     tag_condition: str = "off"
     tag_cond_dim: int = 64           # width of the POS/morph conditioning embeddings
     # also condition the classify-or-generate head (lemma *selection* is where

@@ -240,7 +240,8 @@ def train(cfg: Config, resume: str | None = None,
                 # half-trained POS head must never feed the morph/lemma heads
                 out = model(chars, lemma_teacher=targets["lemma"],
                             tag_teacher=(targets["pos"], targets["morph"]))
-                loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos))
+                loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos),
+                                           crf=unwrap(model).pos_crf)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(),

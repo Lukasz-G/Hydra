@@ -65,3 +65,36 @@ def test_both_arms_see_identical_token_sets(tmp_path):
     # identical supervision mask, token for token
     assert ([t.pos is None for t in split_toks]
             == [t.pos is None for t in comb_toks])
+
+
+def test_ablation_with_one_slot_keeps_multi_item_tokens(tmp_path):
+    """The bug that invalidated the first ablation run.
+
+    The ablation sets model.n_slots=1 (that IS the ablation: no slots). But the
+    malformed-token check rejects n > n_slots, so with n_slots=1 every
+    multi-item token was skipped -- silently removing exactly the tokens the
+    ablation exists to measure. It surfaced only as a dev-set size: n=91,726
+    against the baseline's 94,259, short by precisely the 2,533 multi-item
+    tokens. Nothing else complained.
+
+    data.align_max_items pins the limit to the BASELINE's slot count, so both
+    arms skip the same tokens regardless of how many slots the model has.
+    """
+    lines = LINES + ["dreistueck\ta+b+c\tX+Y+Z\tM1+M2+M3"]   # a 3-item token
+
+    # what the slot baseline (n_slots=8) sees
+    base, base_skipped = parse_tsv_file(write(tmp_path, lines), "skip", 8)
+
+    # the ablation as configured: one slot, but the limit pinned to the baseline
+    abl, abl_skipped = parse_tsv_file(write(tmp_path, lines), "skip", 1,
+                                      combined_tags=True, max_items=8)
+    assert abl_skipped == base_skipped == 0
+    assert len(abl) == len(base)
+    assert all(t.pos is not None for t in abl)
+    assert all(t.n_items == 1 for t in abl), "combined tags must yield one item"
+
+    # ...and the regression itself: without the pin, n_slots=1 eats them
+    bad, bad_skipped = parse_tsv_file(write(tmp_path, lines), "skip", 1,
+                                      combined_tags=True)
+    assert bad_skipped == 2, "fixture no longer reproduces the bug"
+    assert sum(t.pos is not None for t in bad) == len(base) - 2

@@ -40,6 +40,10 @@ word_type_min_freq = 2
 mask_prob = 0.15
 num_workers = 4
 combined_tags = true
+# pin the malformed-token limit to the BASELINE's n_slots. Without it,
+# n_slots=1 below skips every multi-item token -- the tokens this
+# ablation exists to measure -- and silently shrinks the test set.
+align_max_items = 8
 
 [model]
 d_char = 64

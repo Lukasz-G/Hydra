@@ -39,7 +39,7 @@ for c in ckpts:
 
 splits = json.loads((run / "split.json").read_text(encoding="utf-8"))
 docs = load_split_tokens(splits[split], cfg.data.on_mismatch, cfg.model.n_slots,
-                             cfg.data.combined_tags)
+                             cfg.data.combined_tags, cfg.data.align_max_items)
 role = split if cfg.data.split_mode == "chunk" else None
 ds = HydraDataset(docs, vocabs, cfg.data, cfg.model.n_slots, role=role)
 snapper = LemmaSnapper(vocabs.lemma_inventory)

@@ -60,7 +60,7 @@ def main() -> None:
 
     def dataset(split: str) -> HydraDataset:
         docs = load_split_tokens(splits[split], cfg.data.on_mismatch, cfg.model.n_slots,
-                             cfg.data.combined_tags)
+                             cfg.data.combined_tags, cfg.data.align_max_items)
         return HydraDataset(docs, vocabs, cfg.data, cfg.model.n_slots,
                             role=split if chunk_mode else None)
 

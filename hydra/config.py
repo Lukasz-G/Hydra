@@ -74,6 +74,15 @@ class DataConfig:
     # RNNTagger's convention and the baseline the K=8 slot decoder has never
     # been measured against (paper SS6.2). Pair with model.n_slots = 1.
     combined_tags: bool = False
+    # Max items a token may have before it is skipped as malformed. 0 = use
+    # model.n_slots, which is right for the slot decoder. It is NOT right for
+    # the combined_tags ablation: that sets n_slots=1, which would skip every
+    # multi-item token -- exactly the tokens the ablation exists to measure,
+    # silently shrinking its test set (observed: n=91,726 vs the baseline's
+    # 94,259, short by precisely the 2,533 multi-item tokens). The ablation
+    # must set this to the BASELINE's n_slots (8) so both arms skip the same
+    # tokens and are scored on the same n.
+    align_max_items: int = 0
     num_workers: int = 0
 
     def __post_init__(self) -> None:

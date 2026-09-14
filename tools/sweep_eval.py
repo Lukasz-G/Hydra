@@ -59,7 +59,8 @@ def main() -> None:
     chunk_mode = cfg.data.split_mode == "chunk" and cfg.data.train_dir is None
 
     def dataset(split: str) -> HydraDataset:
-        docs = load_split_tokens(splits[split], cfg.data.on_mismatch, cfg.model.n_slots)
+        docs = load_split_tokens(splits[split], cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags)
         return HydraDataset(docs, vocabs, cfg.data, cfg.model.n_slots,
                             role=split if chunk_mode else None)
 

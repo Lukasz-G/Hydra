@@ -60,6 +60,14 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
         cls_arg[cls_prob < cls_min_prob] = LABEL_UNK               # low confidence -> generate
         cls_ids = cls_arg.cpu().numpy()                            # (B, T, K)
 
+    # model.count_head: an explicit item count replaces the implicit
+    # "read slots until the first NULL POS" rule. Clamped to >=1 (slot 0 is
+    # always an item) and <=K.
+    counts = None
+    if out.count_logits is not None:
+        counts = out.count_logits[..., 1:].argmax(dim=-1).add(1).clamp(1, pos_ids.shape[-1])
+        counts = counts.cpu().numpy()
+
     pos_ids = pos_ids.cpu().numpy()
     morph_ids = morph_ids.cpu().numpy()
     char_ids = char_ids.cpu().numpy()
@@ -70,8 +78,11 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
         row: list[Prediction] = []
         for t in range(T):
             lemmas, poss, morphs = [], [], []
+            n_k = counts[b, t] if counts is not None else K
             for k in range(K):
-                if k > 0 and pos_ids[b, t, k] == NULL:
+                if k >= n_k:
+                    break
+                if counts is None and k > 0 and pos_ids[b, t, k] == NULL:
                     break
                 lemma = ""
                 if cls_ids is not None and cls_ids[b, t, k] != LABEL_UNK:

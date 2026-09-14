@@ -47,6 +47,10 @@ class ModelOutput:
     # slot-0 Viterbi path when model.pos_crf is on and no teacher was given;
     # decoding must prefer this over the per-token argmax
     pos_path: torch.Tensor | None = None          # (B, T)
+    # model.count_head: item count per token, classes 0..K (0 never a
+    # target -- it marks context-only tokens). Decoding prefers this over
+    # the implicit first-NULL rule.
+    count_logits: torch.Tensor | None = None      # (B, T, K+1)
 
 
 class TCNBlock(nn.Module):
@@ -386,6 +390,7 @@ class HydraModel(nn.Module):
             nn.Linear(cfg.d_model, cfg.d_model))
         self.slot_norm = nn.LayerNorm(cfg.d_model)
 
+        self.count_head = nn.Linear(cfg.d_model, cfg.n_slots + 1) if cfg.count_head else None
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
         # zero-initialised transitions: warm-starting a non-CRF checkpoint is a
@@ -539,6 +544,7 @@ class HydraModel(nn.Module):
         hs = h.unsqueeze(2) + self.slot_emb.view(1, 1, K, -1)               # (B, T, K, d_model)
         hs = self.slot_norm(hs + self.slot_mlp(hs))
 
+        count_logits = self.count_head(h) if self.count_head is not None else None
         pos_logits = self.pos_head(hs)
 
         cond_on = self.cfg.tag_condition != "off"
@@ -604,7 +610,7 @@ class HydraModel(nn.Module):
                 # generation happens outside (metrics.decode_batch drives it)
                 return ModelOutput(pos_logits, morph_logits, None, lemma_cls_logits,
                                    mlm_logits, joint_logits, flat, char_states,
-                                   char_pad_mask, pos_path)
+                                   char_pad_mask, pos_path, count_logits)
             gold = lemma_teacher.reshape(B * T * K, -1).clamp_min(PAD)  # IGNORE -> PAD
             prev = torch.cat([gold.new_full((gold.shape[0], 1), PAD), gold[:, :-1]], dim=1)
             lemma_logits = self.lemma_decoder(flat, prev, char_states, char_pad_mask)
@@ -613,4 +619,5 @@ class HydraModel(nn.Module):
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
         return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits,
-                           mlm_logits, joint_logits, pos_path=pos_path)
+                           mlm_logits, joint_logits, pos_path=pos_path,
+                           count_logits=count_logits)

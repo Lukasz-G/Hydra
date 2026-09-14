@@ -75,7 +75,8 @@ def eval_main(argv: list[str] | None = None) -> None:
         files = splits[args.split]
         if not files:
             sys.exit(f"split {args.split!r} is empty in {split_path}")
-    docs = load_split_tokens(files, cfg.data.on_mismatch, cfg.model.n_slots)
+    docs = load_split_tokens(files, cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags)
     role = None
     if cfg.data.split_mode == "chunk" and not args.input:
         role = args.split  # chunk mode: same files, role-filtered chunks

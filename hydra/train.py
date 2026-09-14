@@ -84,11 +84,13 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
     barrier(info)
     splits = json.loads(split_path.read_text(encoding="utf-8"))
 
-    train_docs = load_split_tokens(splits["train"], cfg.data.on_mismatch, cfg.model.n_slots)
+    train_docs = load_split_tokens(splits["train"], cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags)
     if cfg.data.extra_train_dir:
         from .data import list_corpus_files
         extra_files = [str(f) for f in list_corpus_files(cfg.data.extra_train_dir)]
-        train_docs += load_split_tokens(extra_files, cfg.data.on_mismatch, cfg.model.n_slots)
+        train_docs += load_split_tokens(extra_files, cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags)
         if info.is_main:
             log.info("added %d unannotated files from %s", len(extra_files),
                      cfg.data.extra_train_dir)
@@ -118,7 +120,8 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
         if chunk_mode:
             dev_ds = HydraDataset(train_docs, vocabs, cfg.data, cfg.model.n_slots, role="dev")
         else:
-            dev_docs = load_split_tokens(splits["dev"], cfg.data.on_mismatch, cfg.model.n_slots)
+            dev_docs = load_split_tokens(splits["dev"], cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags)
             dev_ds = HydraDataset(dev_docs, vocabs, cfg.data, cfg.model.n_slots)
     return vocabs, train_ds, dev_ds
 

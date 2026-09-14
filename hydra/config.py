@@ -69,6 +69,11 @@ class DataConfig:
     # spelling variants onto one class; a token's corpus-carried norm
     # (2-column unannotated files) takes precedence over the lookup
     norm_lookup: str | None = None
+    # ABLATION: treat each token as ONE item with a combined tag ("APPR+NA")
+    # and a joined lemma ("in+hant") instead of splitting on '+'. This is
+    # RNNTagger's convention and the baseline the K=8 slot decoder has never
+    # been measured against (paper SS6.2). Pair with model.n_slots = 1.
+    combined_tags: bool = False
     num_workers: int = 0
 
     def __post_init__(self) -> None:
@@ -128,6 +133,13 @@ class ModelConfig:
     # The distribution is detached: this changes what the lemma head consumes,
     # not what trains the tagger (gradient flow is a separate ablation).
     tag_cond_soft: bool = False
+    # explicit item-count head. Item count is otherwise implicit -- decoding
+    # reads slots until the first NULL POS -- and the error analysis localises
+    # the multi-item gap there: count is right only ~87% of the time and the
+    # errors are UNDER-segmentation to n=1, while content given the count is
+    # about as good as on single-item tokens. This predicts the count directly
+    # from the token representation instead.
+    count_head: bool = False
     dropout: float = 0.15
 
     def __post_init__(self) -> None:
@@ -144,6 +156,7 @@ class LossConfig:
     w_lemma_cls: float = 1.0
     w_mlm: float = 0.5
     w_joint_tag: float = 0.5
+    w_count: float = 0.5        # model.count_head
     null_weight: float = 0.2
     # label smoothing for the tagging/classification heads (pos, morph, lemma
     # chars, lemma classifier, joint tag); the masked-LM aux stays unsmoothed —

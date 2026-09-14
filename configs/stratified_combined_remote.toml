@@ -1,0 +1,90 @@
+# ABLATION (paper SS6.2): combined tags instead of slot decoding.
+#
+# Each token becomes ONE item carrying the whole combined tag ("APPR+NA") and
+# the joined lemma ("in+hant") -- RNNTagger's convention, which beats the K=8
+# slot decoder by ~4pp on multi-item lemma. The slot architecture is the
+# project's central claim and has never been measured against it.
+#
+# Everything else reproduces runs/s_joint EXACTLY, because s_joint at three
+# seeds is the baseline this is compared against. Trained from scratch: the
+# head geometry differs, so there is nothing to warm-start from.
+#
+# Fairness notes:
+#   * combined_tags is applied AFTER the alignment check, so both arms skip
+#     exactly the same malformed tokens and evaluate on the same n.
+#   * max_lemma_len stays 32, identical to the baseline decoder. Joined lemmas
+#     reach 42 chars, but only 156 of 2,179,531 tokens (0.007%) exceed 31 --
+#     far below the 0.42pp seed noise, and keeping the decoder byte-identical
+#     matters more for a controlled ablation.
+
+[run]
+run_dir = "runs/PLACEHOLDER"
+seed = 1337
+
+[data]
+corpus_dir = "/workspace/data/MHD"
+dev_fraction = 0.05
+test_fraction = 0.05
+split_seed = 42
+split_mode = "stratified"
+metadata_csv = "meta/rem_metadata.csv"
+limit_files = 0
+max_word_len = 48
+max_lemma_len = 32
+chunk_len = 128
+halo = 64
+on_mismatch = "skip"
+multi_item_upsample = 1
+lemma_type_min_freq = 1
+word_type_min_freq = 2
+mask_prob = 0.15
+num_workers = 4
+combined_tags = true
+
+[model]
+d_char = 64
+d_tok = 256
+d_model = 512
+n_slots = 1
+kernel_size = 3
+char_tcn_dilations = [1, 2, 4, 8]
+ctx_tcn_dilations = [1, 2, 4, 8, 16]
+d_dec = 256
+lemma_cross_attention = true
+lemma_classifier = true
+tcn_channel_gate = false
+ctx_self_attention = true
+masked_lm = true
+attention_pooling = false
+joint_tag = true
+pretrain_mlm = false
+dropout = 0.15
+
+[loss]
+w_pos = 1.0
+w_morph = 1.0
+w_lemma = 1.5
+w_lemma_cls = 1.0
+w_mlm = 0.5
+w_joint_tag = 0.5
+null_weight = 0.2
+
+[train]
+batch_chunks = 12
+max_epochs = 30
+lr = 0.0003
+lr_min = 1e-05
+warmup_steps = 1000
+weight_decay = 0.01
+clip_norm = 1.0
+amp = true
+patience = 8
+min_delta = 0.0005
+log_every_steps = 50
+cls_head_lr_mult = 1.0
+amp_dtype = "bf16"
+
+[infer]
+batch_chunks = 12
+snap_lemmas = true
+classifier_min_prob = 0.3

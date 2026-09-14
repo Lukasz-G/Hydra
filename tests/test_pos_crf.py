@@ -86,6 +86,45 @@ def test_nll_is_non_negative_and_finite():
     assert torch.isfinite(nll) and nll.item() >= -1e-5
 
 
+def test_nll_non_negative_with_SCATTERED_mask():
+    """Regression: the masked-LM objective blanks ~15% of tokens and data.py
+    sets their POS target to IGNORE, so the CRF's mask has holes in the MIDDLE
+    and is NOT a contiguous prefix. An earlier version used mask.sum()-1 (the
+    COUNT of valid positions) as the index of the last one, so the gold path
+    collected an `end` transition belonging to some other position. The model
+    could inflate that freely, driving the objective negative. Every mask in
+    the original tests was contiguous, so none of them caught it.
+    """
+    crf = PosCRF(3)
+    with torch.no_grad():
+        crf.trans.zero_()
+        crf.start.zero_()
+        crf.end.copy_(torch.tensor([0., 0., 40.]))   # tag 2's end is hugely favoured
+    # valid positions 0,1,3 -> count 3, so the buggy "last = count-1" points at
+    # index 2, which is MASKED and happens to carry the favoured tag 2.
+    mask = torch.tensor([[1., 1., 0., 1.]])
+    tags = torch.tensor([[0, 0, 2, 0]])
+    # emissions make tag 0 overwhelmingly likely, so no real path ends on tag 2
+    em = torch.full((1, 4, 3), -30.0)
+    em[:, :, 0] = 0.0
+    nll = float(crf.nll(em, tags, mask))
+    assert nll >= -1e-4, (
+        f"NLL is {nll:.3f}: the gold path scored above the partition function. "
+        "The mask has a hole, so the chain logic must compact it first.")
+
+
+def test_end_transition_uses_the_last_VALID_index():
+    """With holes in the mask, the end transition must attach to the last
+    valid position, not to position (count-1)."""
+    from hydra.model import _last_valid
+    mask = torch.tensor([[1., 1., 0., 1., 0., 0.],     # valid 0,1,3 -> last = 3
+                         [1., 0., 0., 0., 0., 0.],     # valid 0     -> last = 0
+                         [1., 1., 1., 1., 1., 1.]])    # all valid   -> last = 5
+    assert _last_valid(mask).tolist() == [3, 0, 5]
+    # the buggy formula would have said count-1 = [2, 0, 5]
+    assert (mask.sum(1).long() - 1).tolist() == [2, 0, 5]
+
+
 def test_padding_is_ignored():
     """Trailing padded positions must not change the likelihood — otherwise
     short chunks would be scored differently from long ones."""

@@ -195,6 +195,49 @@ class LemmaDecoderAR(nn.Module):
         return outp
 
 
+def _last_valid(mask: torch.Tensor) -> torch.Tensor:
+    """Index of the last valid position in each row of a 0/1 mask.
+
+    NOT mask.sum()-1: that is the COUNT of valid positions, which only equals
+    the last index when the mask is a contiguous prefix. It is not — the
+    masked-LM objective blanks ~15% of tokens and data.py sets their POS
+    target to IGNORE, punching scattered holes into the sequence. Using the
+    count as an index made the gold path collect an `end` transition belonging
+    to some other (often masked) position, which the model could then inflate
+    freely: the training objective went NEGATIVE and dev accuracy fell below
+    the baseline (run s_crf, 2026-09-14, discarded).
+    """
+    idx = torch.arange(mask.shape[1], device=mask.device).unsqueeze(0)
+    return (mask * idx).argmax(dim=1)
+
+
+def _compact(em: torch.Tensor, tags: torch.Tensor, mask: torch.Tensor):
+    """Gather the valid positions of each row into a contiguous prefix.
+
+    The masked-LM objective blanks ~15% of tokens and data.py sets their POS
+    target to IGNORE, so the training mask has holes in the MIDDLE. A
+    linear-chain CRF cannot simply skip them in place: the gold path would take
+    its transition from tags[t-1] even when t-1 is blanked, whilst the forward
+    recursion carries alpha from the last *valid* position — two different
+    edges — and the end transition would attach to the wrong index. Both
+    failures let the gold score exceed the partition function, i.e. a negative
+    "likelihood" the model can inflate at will (run s_crf, 2026-09-14).
+
+    Compacting first makes the mask a true prefix, so every position's
+    predecessor is the previous ANNOTATED token and the simple indexing is
+    correct. The CRF then models transitions between consecutive annotated
+    tokens, skipping blanked ones — which is the intended semantics.
+    """
+    B, T, C = em.shape
+    # stable sort puts valid (0) before invalid (1) whilst preserving order
+    order = torch.argsort((~mask.bool()).to(torch.int8), dim=1, stable=True)
+    em = em.gather(1, order.unsqueeze(-1).expand(B, T, C))
+    tags = tags.gather(1, order)
+    counts = mask.sum(1, keepdim=True)
+    prefix = (torch.arange(T, device=mask.device).unsqueeze(0) < counts).to(mask.dtype)
+    return em, tags, prefix
+
+
 class PosCRF(nn.Module):
     """Linear-chain CRF over the slot-0 part-of-speech sequence.
 
@@ -234,17 +277,19 @@ class PosCRF(nn.Module):
                     mask: torch.Tensor) -> torch.Tensor:
         """Score of the gold path. em (B,T,C), tags (B,T), mask (B,T) float."""
         B, T, _ = em.shape
-        score = self.start[tags[:, 0]] + em[:, 0].gather(1, tags[:, :1]).squeeze(1)
+        score = (self.start[tags[:, 0]]
+                 + em[:, 0].gather(1, tags[:, :1]).squeeze(1) * mask[:, 0])
         for t in range(1, T):
             step = (self.trans[tags[:, t - 1], tags[:, t]]
                     + em[:, t].gather(1, tags[:, t:t + 1]).squeeze(1))
             score = score + step * mask[:, t]
-        last = (mask.sum(1).long() - 1).clamp(min=0)
-        return score + self.end[tags.gather(1, last.unsqueeze(1)).squeeze(1)]
+        return score + self.end[tags.gather(1, _last_valid(mask).unsqueeze(1)).squeeze(1)]
 
     def _log_partition(self, em: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         B, T, _ = em.shape
-        alpha = self.start.unsqueeze(0) + em[:, 0]
+        # gate position 0's emission by the mask exactly as _gold_score does,
+        # so the two remain comparable when position 0 is itself masked
+        alpha = self.start.unsqueeze(0) + em[:, 0] * mask[:, :1]
         for t in range(1, T):
             nxt = torch.logsumexp(alpha.unsqueeze(2) + self.trans.unsqueeze(0),
                                   dim=1) + em[:, t]
@@ -258,8 +303,11 @@ class PosCRF(nn.Module):
         meaning it has for the cross-entropy it replaces."""
         em = em.float()
         mask = mask.float()
+        n = mask.sum().clamp(min=1.0)
+        # holes must go before the chain logic can be trusted -- see _compact
+        em, tags, mask = _compact(em, tags, mask)
         total = (self._log_partition(em, mask) - self._gold_score(em, tags, mask)).sum()
-        return total / mask.sum().clamp(min=1.0)
+        return total / n
 
     @torch.no_grad()
     def viterbi(self, em: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:

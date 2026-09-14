@@ -231,6 +231,13 @@ def train(cfg: Config, resume: str | None = None,
         running: dict[str, float] = {}
         n_running = 0
         for batch in loader:
+            if cfg.model.tag_cond_soft:
+                # ramp the hard->soft conditioning mix. At step 0 lambda is 0,
+                # so the forward is bit-identical to the hard-conditioned
+                # checkpoint being warm-started: the soft blend is provably the
+                # only change, exactly as the cascade and CRF runs were set up.
+                ramp = cfg.train.tag_cond_ramp_steps
+                unwrap(model).tag_cond_lambda = min(1.0, step / ramp) if ramp > 0 else 1.0
             optimizer.zero_grad(set_to_none=True)
             chars = batch["chars"].to(info.device, non_blocking=True)
             targets = {k: batch[k].to(info.device, non_blocking=True)
@@ -281,6 +288,9 @@ def train(cfg: Config, resume: str | None = None,
                 # dev uses PREDICTED tags (tag_oracle stays off) so the metric
                 # tracks what test will actually do
                 unwrap(model).tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+                # dev eval mirrors inference: pure soft, whatever the ramp is
+                # mid-training, so the reported curve is the deployed model
+                unwrap(model).tag_cond_lambda = 1.0
                 last_dev = evaluate_dataset(unwrap(model), dev_ds, vocabs, info.device,
                                             cfg.infer.batch_chunks, snapper=snapper,
                                             cls_min_prob=cfg.infer.classifier_min_prob)

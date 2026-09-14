@@ -406,6 +406,11 @@ class HydraModel(nn.Module):
         # inference-time gate, set from cfg.infer.tag_cond_min_prob by the
         # eval/tag entry points; 0.0 = always trust the argmax
         self.tag_cond_min_prob = 0.0
+        # cfg.tag_cond_soft: 0 = pure hard lookup, 1 = pure distribution blend.
+        # The training loop ramps it 0 -> 1 (train.tag_cond_ramp_steps); it
+        # stays 1 for inference, so a converged model trains and infers on the
+        # same signal -- the train/test match the confidence gate never had.
+        self.tag_cond_lambda = 1.0
         if cfg.tag_condition != "off":
             dt = cfg.tag_cond_dim
             self.pos_cond_emb = nn.Embedding(n_pos + 1, dt)
@@ -449,6 +454,35 @@ class HydraModel(nn.Module):
             return torch.where(conf >= self.tag_cond_min_prob, ids,
                                torch.full_like(ids, n_classes))
         return logits.argmax(dim=-1)
+
+    def _cond_vec(self, logits: torch.Tensor, emb: nn.Embedding, n_classes: int,
+                  ids: torch.Tensor) -> torch.Tensor:
+        """The conditioning vector the downstream heads actually consume.
+
+        Hard (default): a plain lookup of `ids` -- gold when teacher-forced,
+        else the argmax. One discrete decision, exactly as before.
+
+        Soft (cfg.tag_cond_soft): a softmax-weighted blend of the tag rows, so
+        the head sees the whole distribution and can hedge where the tagger is
+        unsure instead of inheriting one wrong decision. The blend spans rows
+        [0, n_classes) ONLY -- never the "unsure" row at index n_classes, which
+        receives no gradient in training (every path that indexes it has IGNORE
+        targets downstream) and whose use is why the confidence gate only hurt.
+
+        With the CRF on, `ids` carries the Viterbi tag for slot 0; the soft
+        component uses the head's own per-token distribution instead, so
+        sequence-level information reaches the output but not this path.
+        """
+        hard = emb(ids)
+        if not self.cfg.tag_cond_soft or self.tag_cond_lambda <= 0.0:
+            return hard
+        # detached on purpose: this changes WHAT the lemma head consumes, not
+        # what trains the tagger. Letting the lemma loss shape POS is a
+        # separate ablation (it could trade POS accuracy, a reported metric).
+        probs = logits[..., :n_classes].detach().float().softmax(dim=-1)
+        soft = (probs.to(emb.weight.dtype) @ emb.weight[:n_classes]).to(hard.dtype)
+        lam = self.tag_cond_lambda
+        return soft if lam >= 1.0 else (1.0 - lam) * hard + lam * soft
 
     def forward(self, chars: torch.Tensor,
                 lemma_teacher: torch.Tensor | None = None,
@@ -533,8 +567,10 @@ class HydraModel(nn.Module):
             # slots 1..K-1 keep their per-slot argmax; only slot 0 has a CRF
             pos_ids = pos_ids.clone()
             pos_ids[..., 0] = pos_path
+        pos_vec = (self._cond_vec(pos_logits, self.pos_cond_emb, self.n_pos, pos_ids)
+                   if cond_on else None)
         if self.tag_to_morph is not None:
-            morph_logits = self.morph_head(hs + self.tag_to_morph(self.pos_cond_emb(pos_ids)))
+            morph_logits = self.morph_head(hs + self.tag_to_morph(pos_vec))
         else:
             morph_logits = self.morph_head(hs)
 
@@ -542,8 +578,9 @@ class HydraModel(nn.Module):
         hs_lem = hs
         if cond_on:
             morph_ids = self._cond_ids(morph_logits, morph_t, self.n_morph)
-            cond = torch.cat([self.pos_cond_emb(pos_ids),
-                              self.morph_cond_emb(morph_ids)], dim=-1)
+            morph_vec = self._cond_vec(morph_logits, self.morph_cond_emb,
+                                       self.n_morph, morph_ids)
+            cond = torch.cat([pos_vec, morph_vec], dim=-1)
             hs_lem = hs + self.tag_to_lemma(cond)
 
         cls_in = hs_lem if self.cfg.tag_condition_classifier else hs

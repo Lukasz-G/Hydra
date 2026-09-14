@@ -1,0 +1,99 @@
+# Tag-condition cascade + POS CRF + SOFT conditioning, stratified protocol.
+# Reproduces runs/s_crf's recipe exactly and adds model.tag_cond_soft, so the
+# only difference against that run is the soft blend itself.
+#
+# What it changes: the lemma/morph heads consume a softmax-weighted blend of
+# the tag embedding rows instead of one hard argmax lookup, so they can hedge
+# where the tagger is unsure rather than inherit a single wrong decision.
+# Motivated by the oracle gap (SS5.4: +3.5pp lemma sits on tokens whose POS is
+# already wrong) and by the confidence gate's measured failure (2026-09-14:
+# monotonic harm, -4.26pp multi-item lemma at gate 0.9) -- the gate discarded
+# the argmax for an UNTRAINED "unsure" row; the blend does neither.
+#
+# Adds NO parameters: it reuses the tag tables the cascade already trained.
+# Warm-start: --init-weights runs/s_crf/model_only.pt. With
+# train.tag_cond_ramp_steps the mix starts at lambda=0, which is a bit-exact
+# no-op, so step 0 is identical to s_crf and the blend is isolated.
+
+[run]
+run_dir = "runs/s_soft"
+seed = 1337
+
+[data]
+corpus_dir = "D:/Corpora/MHD"
+dev_fraction = 0.05
+test_fraction = 0.05
+split_seed = 42
+split_mode = "stratified"
+metadata_csv = "meta/rem_metadata.csv"
+max_word_len = 48
+max_lemma_len = 32
+chunk_len = 128
+halo = 64
+on_mismatch = "skip"
+multi_item_upsample = 1
+lemma_type_min_freq = 1
+word_type_min_freq = 2
+mask_prob = 0.15
+num_workers = 4
+
+[model]
+d_char = 64
+d_tok = 256
+d_model = 512
+n_slots = 8
+kernel_size = 3
+char_tcn_dilations = [1, 2, 4, 8]
+ctx_tcn_dilations = [1, 2, 4, 8, 16]
+d_dec = 256
+lemma_cross_attention = true
+lemma_classifier = true
+ctx_self_attention = true
+masked_lm = true
+joint_tag = true
+tag_condition = "morph+lemma"
+# linear-chain CRF over the slot-0 POS sequence. §5.4 showed the cascade's
+# remaining headroom is gated by POS accuracy; this models the cross-token
+# label dependency the per-token heads cannot. Transitions are zero-init, so
+# warm-starting s_tagcond is a no-op at step 0 and this isolates the CRF.
+pos_crf = true
+# consume the tag DISTRIBUTION rather than one hard decision
+tag_cond_soft = true
+dropout = 0.15
+
+[loss]
+w_pos = 1.0
+w_morph = 1.0
+w_lemma = 1.5
+w_lemma_cls = 1.0
+w_mlm = 0.5
+w_joint_tag = 0.5
+null_weight = 0.2
+
+[train]
+batch_chunks = 12
+max_epochs = 30
+lr = 3e-4
+lr_min = 1e-5
+warmup_steps = 1000
+weight_decay = 0.01
+clip_norm = 1.0
+amp = true
+patience = 8
+min_delta = 0.0005
+log_every_steps = 50
+
+# ramp the hard->soft mix over ~1 epoch. lambda=0 at step 0 makes the
+# forward bit-identical to s_crf, so the blend is provably the only change.
+tag_cond_ramp_steps = 1300
+
+[infer]
+# eval is the memory peak, not training: the lemma-classifier logits are
+# (batch, 128, 8, ~36.9k) -- 2.4 GB in fp16 at batch 32, before the lemma
+# grid and activations. The local 16GB run OOM'd here at its first dev
+# eval (2026-09-11). Keep this well below train batch_chunks.
+batch_chunks = 8
+snap_lemmas = true
+classifier_min_prob = 0.3
+tag_cond_min_prob = 0.0
+tag_cond_oracle = false

@@ -119,6 +119,15 @@ class ModelConfig:
     # also condition the classify-or-generate head (lemma *selection* is where
     # most lemma errors live, so this is on by default; separable for ablation)
     tag_condition_classifier: bool = True
+    # consume the tag DISTRIBUTION instead of one hard decision: the
+    # conditioning vector becomes a softmax-weighted blend of the tag rows, so
+    # the lemma head degrades gracefully where the tagger is unsure instead of
+    # inheriting a single wrong argmax. Motivated by the oracle gap (§5.4) and
+    # by the confidence gate's failure -- the gate discarded the argmax for an
+    # UNTRAINED "unsure" row and only ever hurt; a blend does neither.
+    # The distribution is detached: this changes what the lemma head consumes,
+    # not what trains the tagger (gradient flow is a separate ablation).
+    tag_cond_soft: bool = False
     dropout: float = 0.15
 
     def __post_init__(self) -> None:
@@ -164,6 +173,12 @@ class TrainConfig:
     # exponential moving average of weights (0 = off; typical 0.999). Dev eval
     # and best.pt use the EMA weights; last.pt keeps raw weights + shadow.
     ema_decay: float = 0.0
+    # model.tag_cond_soft: linearly ramp the hard->soft mix over this many
+    # optimiser steps (0 = soft from step 0). At lambda=0 the conditioning is
+    # a plain gold lookup, so step 0 is bit-identical to a hard-conditioned
+    # checkpoint and warm-starting stays a provable no-op -- the property that
+    # made the cascade and CRF runs interpretable.
+    tag_cond_ramp_steps: int = 0
 
 
 @dataclass(frozen=True)

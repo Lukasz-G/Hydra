@@ -28,9 +28,14 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
     its softmax probability reaches cls_min_prob; otherwise the generated
     characters are used. Returns per (chunk, central position) predictions."""
     pos_ids = out.pos_logits.argmax(dim=-1)                       # (B, T, K)
-    pos_ids0 = out.pos_logits[..., 0, :].clone()                  # slot 0: mask NULL
-    pos_ids0[..., NULL] = torch.finfo(pos_ids0.dtype).min
-    pos_ids[..., 0] = pos_ids0.argmax(dim=-1)
+    if out.pos_path is not None:
+        # model.pos_crf: the best SEQUENCE, not the best tag at each position.
+        # Using the argmax here would discard the CRF entirely.
+        pos_ids[..., 0] = out.pos_path
+    else:
+        pos_ids0 = out.pos_logits[..., 0, :].clone()              # slot 0: mask NULL
+        pos_ids0[..., NULL] = torch.finfo(pos_ids0.dtype).min
+        pos_ids[..., 0] = pos_ids0.argmax(dim=-1)
     # argmax over classes >= 1 skips NULL without materializing a masked copy
     morph_ids = out.morph_logits[..., 1:].argmax(dim=-1) + 1       # (B, T, K)
     if out.lemma_logits is not None:

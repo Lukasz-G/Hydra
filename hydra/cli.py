@@ -50,8 +50,6 @@ def tag_main(argv: list[str] | None = None) -> None:
 
 
 def eval_main(argv: list[str] | None = None) -> None:
-    from .config import config_from_dict
-    from .checkpoint import load_checkpoint
     from .data import HydraDataset, load_split_tokens
     from .evaluate import evaluate_dataset
     from .tag import load_model_for_inference
@@ -86,9 +84,11 @@ def eval_main(argv: list[str] | None = None) -> None:
     if cfg.infer.snap_lemmas and vocabs.lemma_counts:
         from .snap import LemmaSnapper
         snapper = LemmaSnapper(vocabs.lemma_inventory)
+    model.tag_cond_min_prob = cfg.infer.tag_cond_min_prob
     metrics = evaluate_dataset(model, ds, vocabs, device, cfg.infer.batch_chunks,
                                snapper=snapper,
-                               cls_min_prob=cfg.infer.classifier_min_prob)
+                               cls_min_prob=cfg.infer.classifier_min_prob,
+                               tag_oracle=cfg.infer.tag_cond_oracle)
     for k, v in metrics.items():
         print(f"{k}: {v:.4f}" if isinstance(v, float) else f"{k}: {v}")
 

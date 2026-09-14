@@ -20,7 +20,8 @@ DAMAGED_POS = "--"
 def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
                      device: torch.device, batch_chunks: int,
                      snapper: LemmaSnapper | None = None,
-                     cls_min_prob: float = 0.5) -> dict[str, float]:
+                     cls_min_prob: float = 0.5,
+                     tag_oracle: bool = False) -> dict[str, float]:
     model.eval()
     acc_all = EvalAccumulator()
     acc_clean = EvalAccumulator()
@@ -36,8 +37,13 @@ def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
         for lo in range(0, len(ds), batch_chunks):
             idxs = list(range(lo, min(lo + batch_chunks, len(ds))))
             batch = collate([ds[i] for i in idxs])
+            # oracle diagnostic: feed GOLD tags into the tag_condition cascade,
+            # separating "does conditioning help" from "does the tag head's own
+            # error rate eat the gain". Not for reported numbers.
+            tag_teacher = ((batch["pos"].to(device), batch["morph"].to(device))
+                           if tag_oracle else None)
             with torch.autocast(device.type, dtype=amp_dtype, enabled=use_amp):
-                out = model(batch["chars"].to(device))
+                out = model(batch["chars"].to(device), tag_teacher=tag_teacher)
             surfaces = [ds.chunk_surfaces(i) for i in idxs]
             preds = decode_batch(out, vocabs, surfaces, cls_min_prob, model=model)
             golds = [ds.chunk_gold(i) for i in idxs]

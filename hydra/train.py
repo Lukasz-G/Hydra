@@ -236,8 +236,12 @@ def train(cfg: Config, resume: str | None = None,
             targets = {k: batch[k].to(info.device, non_blocking=True)
                        for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm")}
             with torch.autocast(info.device.type, dtype=amp_dtype, enabled=use_amp):
-                out = model(chars, lemma_teacher=targets["lemma"])
-                loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos))
+                # gold tags teacher-force the tag_condition cascade: a
+                # half-trained POS head must never feed the morph/lemma heads
+                out = model(chars, lemma_teacher=targets["lemma"],
+                            tag_teacher=(targets["pos"], targets["morph"]))
+                loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos),
+                                           crf=unwrap(model).pos_crf)
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(),
@@ -274,6 +278,9 @@ def train(cfg: Config, resume: str | None = None,
             # best.pt ships; the raw weights come back for training and last.pt
             raw_state = ema.apply_to(unwrap(model)) if ema is not None else None
             if dev_ds is not None and len(dev_ds) > 0 and not cfg.model.pretrain_mlm:
+                # dev uses PREDICTED tags (tag_oracle stays off) so the metric
+                # tracks what test will actually do
+                unwrap(model).tag_cond_min_prob = cfg.infer.tag_cond_min_prob
                 last_dev = evaluate_dataset(unwrap(model), dev_ds, vocabs, info.device,
                                             cfg.infer.batch_chunks, snapper=snapper,
                                             cls_min_prob=cfg.infer.classifier_min_prob)

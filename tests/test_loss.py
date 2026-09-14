@@ -27,7 +27,7 @@ def full_ignore_batch(B=1, T=2, K=2, L=4):
 def test_all_ignore_gives_zero():
     out = make_output()
     loss, parts = compute_loss(out, full_ignore_batch(), LossConfig(), n_pos=5)
-    assert float(loss) == 0.0
+    assert float(loss.detach()) == 0.0
     assert parts["loss_pos"] == 0.0 and parts["loss_lemma"] == 0.0
     loss.backward()  # must be differentiable even when empty
 
@@ -53,4 +53,4 @@ def test_null_weight_scales_pos_loss():
     # with weight 1.0 the weighted mean equals the plain mean
     plain = torch.nn.functional.cross_entropy(
         out.pos_logits.reshape(-1, 5), batch["pos"].reshape(-1), ignore_index=IGNORE)
-    assert abs(parts_hi["loss_pos"] - float(plain)) < 1e-6
+    assert abs(parts_hi["loss_pos"] - float(plain.detach())) < 1e-6

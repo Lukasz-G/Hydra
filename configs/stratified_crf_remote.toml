@@ -1,0 +1,101 @@
+# Tag-condition cascade + POS CRF, stratified protocol -- vast.ai variant of
+# configs/stratified_crf.toml. Differences from the local file:
+#   * corpus_dir points at the instance's data mount
+#   * vocab_file pins s_tagcond's vocabulary. The split is deterministic and
+#     the vocab build is sorted, so a rebuild SHOULD be identical -- but a
+#     warm start needs the embedding tables to line up exactly, and a silent
+#     mismatch would surface as garbage rather than as an error. Pin it.
+#     (s_tagcond pinned s_joint's vocab in turn, so all three are byte-equal.)
+#   * batch_chunks raised for 24GB (the local box is a 16GB Quadro)
+#
+# Warm-starts s_tagcond, NOT s_joint: the CRF's transitions are zero-init, so
+# starting from the cascade run makes step 0 a no-op and isolates the CRF as
+# the single difference. This is the command that produced runs/s_crf:
+#
+#   python -m hydra.cli train --config configs/stratified_crf_remote.toml \
+#       --init-weights /workspace/s_tagcond/model_only.pt
+#
+# The run log's "init_weights ... missing=3" confirms it: exactly the three
+# new CRF tensors were absent from the checkpoint, nothing else.
+
+[run]
+run_dir = "runs/s_crf"
+seed = 1337
+
+[data]
+corpus_dir = "/workspace/data/MHD"
+dev_fraction = 0.05
+test_fraction = 0.05
+split_seed = 42
+split_mode = "stratified"
+metadata_csv = "meta/rem_metadata.csv"
+vocab_file = "/workspace/s_tagcond/vocab.json"
+max_word_len = 48
+max_lemma_len = 32
+chunk_len = 128
+halo = 64
+on_mismatch = "skip"
+multi_item_upsample = 1
+lemma_type_min_freq = 1
+word_type_min_freq = 2
+mask_prob = 0.15
+num_workers = 4
+
+[model]
+d_char = 64
+d_tok = 256
+d_model = 512
+n_slots = 8
+kernel_size = 3
+char_tcn_dilations = [1, 2, 4, 8]
+ctx_tcn_dilations = [1, 2, 4, 8, 16]
+d_dec = 256
+lemma_cross_attention = true
+lemma_classifier = true
+ctx_self_attention = true
+masked_lm = true
+joint_tag = true
+tag_condition = "morph+lemma"
+# linear-chain CRF over the slot-0 POS sequence. §5.4 showed the cascade's
+# remaining headroom is gated by POS accuracy; this models the cross-token
+# label dependency the per-token heads cannot. Transitions are zero-init, so
+# warm-starting s_tagcond is a no-op at step 0 and this isolates the CRF.
+pos_crf = true
+dropout = 0.15
+
+[loss]
+w_pos = 1.0
+w_morph = 1.0
+w_lemma = 1.5
+w_lemma_cls = 1.0
+w_mlm = 0.5
+w_joint_tag = 0.5
+null_weight = 0.2
+
+[train]
+# 20 OOM'd in the training BACKWARD on a 24GB 4090 (2026-09-11); 12 runs
+# at ~16.9GB and matches what s_joint itself was trained at, so the
+# optimisation regime stays comparable to the baseline.
+batch_chunks = 12
+max_epochs = 30
+lr = 3e-4
+lr_min = 1e-5
+warmup_steps = 1000
+weight_decay = 0.01
+clip_norm = 1.0
+amp = true
+amp_dtype = "bf16"
+patience = 8
+min_delta = 0.0005
+log_every_steps = 50
+
+[infer]
+# eval is the memory peak, not training: the lemma-classifier logits are
+# (batch, 128, 8, ~36.9k) -- 2.4 GB in fp16 at batch 32, before the lemma
+# grid and activations. The local 16GB run OOM'd here at its first dev
+# eval (2026-09-11). Keep this well below train batch_chunks.
+batch_chunks = 12
+snap_lemmas = true
+classifier_min_prob = 0.3
+tag_cond_min_prob = 0.0
+tag_cond_oracle = false

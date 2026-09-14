@@ -105,7 +105,26 @@ class ModelConfig:
     attention_pooling: bool = False  # learned-query pooling over char states (vs max-pool)
     joint_tag: bool = False          # auxiliary head over combined POS|morph tags
     pretrain_mlm: bool = False       # MLM-only mode: skip tagging heads in forward
+    # linear-chain CRF over the slot-0 POS sequence, modelling dependencies
+    # ACROSS tokens (the heads are otherwise independent per token). Motivated
+    # by §5.4: the tag-conditioned decoder's remaining headroom is entirely
+    # gated by POS accuracy. Slot 0 only -- 76 states, 5,776 transitions.
+    pos_crf: bool = False
+    # predict-then-condition cascade (POS -> morph -> lemma), mirroring
+    # RNNTagger's tag-conditioned lemmatiser. "off" | "lemma" (feed POS+morph
+    # into the lemma decoder) | "morph+lemma" (also feed POS into the morph
+    # head). Gold tags are teacher-forced in training, predicted at inference.
+    tag_condition: str = "off"
+    tag_cond_dim: int = 64           # width of the POS/morph conditioning embeddings
+    # also condition the classify-or-generate head (lemma *selection* is where
+    # most lemma errors live, so this is on by default; separable for ablation)
+    tag_condition_classifier: bool = True
     dropout: float = 0.15
+
+    def __post_init__(self) -> None:
+        if self.tag_condition not in ("off", "lemma", "morph+lemma"):
+            raise ValueError("model.tag_condition must be off|lemma|morph+lemma, "
+                             f"got {self.tag_condition!r}")
 
 
 @dataclass(frozen=True)
@@ -160,6 +179,14 @@ class InferConfig:
     # probability clears this bar; otherwise trust the character generator.
     # 0.3 won the dev sweep {0.3, 0.5, 0.7, 0.9} (nearly flat to 0.5)
     classifier_min_prob: float = 0.3
+    # tag-conditioning gate (model.tag_condition): feed a predicted POS/morph
+    # into the downstream heads only when its softmax probability clears this
+    # bar, else a learned "unsure" embedding. 0.0 = always trust the argmax.
+    tag_cond_min_prob: float = 0.0
+    # diagnostic: feed GOLD tags as conditioning instead of predicted ones.
+    # Separates "does conditioning help" from "does the tag head's own error
+    # rate eat the gain". Never use for reported numbers.
+    tag_cond_oracle: bool = False
 
 
 @dataclass(frozen=True)

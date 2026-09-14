@@ -27,7 +27,10 @@ export OMP_NUM_THREADS=8
 stage () {                      # stage <name> <config> <seed> [init-weights]
     local name="$1" cfg="$2" seed="$3" init="${4:-}"
     local run="runs/$name"
-    if grep -q "STAGE_DONE $name" "$LOG" 2>/dev/null; then
+    # trailing space is load-bearing: "STAGE_DONE comb_s1" is a PREFIX of
+    # "STAGE_DONE comb_s1337", so without it seed 1 is silently skipped as
+    # "already done" whenever seed 1337 has finished. (It was.)
+    if grep -q "STAGE_DONE $name " "$LOG" 2>/dev/null; then
         echo "=== SKIP $name (already done) ===" | tee -a "$LOG"; return 0
     fi
     echo "=== $name  $(date +%H:%M) ===" | tee -a "$LOG"

@@ -411,6 +411,7 @@ class HydraModel(nn.Module):
         # inference-time gate, set from cfg.infer.tag_cond_min_prob by the
         # eval/tag entry points; 0.0 = always trust the argmax
         self.tag_cond_min_prob = 0.0
+        self.count_min_prob = 0.5   # cfg.infer.count_min_prob
         # cfg.tag_cond_soft: 0 = pure hard lookup, 1 = pure distribution blend.
         # The training loop ramps it 0 -> 1 (train.tag_cond_ramp_steps); it
         # stays 1 for inference, so a converged model trains and infers on the

@@ -291,6 +291,7 @@ def train(cfg: Config, resume: str | None = None,
                 # dev uses PREDICTED tags (tag_oracle stays off) so the metric
                 # tracks what test will actually do
                 unwrap(model).tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+                unwrap(model).count_min_prob = cfg.infer.count_min_prob
                 # dev eval mirrors inference: pure soft, whatever the ramp is
                 # mid-training, so the reported curve is the deployed model
                 unwrap(model).tag_cond_lambda = 1.0

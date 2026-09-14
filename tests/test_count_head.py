@@ -109,3 +109,40 @@ def test_count_loss_ignores_context_only_tokens(model_cfg):
     batch["n_items"] = torch.full((B, Tt), 2, dtype=torch.long)
     _, parts = compute_loss(out, batch, LossConfig(), N_POS)
     assert parts["loss_count"] > 0.0
+
+
+def test_low_confidence_count_falls_back_to_first_null(model_cfg):
+    """The warm-start guarantee.
+
+    An untrained count head peaks near 1/(K+1), far below infer.count_min_prob,
+    so decoding must ignore it and use the first-NULL rule -- otherwise adding
+    the head to a trained checkpoint destroys it (observed: epoch-0 dev lemma
+    0.108 before this gate existed). Contrast the tag-condition gate, which
+    fell back to an UNTRAINED row and so only ever hurt; this one falls back to
+    a trained, working mechanism.
+    """
+    from hydra.data import Token
+    from hydra.vocab import Vocabs
+    K = model_cfg.n_slots
+    toks = [Token(f"w{i}", [f"l{i}"], [f"P{i}"], [f"M{i}"]) for i in range(N_MORPH)]
+    vocabs = Vocabs.build(toks)
+    cfg = dataclasses.replace(model_cfg, count_head=True)
+    torch.manual_seed(0)
+    model = HydraModel(cfg, len(vocabs.chars), len(vocabs.pos), len(vocabs.morph), W, L, T, H)
+    model.eval()
+    model.count_min_prob = 0.5
+    g = torch.Generator().manual_seed(0)
+    chars = torch.randint(3, len(vocabs.chars), (2, T + 2 * H, W), generator=g)
+    chars[:, :, 6:] = PAD
+    with torch.no_grad():
+        out = model(chars)
+
+    B, Tt = out.pos_logits.shape[0], out.pos_logits.shape[1]
+    pos = out.pos_logits.clone()
+    pos[:, :, 1:, :] = -1e4
+    pos[:, :, 1:, NULL] = 1e4              # first-NULL says 1 item
+    flat = torch.zeros(B, Tt, K + 1)       # uniform -> max prob ~1/K, under the bar
+    out = dataclasses.replace(out, pos_logits=pos, count_logits=flat)
+
+    preds = decode_batch(out, vocabs, [["x"] * Tt for _ in range(B)], 0.3, model=model)
+    assert len(preds[0][0].pos.split("+")) == 1, "unconfident count head was obeyed"

@@ -86,6 +86,7 @@ def eval_main(argv: list[str] | None = None) -> None:
         from .snap import LemmaSnapper
         snapper = LemmaSnapper(vocabs.lemma_inventory)
     model.tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+    model.count_min_prob = cfg.infer.count_min_prob
     metrics = evaluate_dataset(model, ds, vocabs, device, cfg.infer.batch_chunks,
                                snapper=snapper,
                                cls_min_prob=cfg.infer.classifier_min_prob,

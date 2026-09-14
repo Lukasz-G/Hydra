@@ -215,6 +215,14 @@ class InferConfig:
     # Separates "does conditioning help" from "does the tag head's own error
     # rate eat the gain". Never use for reported numbers.
     tag_cond_oracle: bool = False
+    # model.count_head: trust the predicted item count only above this softmax
+    # probability, else fall back to the first-NULL rule. Unlike the tag-cond
+    # gate -- whose fallback was an UNTRAINED "unsure" row, which is why it
+    # only ever hurt -- this falls back to a trained, working mechanism.
+    # It also restores the warm-start no-op: an untrained count head peaks at
+    # ~1/(K+1) probability, far below this bar, so at step 0 decoding is
+    # exactly the first-NULL behaviour of the checkpoint being warm-started.
+    count_min_prob: float = 0.5
 
 
 @dataclass(frozen=True)

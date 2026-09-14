@@ -65,6 +65,7 @@ def main() -> None:
                             role=split if chunk_mode else None)
 
     model.tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+    model.count_min_prob = cfg.infer.count_min_prob
     dev = dataset("dev")
     best_tau, best_val = taus[0], -1.0
     for tau in taus:

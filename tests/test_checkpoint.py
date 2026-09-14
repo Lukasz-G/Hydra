@@ -36,7 +36,7 @@ def run_steps(model, opt, sched, batch, n_pos, n):
         loss.backward()
         opt.step()
         sched.step()
-        losses.append(float(loss))
+        losses.append(float(loss.detach()))
     return losses
 
 

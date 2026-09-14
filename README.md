@@ -43,11 +43,39 @@ k ≥ n get only a NULL POS target. NULL is down-weighted in the loss
 (`loss.null_weight`) and chunks containing multi-item tokens are upsampled
 (`data.multi_item_upsample`) to counter the ~95% single-item imbalance.
 
+That is the default model (~6.7M params). Several optional heads and
+objectives are off by default and switch on from the config; the configs used
+for the paper's runs turn most of them on (~38M params):
+
+- `model.lemma_classifier` — classify-or-generate: a closed-vocabulary lemma
+  classifier alongside the character generator. At inference the classifier's
+  lemma is taken only above `infer.classifier_min_prob`, else the generator's.
+- `model.masked_lm` — masked-token auxiliary on the context encoder, which
+  lets *unannotated* text (`data.extra_train_dir`) contribute to training.
+- `model.tag_condition` — predict-then-condition cascade (POS -> morph ->
+  lemma). Gold tags are teacher-forced in training, predicted at inference,
+  and gated by `infer.tag_cond_min_prob`. `infer.tag_cond_oracle` feeds gold
+  tags as a diagnostic — it separates "does conditioning help" from "does the
+  tagger's own error rate eat the gain", and must never be used for reported
+  numbers.
+- `model.pos_crf` — linear-chain CRF over the slot-0 POS sequence, decoded
+  with Viterbi, modelling the dependency across tokens that the per-token
+  heads cannot.
+- `data.spelling_noise` — train-time diplomatic-spelling augmentation from a
+  learned substitution model (`tools/extract_rem_layers.py`).
+
+`tag_condition` and `pos_crf` add their parameters zero-initialised (the
+conditioning projections; the CRF's transition, start and end scores), so
+warm-starting from a run that lacks them is a provable no-op at step 0. That
+makes the new component the single isolated change against that baseline.
+`lemma_classifier` and `masked_lm` add genuinely new heads and carry no such
+guarantee.
+
 ## Install
 
 ```
 pip install -e .[dev]        # Python >= 3.10, PyTorch >= 2.1
-pytest -q                    # 27 tests, CPU, ~15 s
+pytest -q                    # 78 tests, CPU, ~15 s
 ```
 
 ## Train
@@ -63,9 +91,24 @@ Everything lands in `run.run_dir`: `config.json`, `split.json`, `vocab.json`,
 accuracy), `last.pt` (resume bit-exactly, RNG state included). Early stopping
 via `train.patience`.
 
-Data can be one directory (`data.corpus_dir`, split by file with
+Data can be one directory (`data.corpus_dir`, split with
 `dev_fraction`/`test_fraction`/`split_seed`) or explicit
 `train_dir`/`dev_dir`/`test_dir`.
+
+`data.split_mode` chooses **how** a `corpus_dir` is divided, and it changes
+the reported accuracy far more than most modelling choices do:
+
+- `"file"` — random whole manuscripts held out (the default).
+- `"stratified"` — whole manuscripts held out, balanced by dialect x period x
+  text type and token-weighted. Needs `data.metadata_csv`. This is the hard
+  protocol: the test manuscripts are ones no training token came from.
+- `"chunk"` — random chunks from within all files, so a test token's own
+  manuscript is usually in training. Comparable to what most published
+  figures for this task actually measure; the easiest of the three.
+
+The split is written to `run_dir/split.json`, so a reported number can always
+be traced back to the exact files behind it. A figure quoted without its
+protocol is not comparable to one measured under a different one.
 
 ### Multi-GPU / multi-node (torch.distributed DDP)
 
@@ -111,8 +154,14 @@ and on tokens unseen in training (OOV), plus mean lemma Levenshtein distance.
 
 ```
 hydra/          the package: config, vocab, data, model, losses, metrics,
-                distributed, checkpoint, train, tag, evaluate, cli
-configs/        default.toml (full corpus), smoke.toml (6 files, 3 epochs)
+                distributed, checkpoint, train, tag, evaluate, snap, noise, cli
+configs/        default.toml (full corpus), smoke.toml (6 files, 3 epochs),
+                and the stratified-protocol run configs, each paired with a
+                *_remote.toml variant for a rented GPU
 tests/          pytest suite incl. an end-to-end overfit test
+tools/          corpus conversion (ReM layers, ReN, PIE, RNNTagger), baseline
+                scoring, error analysis, sweeps, remote-GPU setup scripts
+meta/           corpus metadata: the ReM manuscript table driving the
+                stratified split, extracted spelling layers, norm lookup
 legacy/         the pre-2024 mpi4py implementation (reference only)
 ```

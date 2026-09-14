@@ -105,15 +105,15 @@ class ModelConfig:
     attention_pooling: bool = False  # learned-query pooling over char states (vs max-pool)
     joint_tag: bool = False          # auxiliary head over combined POS|morph tags
     pretrain_mlm: bool = False       # MLM-only mode: skip tagging heads in forward
-    # predict-then-condition cascade (POS -> morph -> lemma), mirroring
-    # RNNTagger's tag-conditioned lemmatiser. "off" | "lemma" (feed POS+morph
-    # into the lemma decoder) | "morph+lemma" (also feed POS into the morph
-    # head). Gold tags are teacher-forced in training, predicted at inference.
     # linear-chain CRF over the slot-0 POS sequence, modelling dependencies
     # ACROSS tokens (the heads are otherwise independent per token). Motivated
     # by §5.4: the tag-conditioned decoder's remaining headroom is entirely
     # gated by POS accuracy. Slot 0 only -- 76 states, 5,776 transitions.
     pos_crf: bool = False
+    # predict-then-condition cascade (POS -> morph -> lemma), mirroring
+    # RNNTagger's tag-conditioned lemmatiser. "off" | "lemma" (feed POS+morph
+    # into the lemma decoder) | "morph+lemma" (also feed POS into the morph
+    # head). Gold tags are teacher-forced in training, predicted at inference.
     tag_condition: str = "off"
     tag_cond_dim: int = 64           # width of the POS/morph conditioning embeddings
     # also condition the classify-or-generate head (lemma *selection* is where

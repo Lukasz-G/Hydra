@@ -33,6 +33,10 @@ char_tcn_dilations = [1, 2, 4, 8]
 ctx_tcn_dilations = [1, 2, 4]
 d_dec = 256
 lemma_cross_attention = true
+# linear-chain CRF over the slot-0 POS sequence: models the dependency
+# ACROSS tokens that the per-token heads cannot. Adds 76^2 + 2*76 params.
+pos_crf = false
+
 # predict-then-condition cascade: "off" | "lemma" | "morph+lemma".
 # Gold tags are teacher-forced in training, predicted at inference.
 tag_condition = "off"

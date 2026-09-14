@@ -1,15 +1,22 @@
-# Tag-condition cascade, stratified protocol -- vast.ai variant of
-# configs/stratified_tagcond.toml. Differences from the local file:
+# Tag-condition cascade + POS CRF, stratified protocol -- vast.ai variant of
+# configs/stratified_crf.toml. Differences from the local file:
 #   * corpus_dir points at the instance's data mount
-#   * vocab_file pins s_joint's vocabulary. The split is deterministic and the
-#     vocab build is sorted, so a rebuild SHOULD be identical -- but a
+#   * vocab_file pins s_tagcond's vocabulary. The split is deterministic and
+#     the vocab build is sorted, so a rebuild SHOULD be identical -- but a
 #     warm start needs the embedding tables to line up exactly, and a silent
 #     mismatch would surface as garbage rather than as an error. Pin it.
+#     (s_tagcond pinned s_joint's vocab in turn, so all three are byte-equal.)
 #   * batch_chunks raised for 24GB (the local box is a 16GB Quadro)
 #
-# Run:
-#   python -m hydra.cli train --config configs/stratified_tagcond_remote.toml \
-#       --init-weights /workspace/s_joint/model_only.pt
+# Warm-starts s_tagcond, NOT s_joint: the CRF's transitions are zero-init, so
+# starting from the cascade run makes step 0 a no-op and isolates the CRF as
+# the single difference. This is the command that produced runs/s_crf:
+#
+#   python -m hydra.cli train --config configs/stratified_crf_remote.toml \
+#       --init-weights /workspace/s_tagcond/model_only.pt
+#
+# The run log's "init_weights ... missing=3" confirms it: exactly the three
+# new CRF tensors were absent from the checkpoint, nothing else.
 
 [run]
 run_dir = "runs/s_crf"
@@ -22,7 +29,7 @@ test_fraction = 0.05
 split_seed = 42
 split_mode = "stratified"
 metadata_csv = "meta/rem_metadata.csv"
-vocab_file = "/workspace/s_joint/vocab.json"
+vocab_file = "/workspace/s_tagcond/vocab.json"
 max_word_len = 48
 max_lemma_len = 32
 chunk_len = 128

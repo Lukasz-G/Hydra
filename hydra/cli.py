@@ -50,8 +50,6 @@ def tag_main(argv: list[str] | None = None) -> None:
 
 
 def eval_main(argv: list[str] | None = None) -> None:
-    from .config import config_from_dict
-    from .checkpoint import load_checkpoint
     from .data import HydraDataset, load_split_tokens
     from .evaluate import evaluate_dataset
     from .tag import load_model_for_inference

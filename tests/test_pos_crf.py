@@ -107,7 +107,7 @@ def test_nll_non_negative_with_SCATTERED_mask():
     # emissions make tag 0 overwhelmingly likely, so no real path ends on tag 2
     em = torch.full((1, 4, 3), -30.0)
     em[:, :, 0] = 0.0
-    nll = float(crf.nll(em, tags, mask))
+    nll = float(crf.nll(em, tags, mask).detach())
     assert nll >= -1e-4, (
         f"NLL is {nll:.3f}: the gold path scored above the partition function. "
         "The mask has a hole, so the chain logic must compact it first.")

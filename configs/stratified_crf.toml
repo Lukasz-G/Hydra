@@ -1,8 +1,9 @@
 # Tag-condition cascade + POS CRF, stratified protocol.
-# Reproduces runs/s_joint's recipe exactly and adds model.tag_condition, so the
-# only difference against that baseline is the cascade itself.
-# Warm-start: --init-weights runs/s_joint/model_only.pt (the conditioning
-# projections are zero-initialised, so step 0 is bit-identical to s_joint).
+# Reproduces runs/s_tagcond's recipe exactly and adds model.pos_crf, so the
+# only difference against that run is the CRF itself.
+# Warm-start: --init-weights runs/s_tagcond/model_only.pt (the transition,
+# start and end parameters are zero-initialised, so step 0 is bit-identical
+# to s_tagcond and the CRF is the single isolated change).
 
 [run]
 run_dir = "runs/s_crf"

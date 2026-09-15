@@ -1,0 +1,191 @@
+sigle,name,language,language-area,language-region,language-type,genre,medium,time,date,text-place,text-type,library,file,n_tokens
+F064,Gottesfreund vom Oberland,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",1352-1370,Straßburg,EB,"Straßburg, National- und Universitätsbibliothek",F064.txt,16105
+F073,"Cirurgia, Hieronymus Brunschwig",fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,P,Druck,"15,2",1497,-,RE,Bayeri$che Staatsbibliothek,F073.txt,16610
+F082,"Von Guten und Bosen Nachbaurn, Georg Wickram",fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Druck,"16,2",1556,-,Epik,"Bayerische Staatsbibliothek, München",F082.txt,17232
+F088,Naturlehre Mainau,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",Ende 14. Jhd.,-,RE,"Basel, Universitätsbibl.",F088.txt,5539
+F094,Edlibach Chronik,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,2",1485-86 und Zusätze bis 1530,"Zürich, ohchal.",CB Chronikalische und Berichts-Texte,"in Halle Auszug, nur Edition",F094.txt,18151
+F106,Von Gespansten vnghüren,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Druck,"16,2",1578,-,RE,Zentralbibliothek Zürich,F106.txt,16329
+F112,Altväter,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",um 1400,-,EB,Württembergische Landesbibliothek Stuttgart,F112.txt,18655
+F121,Eunuchus des Terenz,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,P,Druck,"15,2",1486,-,Drama,Universitäts- und Landesbibliothek Darmstadt,F121.txt,15628
+F131,Das Buch von Troja von Hans Mair. ,fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",vollendet 1392,Nördlingen (?),UN,-,F131.txt,21203
+F139,Heidnische Meister,fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,P,Druck,"15,2",1490,-,CB,"Herzog August Bibliothek, Wolfenbüttel",F139.txt,17277
+F148,Des Herren Nachtmahl,fnhd,gesamtschwäbisch,westoberdeutsch,oberdeutsch,T,Druck,"16,2",1557,-,EB,"Bayerische Staatsbibliothek, München",F148.txt,16541
+F149,Rauwolf,fnhd,gesamtschwäbisch,westoberdeutsch,oberdeutsch,T,Druck,"16,2",1582,-,CB,"Bayerische Staatsbibliothek, München",F149.txt,18948
+F154,Neues Buch Köln,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2",1360-1396,Köln,CB,"Köln, Hist. Archiv d. Stadt",F154.txt,12309
+F155,Sammelhandschrift München,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2","4. Viertel, 14. Jhd.",-,-,"München, Staatsbibl.",F155.txt,13766
+F159,Reimchronik der Stadt Cöln,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,V,Handschrift,"15,1",1. Drittel 15. Jh.,-,CB Stadtchronik/Reimchronik,"Stadtbibliothek, Frankfurt am Main",F159.txt,16819
+F161,Otto von Passau: Die 24 Alten,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"15,2",1483,-,"EB, Lebenslehre","Köln, Historisches Archiv",F161.txt,17581
+F163,Chronik der heiligen Stadt Köln,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,P,Druck,"15,2",1499,-,CB,-,F163.txt,16634
+F164,Biblia Köln,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,P,Druck,"15,2",1478,-,-,Köln,F164.txt,14392
+F165,Geschichte der Stadt Neuss,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,V,Druck,"15,2",1476,-,CB,"Ex. Cambridge/Mass., Houghton Libr. (ehemals Brüssel), u. Düsseldorf, UB, D. Sp. G.?434 (defekt)",F165.txt,14486
+F166,Farbrezepte für Garne,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1. Hälfte 16. Jh.,-,nicht definiert,"Köln, Historisches Archiv der Stadt",F166.txt,1208
+F167,Kräuterbuch/Rezeptsammlung ,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1511,-,RE,ULB Halle,F167.txt,14607
+F169,Wie iunge fursten [...],fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1537,-,Rechts-und Geschäftstext; Fürstenspiegel,Bayerische Staatsbibliothek,F169.txt,0
+F170,Heinrich von Neuß,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1508,-,EB,.,F170.txt,16557
+F172,"Johannes Gropper, Leib und Blut Christi",fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1556,-,EB,"Bibliotheca S. J., Maison Saint-Augustin, Enghien (Belgien)",F172.txt,16874
+F173,"Jaspar von Gennep, Epitome Warhaftiger Beschreibug ",fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1559,-,CB,Bayerische Staatsbibliothek,F173.txt,15492
+F174,Van Gotteß gnaden ,fnhd,ripuarisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1556,-,"Rechts- und Geschäftstexte, Verordnung/Gesetz",-,F174.txt,13659
+F175,Pickering: Leiden Christi,fnhd,moselfränkisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2",um 1400,-,EB,"Bernkastel-Kues, Bibl. im St. Nikolaus Hospital",F175.txt,7543
+F181,Pater Noster in wlgari expositum per cardinalem de Cusa ,fnhd,moselfränkisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"15,2",1451; Entstehung des handschriftlichen Überlieferungsträgers 2. Hälfte 15.Jh. (um 1460-71 gemäß Wasserzeichenbefund von Hoffmann),-,EB: Erbauliche Texte (Predigt),"Dresden, Landesbiblibliothek",F181.txt,2772
+F190,Kunst des Messens,fnhd,moselfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1531,-,"Realientexte/Wissenschaftstexte, Handwerk",Bayerische Staatsbibliothek,F190.txt,11527
+F192,Fierrabras,fnhd,moselfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1532,-,UN,UB Bonn Fa 4 439; VD 16 F 1007,F192.txt,14376
+F193,Hexen und Zauberer,fnhd,moselfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1590,-,"Erbauliche Texte, Traktat",Bayerische Staatsbibliothek,F193.txt,15778
+F194,Catechismvs vnd Praxis,fnhd,moselfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1589,-,"KT, Kirchlich-Theologisches Schrifttum",Bayr. Staatsbibliothek Sigel: 12; VD 16 K 165,F194.txt,13890
+F195,Ludwig von Granada: Ordnung und Anweisung,fnhd,moselfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1599,-,RE,"Trier, Stadtbibliothek",F195.txt,15242
+F201,Pilgerfahrt Mönch Berleburg,fnhd,hessisch,westmitteldeutsch,mitteldeutsch,V,Handschrift,"15,1",Anfang 15	Jh.,-,"EB, Pilgerbuch","Bad Berleburg, Sayn-Wittgensteinsche Schlossbibliothek",F201.txt,18143
+F202,Der Huge Scheppel der Gräfin Elisabeth von Nassau,fnhd,hessisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"15,2","zwischen 1455 und 1472, Ergänzungen: Anfang/Mitte 17. Jh.",-,5.3. Epik (UN: Erzählung/ Roman),"Hamburg, Staats- und Universitätsbibliothek",F202.txt,17140
+F203,Die Landeschronik von Thüringen und Hessen ,fnhd,hessisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"15,2",1493-1499,-,CB Chronik,"Kassel, Universitätsbibl.",F203.txt,15130
+F205,Hortus sanitatis,fnhd,hessisch,westmitteldeutsch,mitteldeutsch,P,Druck,"15,2",1485,-,RE,-,F205.txt,21440
+F206,Breydenbach: die heyligen reyßen gen Jherusalem ,fnhd,hessisch,westmitteldeutsch,mitteldeutsch,P,Druck,"15,2",1486,-,CB Reisebericht,Bayerische Staats Bibliothek,F206.txt,18846
+F210,Das Alsfelder Passionsspiel,fnhd,hessisch,westmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1501-1517,-,EB,"Kassel, Universitätsbibl.",F210.txt,16324
+F211,"DEr gantzen Artzenei gemeyner Inhalt, Dryander",fnhd,hessisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1542,-,RE,-,F211.txt,15228
+F212,Astronomia Teutsch,fnhd,hessisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1545,-,RE Realientexte/ Wissenschaftstexte,Bayerische Staatsbibliothek,F212.txt,16260
+F215,Bihtebuoch,fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2",3. Viertel 14. Jh.,-,"KT, kirchlich theologische Texte","Freising, Dombibliothek",F215.txt,9448
+F216,"Rosengarten zu Worms (R), Frankfurter Handschrift ",fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,V,Handschrift,"14,2",1370/80,-,UN,"Frankfurt a. M., Universitätsbibl.",F216.txt,13460
+F218,Der Karrenritter. Episode des mhd. Prosa Lancelot,fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"15,1",um 1430,-,"UN, Epik",Universitätsbibliothek Heidelberg,F218.txt,18853
+F219,Mondwahrsagetext / Mondbuch,fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,V,Handschrift,"15,1",1400 -1420 (Wegener); um 1400 (Zimmermann); 2. Hälfte 14. Jh. (Palmer/Speckenbach S. 172),-,RE Realientexte/ Wissenschaftstexte,Universitätsbibliothek Heidelberg,F219.txt,7079
+F220,Pontus und Sidonia,fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,P,Handschrift,"15,2","2. H., 15. Jhd.",-,"UN, Epik","Bayerische Staatsbibliothek, München",F220.txt,17673
+F225,Des pfaffen geschicht vnd histori vom Kalenberg  ,fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,V,Druck,"15,2",1490,-,"UN, Epik",Universitäts- und Landesbibliothek Darmstadt (TU Darmstadt),F225.txt,13365
+F228,Heidelberger Passionsspiel,fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1514 vollendet,viell. Heidelberg,"UN, Drama","Heidelberg, Universitätsbibl.",F228.txt,16186
+F229,Eyn Neüw Rechebüchlein,fnhd,südrheinfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1517,-,P,Bayerische Staatsbibliothek,F229.txt,17626
+F232,Americæ Achter Theil. Walthern Ralegh [...],fnhd,hessisch-südrheinfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1599,-,RE(CB auf der Bonner-Frnhd.-Korpus-HP),-,F232.txt,17939
+F234,Wahrhaftig Historia,fnhd,hessisch-südrheinfränkisch,westmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1557,-,CB,"Museu Paulista, Sao Paulo",F234.txt,14729
+F235,Cusanus: Christliche Zuchtschule (1631),fnhd,westmitteldeutsch,westmitteldeutsch,mitteldeutsch,T,Druck,"17,1",1631,-,EB,Luxemburgensia aus Stadtbibliothek Trier,F235.txt,13408
+F236,Hessische Chronik,fnhd,westmitteldeutsch,westmitteldeutsch,mitteldeutsch,T,Druck,"17,1",1605,-,CB,-,F236.txt,12699
+F237,Teutscher Nation Herligkeitt,fnhd,westmitteldeutsch,westmitteldeutsch,mitteldeutsch,T,Druck,"17,1",1609,-,RE,"Bayerische Staatsbibliothek, München",F237.txt,18106
+F001,Buch der Natur,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"14,2",ca. 1350-75,(Schreibort) Regensburg (?),RE Realientexte/Wissenschaftstexte,"Bayerische Staatsbibliothek, München",F001.txt,16013
+F002,Runtingerbuch,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"14,2",1383-1407,-,"RG: Handelsbuch, Handel, Münzwesen","Regensburg, Stadtarchiv",F002.txt,9054
+F004,Gebetbuch Johannes von Neumarkt (Dreifaltigkeitsgebete des Petrus Damiani in der Übersetzung des Johannes von Neumarkt),fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"15,1",ca. 1400 - 1450,-,KT,UB Freiburg,F004.txt,2780
+F005,Sendbrief von wahrer Andacht,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"15,1",1428,Nordbayern,EB: Erbauliche Texte,"Augsburg, Universitätsbibliothek",F005.txt,3717
+F007,Practica des Algorismus Ratisbonensis,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"15,2",1455-1461,-,Rechenbuch,Staatsbibliothek München,F007.txt,9939
+F008,Tafeln christlicher Weisheit,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"15,2",ca. 1448,-,KT (Kirchlich-Theologisches Schrifttum) Katechismus,"Bayerische Staatsbibliothek, München",F008.txt,20131
+F010,Büchlein von der fialen Gerechtigkeit,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,P,Druck,"15,2",1486,-,RE Realientexte/Wissenschaftstexte,"Faks. d. Originalausgabe: Hrsg. v. Ferdinand Geldner, Wiesbaden 1965",F010.txt,2948
+F011,Die Geometria. Deutsch,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,P,Druck,"15,2",1487/88,-,"RE (Handwerk, Architektur",UB Würzburg,F011.txt,1142
+F014,Traktat von geistlicher Einkehr,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1501 - 1524 (Schneider),-,KT Kirchlich-Theologisches Schrifttum,BSB München,F014.txt,15616
+F015,Hausbuch Prell,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1. Viertel 16. Jh.,regensburg (Schreibort),"Realientexte (Hausbuch, Rezeptbuch)",Universitätsbibliothek Heidelberg,F015.txt,14173
+F016,Grundige vnd warhafftige bericht der geschichten vnnd kriegshandlung/ [...],fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,F,Druck,"16,1",1530,-,CB Bericht,SB Bamberg,F016.txt,5690
+F018,Hebammenordnung,fnhd,nordbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,1",1550,-,RE,"Bayerische Staatsbibliothek, München",F018.txt,4817
+F019,Rationale divinorum officiorum,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"14,2",6.4.1384 (100 Jahre nach Abfassung!!! Durandus 1296 gestorben),Wien (Schreibort),"6. KT (liturgisches Handbuch, kirchliche Enzyklopädie in 8 Büchern, deutsche  Übersetzungsscholastik (Anonymos für Herzog Albrecht III.))","Österr. Nationalbibliothek, Wien",F019.txt,29460
+F021,Gedichte,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,V,Handschrift,"14,2","um 1360/70 (Roland S.13), 1370er Jahre (Schneider S.61)",-,Lyrik,"Wien, Österreichische Nationalbibliothek",F021.txt,25383
+F022,Denkwürdigkeiten,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"15,1",nach 1442,Schreibort Wien,CB (Bericht),"Österreichische Nationalbibliothek, Wien",F022.txt,13290
+F024,Märterbuch Klosterneuburg,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,V,Handschrift,"15,1",Anfang 15. Jh.,-,EB (Erbauliche Texte),Stiftsbibliothek Klosterneuburg,F024.txt,20496
+F025,Bayerische Chronik,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"15,2",4. Viertel 15. Jh.,Herstellungsort/Schreibort München,CB (chronikalische und Berichtstexte),"Bayerische Staatsbibliothek, München",F025.txt,18612
+F027,Lanntzilet,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,V,Handschrift,"15,2","Ende 15. Jh. (Petzet S. 1, Nyholm [1964] S. XXXVII); zwischen 1487 und ca. 1500 (Kat. dtspr. ill. Hss. S. 353); um 1490 (Montag/Schneider S. 96)",-,5. UN Unterhaltende Texte - 5.3. Epik (Versepos),BSB München,F027.txt,12946
+F028,Begencknus:Kayserlicher Maiestat,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,P,Druck,"15,2",nach 12.07.1493,-,CB Chronikalische und Berichts-Texte (Bericht),"Bayerische Staatsbibliothek, München",F028.txt,1954
+F029,Practica,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,P,Druck,"15,2",1496,-,RE Realientexte/Wissenschaftstexte (Astrologie/Astronomie),-,F029.txt,3839
+F032,Der geistliche Mai,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1529,Schreibort Pütrich-Regelhaus München,EB Erbauliche Texte,"Bayerische Staatsbibliothek, München",F032.txt,16148
+F033,Gründungslegende Tegernsee,fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1518,-,CB (Chronikalische und Berichts-Texte),BSB München,F033.txt,6379
+F034,Ware erklärung vnd vnderrichtung ains Artickels/ die Ee$chaidung betreffend [...],fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,F,Druck,"16,1",1524,-,KT (Kirchlich-Theologisches Schrifttum) - Flugschrift,SB PK Berlin,F034.txt,4876
+F036,"Bibel, Alt vnd new Testament nach dem Text in der hailigen Kirchen gebraucht",fnhd,mittelbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,1",1550,-,KT (Bibel),BSB,F036.txt,16738
+F037,Concordia,fnhd,restbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,2",1583,-,KT,"Bayerische Staatsbibliothek, München",F037.txt,10880
+F038,Mo$cou\oia der Haupt$tat in Rei$$en/ durch Herrn Sigmunden Freyherrn zu Herber$tain […] zu$amen getragen. Sambt des Mo$couiter gepiet/ vnd $einer anrainer be$chreibung vnd anzaigung/ in wen $y glaubens halb/ mit vns nit gleichhellig. Wie die Pot$chafften oder Ge$anten durch $y emphangen vnd gehalten werden/ $ambt zwayen vnder$chidlichen Rai$en in die Mo$qua.,fnhd,restbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,2",1557,-,CB,Niedersächsische Staats- und Universitätsbibliothek Göttingen,F038.txt,14695
+F040,Herzog Rudolf der Stifter und die Tiroler Städte,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"14,2",1363 - 1365,"Schreiborte: Hall, Brixen, Meran, Innsbruck, Wien",RG Rechts- und Geschäftstexte (Urkunden),Bilddateien aus Edition (Faksimile),F040.txt,4246
+F045,Lieder,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,V,Handschrift,"15,1","um 1432 fertiggestellt, mit Nachträgen um 1436/38",-,Unterhaltende Texte - Lyrik,"Innsbruck, Universitäts- und Landesbibliothek Tirol",F045.txt,13143
+F046,Hystoria Troyana,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,P,Handschrift,"15,2",ca. 1470 - 1480,-,unterhaltende Literatur (Epik),Österreichichesche Nationalbibliothek Wien,F046.txt,16689
+F048,Passion Sterzing,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,V,Handschrift,"15,2",1481/96,-,erbauliche Texte (unteraltende Literatur: geistliches Spiel),"Sterzing, Stadtarchiv",F048.txt,5844
+F052,"Florian Waldauf von Waldenstein, Stiftbriefe für die Frauenkapelle in der Pfarrkirche St. Nikolaus zu Hall i.T. ",fnhd,südbairisch,ostoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1501,-,"RG Rechts- und Geschäftstexte, Urkunde","Innsbruck, StA",F052.txt,15049
+F054,Die weltlichen Spiele des Sterzinger Spielearchivs,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,T,Handschrift,"16,1","zw. 1510-1535 (1516, 1531, 1535)",Sterzing (Schreibort),5. UN Unterhaltende Texte,Tiroler Landesmuseum Ferdinandeum,F054.txt,16288
+F056,Hymnarius durch das gantze Jar verteutscht [...],fnhd,südbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,1",1524,-,"Erbauliche Texte - Liederbuch, ältestes kathol. Gesangbuch",Volltext in VD 16,F056.txt,10813
+F057,Müllnerordnung,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,1",1550,-,RG (Rechtsbuch + RE: Handwerk),"Bayerische Staatsbibliothek, München",F057.txt,2414
+F058,Schatzkemmerlin wider gifft,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,2",1574,-,3. RE: Realientexte/Wissenschaftstexte (Medizin: Arzneibuch),Bayerische Staatsbibliothek München,F058.txt,13710
+F059,Des Erzherzogthumbs Kharndten verbesserte Polizey-Ordnung,fnhd,südbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"16,2",1578,-,RG Rechts- und Geschäftstexte,Bayerische Staatsbibliothek,F059.txt,12508
+F061,Wann wilt du Catholisch werden?,fnhd,gesamtbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"17,1",1650,-,KT (Abhandlung/Schrift/Exegese/Disput),"Bayerische Staatsbibliothek, München",F061.txt,12529
+F062,Kurtze vnd Nothwendige Rettung deß Lebens/ Lehr vnd Ehr/auch $eeligen Ableiben/ deß thewren Manns Gottes MARTINI LVTHERI,fnhd,gesamtbairisch,ostoberdeutsch,oberdeutsch,T,Druck,"17,1",1639,-,KT Kirchlich-theologisches Schrifttum (Abhandlung/Schrift/Exegese/Disput),"Regensburg, Staatliche Bibliothek",F062.txt,9496
+F065,Büchlein der ewigen Weisheit,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",um 1370,"Straßburg, Kloster zum grünen Wörth (Schreibort)",EB,"National- und Universitätsbibliothek, Straßburg",F065.txt,15356
+F067,De Nabuchodonosor,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,1",Mitte 15. Jh. (Handschriftencensus),-,6 KT Kirchlich-Theologisches Schrifttum,Staatsbibliothek zu Berlin,F067.txt,20038
+F069,Der Ring,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,V,Handschrift,"15,1",etwa 1410/1420,-,untrhaltende Literatur,BSB München,F069.txt,14173
+F070,Chronik des Konzils zu Konstanz,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,2",um 1465,-,CB Chronikalische und Berichtstexte (Chronik/Bericht),"Konstanz, Rosengartenmuseum, HS 1 (Faksimileausgabe 2013)2013)",F070.txt,17412
+F071,Predigten,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,2","1490-94 (zu Paulis Lebenszeit entstanden, aber von einer unbekannten Nonne niedergeschrieben)",-,EB (Predigt),"Berlin, Staatsbibliothek",F071.txt,13480
+F074,Goldene Bulle,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,P,Druck,"15,2",1485,-,RG (Rechts- und Geschäftstexte (Urkunde),BSB München,F074.txt,15257
+F077,Regelbuch Reuinnenkloster St. Magdalena in Straßburg,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1506,Schreibort: Reuerinnenkloster St. Magdalena Straßburg,CB Chronikalische und Berichts-Texte,National- und Universitätsbibliothek Straßburg,F077.txt,11849
+F078,Donaueschinger Passionsspiel,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Druck,"16,2",Anfang 16. Jh. (Heinzer S. 122); 2. Jahrzehnt des 16. Jh. (Mackert),-,EB erbauliche Literatur (geistl. Spiel),"Karlsruhe, Landesbibliothek",F078.txt,18336
+F079,Von Doctor Martin Luters leere und predigen,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,F,Druck,"16,1",1520,-,KT (Kirchlich-theologisches Schrifttum: Flugschrift),BSB München,F079.txt,7904
+F080,Martin Butzers an ein christlichen Rath und Gemeyn der Statt Weissenburg Summary seiner Predig daselbst gethon. ,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Druck,"16,1",1523,-,EB (Predigt-Sammlung),"Bayerische Staatsbibliothek, München",F080.txt,21049
+F081,Feldbuch der Wundarznei,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Druck,"16,1",1517,-,RE (Medizin: Wundarznei/Chirurgie),BSB München,F081.txt,16381
+F084,"Archidoxa Philippi Theophrasti Paracelsi Bombast, des hocherfahrnen, unnd berühmtesten Philosophj, und beyder Artznej Doctoris Von heymligkeyten der Natur, Zehen Bücher",fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Druck,"16,2",1580,-,3 RE Realientexte/Wissenschaftstexte,BSB München,F084.txt,13063
+F086,Beschreibung Vnd Widerlegung / Etlicher Mißbrauche vnd Irrthumb / so biß anhero in dem Gebrauch der Saurbrunnen,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Druck,"17,1",1655,-,"3. RE Realientexte (Medizin, Baden, Kuren)","Österreichische Nationalbibliothek, Wien",F086.txt,13384
+F087,Gedichte,fnhd,oberrheinisch,westoberdeutsch,oberdeutsch,T,Druck,"17,1",1644,-,"UN, Gedicht","Bayerische Staatsbibliothek, München",F087.txt,19323
+F089,Passionstraktet,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",1396,Luzern (Schreibort),KT (Kirchl.-Theologisches Schrifttum),Stiftsbibliothek Engelberg,F089.txt,15415
+F091,Evangelienbuch,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,1",1402,-,Evangeliar,-,F091.txt,13005
+F092,"Die Chronik Erhards von Appenwiler 1439-1471, mit ihren Fortsetzungen 1472, 1474",fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,1",1420/30,Schreibort wahrsch. Basel,CB (Chronikalische und Berichtstexte),"Universitätsbibliothek, Basel",F092.txt,10452
+F096,"ohne Titel, [Berner Weltgerichtsspiel]",fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,V,Handschrift,"15,2",1462,-,UN - Unterhaltende Texte 5.1. Drama (geistl. Spiel/Passionspiel),"Bern, Burgerbibliothek",F096.txt,5513
+F099,Das Narrenschiff,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,V,Druck,"15,2",1499,-,"UN (Unterhaltende Literatur, Satire)",Basel UB,F099.txt,25322
+F101,Der Ablaßkrämer,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1525,Schreibort wohl Schloß Erlach/Bern,Drama (geistl. Spiel),Burgerbibliothek Bern,F101.txt,4253
+F102,"[Bletz, Zacharias: Antichristdrama]; Das Antichristdrama des Zacharias",fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1549,-,5.1. Drama,"Luzern, Zentralbibliothek",F102.txt,23296
+F103,Wie Ludwig Hetzer zuo Constantz mit dem schwert gericht,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Druck,"16,1",1529,-,KT (Flugschrift),"Zentralbibliothek, Zürich",F103.txt,3195
+F105,Olvier und Artus,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Druck,"16,1",1521,-,Epik,"HW1493; ZK(Z); Zwickau, Ratsschulbibliothek",F105.txt,17118
+F108,Samson,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Druck,"16,2",1558,-,Drama,-,F108.txt,19350
+F110,Newe und vollkommene frantzösische und englische Schatzkammer,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Druck,"17,1",1610,-,CB (Chronikalische und Berichts-Texte),"Regensburg, Staatliche Bibliothek",F110.txt,13298
+F111,Samuel Brun/ des Wundartzet und Burgers zu Basel/ Schiffarten,fnhd,hochalemannisch,westoberdeutsch,oberdeutsch,T,Druck,"17,1",1624,-,CB (Chronikalische und Berichts-Texte; reisebericht),"Wolfenbüttel, Herzog-August-Bibliothek",F111.txt,15184
+F113,Das rote Buch der Stadt Ulm,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",1376,Schreibort: Ulm,RG (Rechts- und Geschäftstexte; Stadtbuch),Staatsarchiv Ludwigsburg,F113.txt,9762
+F115,Die Fuchsfalle,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,1",1427,-,KT (Kirchlich-Theologisches Schrifttum; theolog. lehrgedicht),"Karlsruhe, Badische Landesbibliothek",F115.txt,10302
+F116,Iatromathematisches Hausbuch,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,1",1443,Buchau (bei Biberach),akademische Schriften,"Philadelphia (Pennsylvania), Univ. of Pennsyl.",F116.txt,16017
+F118,Facetien,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,2",1486,Schreibort: Konstanz,UN (Unterhaltende Texte: Schwanksammlung),Württembergische Landesbibliothek,F118.txt,13997
+F120,Ulmer Wundarznei,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,2",4. V. 15. Jh.,-,RE (Realientexte: Wundarznei),Stadtbibliothek Schaffhausen,F120.txt,15022
+F123,Der nüwen liebe bu\och,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,V,Druck,"15,2",1486/87,-,UN (Unterhaltende Literatur (Lyrik: Minnerede),"Zwickau, Ratsschulbibliothek",F123.txt,7165
+F124,Das Rote Buch Rottweil,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1498-1535,Rottweil,Kopiar,Statdarchiv Rottweil,F124.txt,11879
+F126,Reuchlin: Cicero Tusculanae disputationes,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1501,Stuttgart,Realientext/Wissenschaftstext,"Digitale Universitätsbibliothek, Heidelberg",F126.txt,13283
+F128,Von drei Christen,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,T,Druck,"16,1",1523,-,Flugschrift (theologischer Text),Universitätsbibliothek Basel,F128.txt,5143
+F129,spiegel vn[d] bildtniß des gantzen erdbodens,fnhd,schwäbisch,westoberdeutsch,oberdeutsch,T,Druck,"16,1",1534,-,RE (Realientexte: Kosmographie),BSB München,F129.txt,15436
+F133,Reformatio Sigismundi,fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"14,2",1447,Schreibort: Augsburg (St. Ulrich und Afra),"RG (Rechts- und Geschäftstexte: Verordnung, Gesetz)",BSB München,F133.txt,13986
+F137,Buch aller verbotenen Künste,fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,P,Handschrift,"15,2",1465,Schreibort: Augsburg,RE (Realientexte: Alchemie/Magie/Mantik),"Heidelberg, Universitätsbibliothek",F137.txt,18378
+F138,Augsburger Passionsspiel,fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,V,Handschrift,"15,2",letztes Viertel 15. Jh.,Augsburg (unklar),"UN (Unterhaltende Literatur, geistl. Spiel)",BSB München,F138.txt,15922
+F142,Erste Kemptener Klosterchronik,fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1506,-,Chronikaliscxhe und Berichtstexte,München Staatsbibliothek,F142.txt,16484
+F143,Augsburger chronistische Notizen,fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,T,Handschrift,"16,1",1538 - 1545,Schreibort: Augsburg,RE Realientexte,"Heidelberg, Universitätsbibliothek",F143.txt,12095
+F145,"Ain Kurtzer anzeyg, wie Do. Martin Luther ain zeyt hör hatt etliche schriften lassen auß geen, vom Sacrame[n]t, die doch stracks wider ainander, wie wirt dan[n] sein vnd seiner anhenger Reych bestehen",fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,F,Druck,"16,1",1527,-,KT (Kirchlich-theologisches Shcrifttum),BSB München,F145.txt,3233
+F146,Ain hipsche Tragedia von zwaien liebhabenden Mentschen ainem Ritter Calixstus unn ainer Edlen junckfrawen Melibia genant [...],fnhd,ostschwäbisch,westoberdeutsch,oberdeutsch,T,Druck,"16,1",1520,-,UN (Unterhaltende Literatur),BSB München,F146.txt,14726
+F151,Arzneibuch,fnhd,gesamtschwäbisch,westoberdeutsch,oberdeutsch,T,Druck,"17,1",1603,-,RE: Arzneibuch,"Augsburg, Staats- und Stadtbibliothek",F151.txt,20127
+F152,Liechtkugel,fnhd,gesamtschwäbisch,westoberdeutsch,oberdeutsch,T,Druck,"17,1",1624,-,CB (Chronikalische und Berichts-Texte),SLUB Dresden,F152.txt,10518
+F240,Thüringer Spiele,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,V,Handschrift,"14,2",3. Viertel 14. Jh.,-,UN (Unterhaltende Literatur),"Mühlhausen, Stadtarchiv",F240.txt,2547
+F241,Eisenacher Chronik,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"15,1",2. Vierte/Mitte 15. Jh.,-,CB (Chronikalische und Berichts-Texte: Chronik),"Berlin, Staatsbibliothek",F241.txt,12428
+F243,Erfurter Moralität. Spiel von Frauen Ehre und Schande,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,V,Handschrift,"15,1",1450,-,EB Erbauliche Texte,Landesbibliothek Coburg,F243.txt,20449
+F245,Thüringische Chronik,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"15,2",15. Jh.,-,CB (Chronikalische und Berichts-Texte: Chronik),"Jena, Universitäts- und Landesbibliothek",F245.txt,14939
+F246,Elisabethleben,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,V,Handschrift,"15,2",1492,-,7. EB: Erbauliche Texte,"Leipzig, Universitätsbibliothek",F246.txt,14424
+F248,Erfurter Verträge,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,P,Druck,"15,2",nach 06.04.1497,-,RG (Rechts- und Geschäftstexte: Verträge),Erfurt Stadtarchiv,F248.txt,9109
+F249,Historie Graf Soffay,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,V,Druck,"15,2",1499,-,UN (Unterhaltende Literatur),"Berlin, StaBi",F249.txt,1928
+F251,Ratsbeschlüsse Erfurt,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1. Hälfte 16. Jh.,Schreibort (Erfurt?),RG (Rechts- und Geschäftstexte),"Jena, Universitäts- und Landesbibliothek",F251.txt,6546
+F252,Regimentsordnung und Zuchtbriefe Erfurt,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",Anfang 16. Jahhrundert,-,RG (Rechts- und Gebrauchstexte),"Jena, Universitäts- und Landesbibliothek",F252.txt,16907
+F253,Vonn gehorsam der weltlichen oberkeit,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,F,Druck,"16,1",1523,-,-,"Zwickau, RSB",F253.txt,4899
+F256,Thüringi$che Chronick oder Ge$chichtbuch,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1599,-,2. CB Chronikalische oder Berichtstexte Stadtchronik/Stadtgeschichte,BSB München,F256.txt,18689
+F258,Bericht über die rote Ruhr,fnhd,thüringisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1599,-,RE (Realientexte: Medizin),"München, BSB",F258.txt,3224
+F259,Altdeutsche Predigten,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2",Anfang bis Mitte 14. Jh.,unbekannt (Schreibort),7. EB: Erbauliche Texte; Predigt(-sammlung),"Leipzig, Universitätsbibliothek",F259.txt,14719
+F260,Zwickauer Rechtsbuch,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2",1348-1526 (1350-1400),-,RG (Rechts- und Geschäftstexte: Rechtsbuch),"Zwickau, Stadtarchiv",F260.txt,7238
+F262,Ältestes Stadtbuch Dresden,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"15,1",Auswahl: 1413-1423,Schreibort: Dresden,RG (Rechts- und Geschäftstexte: Stadtbuch/Rechtsbuch),Stadtarchiv Dresden,F262.txt,6138
+F264,Leipziger Äsop,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,V,Handschrift,"15,1",1. Hälfte 15. Jh.,-,"UN (Unterhaltende Literatur, Epik, Fabel)","Leipzig, Universitätsbibl.",F264.txt,8224
+F268,Sermon und Historia,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,P,Druck,"15,2",17.03.1498,-,-,HAB Wolfenbüttel,F268.txt,17419
+F270,Doctrinale altum seu liber parabolarum ,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,V,Druck,"15,2",ca. 1487/95,-,Un (Unterhaltende Literatur),-,F270.txt,7573
+F271,Predigt,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1530,Schreibort: Coburg,KT (Kirchlich-theologisches Schrifttum: Predigt),"Heidelberg, UB",F271.txt,11568
+F272,6. Dresdner Stadtbuch,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1505-1535,-,RG (Rechts- und Geschäftstexte: Stadtbuch),"Dresden, Stadtarchiv",F272.txt,8381
+F274,Martin[us] lu||ther Wy es eyn man sey Vnnd || was er furt im schylde Das || vindest du in diesem spruch || hy bey Gleych wye in || eynem bylde.|| Omnis caro ad similem sibi cõ||iungetur et omnis homo ...,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,F,Druck,"16,1",1522,-,KT (Kirchlich-theologisches Schrifttum: Flugschrift),"Halle (Saale), Universitäts- und Landesbibliothek",F274.txt,5702
+F275,Das Newe Testament,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,1",1534,-,KT (Kirchlich-theologisches Schrifttum: Bibel),"Stuttgart, Württembergische Landesbibliothek",F275.txt,16751
+F278,"Chronica.Von den Antiquiteten des Keiserlichen Stiffts, der Roemi$chen Burg und Stadt Marsburg an der Salah bey Tueringen ...",fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1556,-,CB (Chronikalische und Berichts-Texte: Stadtchronik/Stadtgeschichte),BSB München,F278.txt,11437
+F279,Meidleinschul,fnhd,obersächsisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1573,-,UN (Drama),"Krakau, Biblioteka Jagiellonska",F279.txt,13538
+F280,Psalmen Trebnitz,fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2",14. Jahrhundert,Schlesien,Psalter,"Breslau / Wrocław, Universitätsbibl.",F280.txt,15071
+F281,Landregister Sorau,fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"14,2",1381,Sorau,1. RG Rechts- und Geschäftstexte; Grundbuch,Universitätsbibliothek Bonn,F281.txt,14050
+F283,Liegnitzer Stadtrechtsbuch (A),fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"15,1",1400-1450 (1. Hf./ 2. Vt. 15. Jh.),-,"Prosa (Sachtext, Rechtstext)","Berlin, Staatsbibliothek",F283.txt,11006
+F286,Hedwigslegende,fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,P,Handschrift,"15,2",1451,-,"EB (Erbauliche Literatur, Heiligenlegende)","Breslau/Wroclaw, Universitätsbibliothek",F286.txt,8430
+F292,Wundarznei,fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1495-1505,-,RE (Realientexte/Wissenschaftstexte: Wundarznei),"Universitäts- und Landesbibliothek Sachsen-Anhalt, Halle",F292.txt,20169
+F293,Görlitzer Ratsannalen.,fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,T,Handschrift,"16,1",1521 - 1542/1509-1517,-,RG (Rechts- und Geschäftstext: juristisch),"Breslau, Universitätsbibliothek",F293.txt,11218
+F295,"Ein christliche ermanung zu furdern das wortt Gottis, an den herrn Bischoff zu Breslaw",fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,F,Druck,"16,1",1524,-,KT (Kirchlich-theologisches Schrifttum: Flugschrift),"BSB, München",F295.txt,6292
+F296,Sterbebüchlein,fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1524,-,"EB (Erbauliche Literatur, Sterbebuch)",FB Gotha,F296.txt,3919
+F298,Christliche Leichpredigt/ vber || dem seligen Abschied| Weyland Des || DVrchlauchten/ || Hochgebornen Fuersten … || …,fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1586,-,KT (Kischlich-theologischen Schrifttum: Predigt),ULB Halle,F298.txt,5667
+F300,"EJnes Erbaren|| Rathes der Stadt|| Bresslaw,auff-||gerichte Baw-||ordnung",fnhd,schlesisch,ostmitteldeutsch,mitteldeutsch,T,Druck,"16,2",1574,-,RG (Rechts- und Geschäftstexte: Verordnung),"StaBi, Berlin",F300.txt,1400
+F301,Der Eislebische Christliche Ritter. Ein Reformationsspiel von Martin Rinckhart.,fnhd,ostmitteldeutsch,ostmitteldeutsch,mitteldeutsch,T,Druck,"17,1",1613,-,UN (Unterhaltende Literatur) Drama („Lutherdrama“) - geistl. Spiel/Passionsspiel,Herzogin Anna Amalia Bibliothek Weimar,F301.txt,11871
+F303,"In welchem alle ihre eigenschafft und zuegehör gründtlich erzehlet, und mit exempeln außgeführet wird",fnhd,ostmitteldeutsch,ostmitteldeutsch,mitteldeutsch,T,Druck,"17,1",1624,-,"RE (Realientexte: Sprachwissenschaft, Grammatik, Dichtkunst)",Bayerische Staatsbibliothek München,F303.txt,12650
+F304,Buch von den sechs Namen des Fronleichnams,fnhd,-,ostfränkisch,fränkisch,P,Handschrift,"14,2",Ende 14. Jh. (Schneider) bis Anfang 15. Jh. (Diptmar),-,KT (Kirchlich-Theologisches Schrifttum),Stadtbibliothek Nürnberg,F304.txt,19018
+F306,Buch der sieben grade,fnhd,-,ostfränkisch,fränkisch,V,Handschrift,"14,2",um 1400,-,"EB (Erbauliche Literatur, Mystik)",UB Heidelberg,F306.txt,10284
+F308,Laiendoktrinal,fnhd,-,ostfränkisch,fränkisch,P,Handschrift,"15,1",1443,(Schreibort). Nürnberg,KT (Kirchlich-theologisches Schrifttum),Landesbibliothek Dresden,F308.txt,12427
+F309,Lobspruch auf Nürnberg,fnhd,-,ostfränkisch,fränkisch,V,Handschrift,"15,1",Mitte 15. Jh.,(,UN (Unterhaltende Literatur),Germanisches Nationalmuseum Nürnberg,F309.txt,2062
+F310,St. Anselmi Fragen an Maria,fnhd,-,ostfränkisch,fränkisch,P,Handschrift,"15,2",1477/1479,-,EB Erbauliche Texte,Staatsbibliothek Bamberg,F310.txt,5430
+F312,Meisterlieder,fnhd,-,ostfränkisch,fränkisch,V,Handschrift,"15,2",1485/1490 (Handschriftencensus),-,"UN (Unterhaltende Literatur, Lyrik)",BSB München,F312.txt,12725
+F313,Die außruffunge des hochwirdig\n heiligthums des loblichenn stifts zu bamberg,fnhd,-,ostfränkisch,fränkisch,P,Druck,"15,2",1493,-,RG (Rechts- und Geschäftstexte: Verzeichnis),"Bamberg, Staatsbibliothek",F313.txt,2565
+F315,Reimpaarsprüche,fnhd,-,ostfränkisch,fränkisch,V,Druck,"15,2","1479, 1480 und 1482",-,5. UN Unterhaltende Texte,Staatsbibliothek München,F315.txt,26155
+F317,Briefwechsel,fnhd,-,ostfränkisch,fränkisch,T,Handschrift,"16,1",1533-1535 (Datierung in Datenbank evtl. falsch? Es wurden auch Briefe bis ins Jahr 1540 transkribiert.),-,Realientexte (Briefe),Archiv des germanischen Nationalmuseums in Nürnberg,F317.txt,5967
+F319,Grundtliche||vnterrichtung/ein||erbern Rats der Statt||Nuermberg[Osiander] ,fnhd,-,ostfränkisch,fränkisch,F,Druck,"16,1",1528,-,6.KT Kirchlich-Theologisches Schrifttum,Bayerische Staatsbibliothek München,F319.txt,11659
+F321,Ein außzug guter alter vnd newer Teutscher Liedlein,fnhd,-,ostfränkisch,fränkisch,T,Druck,"16,1",1540,-,UN: Lyrik: Lied,-,F321.txt,4938
+F322,"V. Dietrich, Summaria Vber die gantze Bibel",fnhd,-,ostfränkisch,fränkisch,T,Druck,"16,2",1578,-,Erbauliche Texte,-,F322.txt,16591
+F324,Drei kürtzweylicher Fasznacht Spiel (Hans Sachs: Fastnachtsspiel),fnhd,-,ostfränkisch,fränkisch,T,Druck,"16,2",1570,-,"UN (Unterhaltende Literatur, Fastnachtsspiel)","Berlin, Staatsbibliothek Preußischer Kulturbesitz",F324.txt,6294
+F326,Leichpredigt,fnhd,-,ostfränkisch,fränkisch,T,Druck,"17,1",1614,-,Erbaulicher Text,"Universitäts- und Landesbibliothek Sachsen-Anhalt, Sammlung Ponickau",F326.txt,9854
+F327,Opus Theatricum,fnhd,-,ostfränkisch,fränkisch,T,Druck,"17,1",1618,-,RE: Drama,"München, Bayerische Staatsbibliothek",F327.txt,24836
+F329,Hieronymusbriefe,fnhd,-,böhmisch-mährisch,böhmisch-mährisch,P,Handschrift,"14,2",Ende 14. Jh.,-,-,Forschungsbibliothek Gotha,F329.txt,5018
+F332,Bergrecht,fnhd,-,böhmisch-mährisch,böhmisch-mährisch,P,Handschrift,"15,1",2. Dekade 15. Jh. (d.h. zw. 1400-1407),-,RG (Rechts- und Geschäftstexte: Bergrecht),"Kuttenberg / Kutná Hora (Tschechien), Staatl. Kreisarchiv, Fond AM Kutné Hory ohne Sign. (st. sign. IV d/8x)",F332.txt,14980

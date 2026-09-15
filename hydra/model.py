@@ -47,6 +47,10 @@ class ModelOutput:
     # slot-0 Viterbi path when model.pos_crf is on and no teacher was given;
     # decoding must prefer this over the per-token argmax
     pos_path: torch.Tensor | None = None          # (B, T)
+    # model.count_head: item count per token, classes 0..K (0 never a
+    # target -- it marks context-only tokens). Decoding prefers this over
+    # the implicit first-NULL rule.
+    count_logits: torch.Tensor | None = None      # (B, T, K+1)
 
 
 class TCNBlock(nn.Module):
@@ -386,6 +390,7 @@ class HydraModel(nn.Module):
             nn.Linear(cfg.d_model, cfg.d_model))
         self.slot_norm = nn.LayerNorm(cfg.d_model)
 
+        self.count_head = nn.Linear(cfg.d_model, cfg.n_slots + 1) if cfg.count_head else None
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
         # zero-initialised transitions: warm-starting a non-CRF checkpoint is a
@@ -406,6 +411,12 @@ class HydraModel(nn.Module):
         # inference-time gate, set from cfg.infer.tag_cond_min_prob by the
         # eval/tag entry points; 0.0 = always trust the argmax
         self.tag_cond_min_prob = 0.0
+        self.count_min_prob = 0.5   # cfg.infer.count_min_prob
+        # cfg.tag_cond_soft: 0 = pure hard lookup, 1 = pure distribution blend.
+        # The training loop ramps it 0 -> 1 (train.tag_cond_ramp_steps); it
+        # stays 1 for inference, so a converged model trains and infers on the
+        # same signal -- the train/test match the confidence gate never had.
+        self.tag_cond_lambda = 1.0
         if cfg.tag_condition != "off":
             dt = cfg.tag_cond_dim
             self.pos_cond_emb = nn.Embedding(n_pos + 1, dt)
@@ -449,6 +460,35 @@ class HydraModel(nn.Module):
             return torch.where(conf >= self.tag_cond_min_prob, ids,
                                torch.full_like(ids, n_classes))
         return logits.argmax(dim=-1)
+
+    def _cond_vec(self, logits: torch.Tensor, emb: nn.Embedding, n_classes: int,
+                  ids: torch.Tensor) -> torch.Tensor:
+        """The conditioning vector the downstream heads actually consume.
+
+        Hard (default): a plain lookup of `ids` -- gold when teacher-forced,
+        else the argmax. One discrete decision, exactly as before.
+
+        Soft (cfg.tag_cond_soft): a softmax-weighted blend of the tag rows, so
+        the head sees the whole distribution and can hedge where the tagger is
+        unsure instead of inheriting one wrong decision. The blend spans rows
+        [0, n_classes) ONLY -- never the "unsure" row at index n_classes, which
+        receives no gradient in training (every path that indexes it has IGNORE
+        targets downstream) and whose use is why the confidence gate only hurt.
+
+        With the CRF on, `ids` carries the Viterbi tag for slot 0; the soft
+        component uses the head's own per-token distribution instead, so
+        sequence-level information reaches the output but not this path.
+        """
+        hard = emb(ids)
+        if not self.cfg.tag_cond_soft or self.tag_cond_lambda <= 0.0:
+            return hard
+        # detached on purpose: this changes WHAT the lemma head consumes, not
+        # what trains the tagger. Letting the lemma loss shape POS is a
+        # separate ablation (it could trade POS accuracy, a reported metric).
+        probs = logits[..., :n_classes].detach().float().softmax(dim=-1)
+        soft = (probs.to(emb.weight.dtype) @ emb.weight[:n_classes]).to(hard.dtype)
+        lam = self.tag_cond_lambda
+        return soft if lam >= 1.0 else (1.0 - lam) * hard + lam * soft
 
     def forward(self, chars: torch.Tensor,
                 lemma_teacher: torch.Tensor | None = None,
@@ -505,6 +545,7 @@ class HydraModel(nn.Module):
         hs = h.unsqueeze(2) + self.slot_emb.view(1, 1, K, -1)               # (B, T, K, d_model)
         hs = self.slot_norm(hs + self.slot_mlp(hs))
 
+        count_logits = self.count_head(h) if self.count_head is not None else None
         pos_logits = self.pos_head(hs)
 
         cond_on = self.cfg.tag_condition != "off"
@@ -533,8 +574,10 @@ class HydraModel(nn.Module):
             # slots 1..K-1 keep their per-slot argmax; only slot 0 has a CRF
             pos_ids = pos_ids.clone()
             pos_ids[..., 0] = pos_path
+        pos_vec = (self._cond_vec(pos_logits, self.pos_cond_emb, self.n_pos, pos_ids)
+                   if cond_on else None)
         if self.tag_to_morph is not None:
-            morph_logits = self.morph_head(hs + self.tag_to_morph(self.pos_cond_emb(pos_ids)))
+            morph_logits = self.morph_head(hs + self.tag_to_morph(pos_vec))
         else:
             morph_logits = self.morph_head(hs)
 
@@ -542,8 +585,9 @@ class HydraModel(nn.Module):
         hs_lem = hs
         if cond_on:
             morph_ids = self._cond_ids(morph_logits, morph_t, self.n_morph)
-            cond = torch.cat([self.pos_cond_emb(pos_ids),
-                              self.morph_cond_emb(morph_ids)], dim=-1)
+            morph_vec = self._cond_vec(morph_logits, self.morph_cond_emb,
+                                       self.n_morph, morph_ids)
+            cond = torch.cat([pos_vec, morph_vec], dim=-1)
             hs_lem = hs + self.tag_to_lemma(cond)
 
         cls_in = hs_lem if self.cfg.tag_condition_classifier else hs
@@ -567,7 +611,7 @@ class HydraModel(nn.Module):
                 # generation happens outside (metrics.decode_batch drives it)
                 return ModelOutput(pos_logits, morph_logits, None, lemma_cls_logits,
                                    mlm_logits, joint_logits, flat, char_states,
-                                   char_pad_mask, pos_path)
+                                   char_pad_mask, pos_path, count_logits)
             gold = lemma_teacher.reshape(B * T * K, -1).clamp_min(PAD)  # IGNORE -> PAD
             prev = torch.cat([gold.new_full((gold.shape[0], 1), PAD), gold[:, :-1]], dim=1)
             lemma_logits = self.lemma_decoder(flat, prev, char_states, char_pad_mask)
@@ -576,4 +620,5 @@ class HydraModel(nn.Module):
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
         return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits,
-                           mlm_logits, joint_logits, pos_path=pos_path)
+                           mlm_logits, joint_logits, pos_path=pos_path,
+                           count_logits=count_logits)

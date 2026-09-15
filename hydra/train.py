@@ -84,11 +84,13 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
     barrier(info)
     splits = json.loads(split_path.read_text(encoding="utf-8"))
 
-    train_docs = load_split_tokens(splits["train"], cfg.data.on_mismatch, cfg.model.n_slots)
+    train_docs = load_split_tokens(splits["train"], cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags, cfg.data.align_max_items)
     if cfg.data.extra_train_dir:
         from .data import list_corpus_files
         extra_files = [str(f) for f in list_corpus_files(cfg.data.extra_train_dir)]
-        train_docs += load_split_tokens(extra_files, cfg.data.on_mismatch, cfg.model.n_slots)
+        train_docs += load_split_tokens(extra_files, cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags, cfg.data.align_max_items)
         if info.is_main:
             log.info("added %d unannotated files from %s", len(extra_files),
                      cfg.data.extra_train_dir)
@@ -118,7 +120,8 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
         if chunk_mode:
             dev_ds = HydraDataset(train_docs, vocabs, cfg.data, cfg.model.n_slots, role="dev")
         else:
-            dev_docs = load_split_tokens(splits["dev"], cfg.data.on_mismatch, cfg.model.n_slots)
+            dev_docs = load_split_tokens(splits["dev"], cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags, cfg.data.align_max_items)
             dev_ds = HydraDataset(dev_docs, vocabs, cfg.data, cfg.model.n_slots)
     return vocabs, train_ds, dev_ds
 
@@ -231,6 +234,13 @@ def train(cfg: Config, resume: str | None = None,
         running: dict[str, float] = {}
         n_running = 0
         for batch in loader:
+            if cfg.model.tag_cond_soft:
+                # ramp the hard->soft conditioning mix. At step 0 lambda is 0,
+                # so the forward is bit-identical to the hard-conditioned
+                # checkpoint being warm-started: the soft blend is provably the
+                # only change, exactly as the cascade and CRF runs were set up.
+                ramp = cfg.train.tag_cond_ramp_steps
+                unwrap(model).tag_cond_lambda = min(1.0, step / ramp) if ramp > 0 else 1.0
             optimizer.zero_grad(set_to_none=True)
             chars = batch["chars"].to(info.device, non_blocking=True)
             targets = {k: batch[k].to(info.device, non_blocking=True)
@@ -281,6 +291,10 @@ def train(cfg: Config, resume: str | None = None,
                 # dev uses PREDICTED tags (tag_oracle stays off) so the metric
                 # tracks what test will actually do
                 unwrap(model).tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+                unwrap(model).count_min_prob = cfg.infer.count_min_prob
+                # dev eval mirrors inference: pure soft, whatever the ramp is
+                # mid-training, so the reported curve is the deployed model
+                unwrap(model).tag_cond_lambda = 1.0
                 last_dev = evaluate_dataset(unwrap(model), dev_ds, vocabs, info.device,
                                             cfg.infer.batch_chunks, snapper=snapper,
                                             cls_min_prob=cfg.infer.classifier_min_prob)

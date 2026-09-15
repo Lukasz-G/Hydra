@@ -67,7 +67,9 @@ def split_lemma_items(s: str, n_expected: int) -> list[str]:
 
 
 def parse_tsv_file(path: str | Path, on_mismatch: str = "skip",
-                   n_slots: int = 8) -> tuple[list[Token], int]:
+                   n_slots: int = 8,
+                   combined_tags: bool = False,
+                   max_items: int = 0) -> tuple[list[Token], int]:
     """Parse one 4-column TSV file. Returns (tokens, n_skipped).
 
     Lines starting with '@' and blank lines are ignored. The POS column
@@ -76,6 +78,10 @@ def parse_tsv_file(path: str | Path, on_mismatch: str = "skip",
     has more than n_slots items, is kept as context-only (on_mismatch='skip')
     or raises (on_mismatch='error').
     """
+    # how many items a token may have before it counts as malformed. Defaults
+    # to n_slots, but combined_tags needs the BASELINE's slot count so that
+    # both arms of the ablation skip exactly the same tokens.
+    limit = max_items or n_slots
     tokens: list[Token] = []
     skipped = 0
     with open(path, "r", encoding="utf-8") as fh:
@@ -108,14 +114,29 @@ def parse_tsv_file(path: str | Path, on_mismatch: str = "skip",
             morph = cols[3].strip().split("+")
             if len(morph) != n and n == 1:
                 morph = [cols[3].strip()]  # '+' inside a single morph annotation
-            if not (len(lemmas) == n == len(morph)) or n > n_slots \
+            if not (len(lemmas) == n == len(morph)) or n > limit \
                     or any(not x for x in lemmas) or any(not x for x in pos) \
                     or any(not x for x in morph):
                 if on_mismatch == "error":
                     raise ValueError(
-                        f"{path}:{lineno}: item counts misaligned or > {n_slots}: {line!r}")
+                        f"{path}:{lineno}: item counts misaligned or > {limit}: {line!r}")
                 skipped += 1
                 tokens.append(Token(surface, None, None, None))
+                continue
+            if combined_tags:
+                # ABLATION (data.combined_tags, paper SS6.2): one item per
+                # token, carrying the whole combined tag ("APPR+NA") and the
+                # joined lemma ("in+hant") -- RNNTagger's convention, which
+                # beats the K=8 slot decoder by ~4pp on multi-item tokens.
+                #
+                # This runs AFTER the alignment check on purpose. Joining is
+                # always well-formed, so an early return here would keep the
+                # malformed tokens the slot path skips and hand the ablation
+                # both extra supervision and a different-sized test set. Both
+                # arms must see exactly the same tokens or the comparison is
+                # not an ablation.
+                tokens.append(Token(surface, ["+".join(lemmas)], ["+".join(pos)],
+                                    ["+".join(morph)]))
                 continue
             tokens.append(Token(surface, lemmas, pos, morph))
     return tokens, skipped
@@ -243,12 +264,14 @@ def load_norm_lookup(path: str | Path) -> dict[str, str]:
     return lookup
 
 
-def load_split_tokens(files: list[str], on_mismatch: str, n_slots: int) -> list[list[Token]]:
+def load_split_tokens(files: list[str], on_mismatch: str, n_slots: int,
+                      combined_tags: bool = False,
+                      max_items: int = 0) -> list[list[Token]]:
     """Parse each file into its own document (token list)."""
     docs = []
     total_skipped = 0
     for f in files:
-        tokens, skipped = parse_tsv_file(f, on_mismatch, n_slots)
+        tokens, skipped = parse_tsv_file(f, on_mismatch, n_slots, combined_tags, max_items)
         total_skipped += skipped
         if tokens:
             docs.append(tokens)

@@ -75,7 +75,8 @@ def eval_main(argv: list[str] | None = None) -> None:
         files = splits[args.split]
         if not files:
             sys.exit(f"split {args.split!r} is empty in {split_path}")
-    docs = load_split_tokens(files, cfg.data.on_mismatch, cfg.model.n_slots)
+    docs = load_split_tokens(files, cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags, cfg.data.align_max_items)
     role = None
     if cfg.data.split_mode == "chunk" and not args.input:
         role = args.split  # chunk mode: same files, role-filtered chunks
@@ -85,6 +86,7 @@ def eval_main(argv: list[str] | None = None) -> None:
         from .snap import LemmaSnapper
         snapper = LemmaSnapper(vocabs.lemma_inventory)
     model.tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+    model.count_min_prob = cfg.infer.count_min_prob
     metrics = evaluate_dataset(model, ds, vocabs, device, cfg.infer.batch_chunks,
                                snapper=snapper,
                                cls_min_prob=cfg.infer.classifier_min_prob,

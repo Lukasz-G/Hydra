@@ -92,5 +92,15 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
         total = total + cfg.w_mlm * l_mlm
         parts["loss_mlm"] = float(l_mlm.detach())
 
+    if out.count_logits is not None and "n_items" in batch:
+        # target IS the item count; 0 marks a context-only token, never a
+        # valid count, so it doubles as the ignore index
+        l_count = F.cross_entropy(out.count_logits.reshape(-1, out.count_logits.shape[-1]),
+                                  batch["n_items"].reshape(-1), ignore_index=0,
+                                  label_smoothing=ls)
+        l_count = torch.where(torch.isnan(l_count), zero, l_count)
+        total = total + cfg.w_count * l_count
+        parts["loss_count"] = float(l_count.detach())
+
     parts["loss"] = float(total.detach())
     return total, parts

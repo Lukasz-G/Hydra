@@ -69,6 +69,20 @@ class DataConfig:
     # spelling variants onto one class; a token's corpus-carried norm
     # (2-column unannotated files) takes precedence over the lookup
     norm_lookup: str | None = None
+    # ABLATION: treat each token as ONE item with a combined tag ("APPR+NA")
+    # and a joined lemma ("in+hant") instead of splitting on '+'. This is
+    # RNNTagger's convention and the baseline the K=8 slot decoder has never
+    # been measured against (paper SS6.2). Pair with model.n_slots = 1.
+    combined_tags: bool = False
+    # Max items a token may have before it is skipped as malformed. 0 = use
+    # model.n_slots, which is right for the slot decoder. It is NOT right for
+    # the combined_tags ablation: that sets n_slots=1, which would skip every
+    # multi-item token -- exactly the tokens the ablation exists to measure,
+    # silently shrinking its test set (observed: n=91,726 vs the baseline's
+    # 94,259, short by precisely the 2,533 multi-item tokens). The ablation
+    # must set this to the BASELINE's n_slots (8) so both arms skip the same
+    # tokens and are scored on the same n.
+    align_max_items: int = 0
     num_workers: int = 0
 
     def __post_init__(self) -> None:
@@ -119,6 +133,22 @@ class ModelConfig:
     # also condition the classify-or-generate head (lemma *selection* is where
     # most lemma errors live, so this is on by default; separable for ablation)
     tag_condition_classifier: bool = True
+    # consume the tag DISTRIBUTION instead of one hard decision: the
+    # conditioning vector becomes a softmax-weighted blend of the tag rows, so
+    # the lemma head degrades gracefully where the tagger is unsure instead of
+    # inheriting a single wrong argmax. Motivated by the oracle gap (§5.4) and
+    # by the confidence gate's failure -- the gate discarded the argmax for an
+    # UNTRAINED "unsure" row and only ever hurt; a blend does neither.
+    # The distribution is detached: this changes what the lemma head consumes,
+    # not what trains the tagger (gradient flow is a separate ablation).
+    tag_cond_soft: bool = False
+    # explicit item-count head. Item count is otherwise implicit -- decoding
+    # reads slots until the first NULL POS -- and the error analysis localises
+    # the multi-item gap there: count is right only ~87% of the time and the
+    # errors are UNDER-segmentation to n=1, while content given the count is
+    # about as good as on single-item tokens. This predicts the count directly
+    # from the token representation instead.
+    count_head: bool = False
     dropout: float = 0.15
 
     def __post_init__(self) -> None:
@@ -135,6 +165,7 @@ class LossConfig:
     w_lemma_cls: float = 1.0
     w_mlm: float = 0.5
     w_joint_tag: float = 0.5
+    w_count: float = 0.5        # model.count_head
     null_weight: float = 0.2
     # label smoothing for the tagging/classification heads (pos, morph, lemma
     # chars, lemma classifier, joint tag); the masked-LM aux stays unsmoothed —
@@ -164,6 +195,12 @@ class TrainConfig:
     # exponential moving average of weights (0 = off; typical 0.999). Dev eval
     # and best.pt use the EMA weights; last.pt keeps raw weights + shadow.
     ema_decay: float = 0.0
+    # model.tag_cond_soft: linearly ramp the hard->soft mix over this many
+    # optimiser steps (0 = soft from step 0). At lambda=0 the conditioning is
+    # a plain gold lookup, so step 0 is bit-identical to a hard-conditioned
+    # checkpoint and warm-starting stays a provable no-op -- the property that
+    # made the cascade and CRF runs interpretable.
+    tag_cond_ramp_steps: int = 0
 
 
 @dataclass(frozen=True)
@@ -187,6 +224,14 @@ class InferConfig:
     # Separates "does conditioning help" from "does the tag head's own error
     # rate eat the gain". Never use for reported numbers.
     tag_cond_oracle: bool = False
+    # model.count_head: trust the predicted item count only above this softmax
+    # probability, else fall back to the first-NULL rule. Unlike the tag-cond
+    # gate -- whose fallback was an UNTRAINED "unsure" row, which is why it
+    # only ever hurt -- this falls back to a trained, working mechanism.
+    # It also restores the warm-start no-op: an untrained count head peaks at
+    # ~1/(K+1) probability, far below this bar, so at step 0 decoding is
+    # exactly the first-NULL behaviour of the checkpoint being warm-started.
+    count_min_prob: float = 0.5
 
 
 @dataclass(frozen=True)

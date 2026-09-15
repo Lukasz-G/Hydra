@@ -59,11 +59,13 @@ def main() -> None:
     chunk_mode = cfg.data.split_mode == "chunk" and cfg.data.train_dir is None
 
     def dataset(split: str) -> HydraDataset:
-        docs = load_split_tokens(splits[split], cfg.data.on_mismatch, cfg.model.n_slots)
+        docs = load_split_tokens(splits[split], cfg.data.on_mismatch, cfg.model.n_slots,
+                             cfg.data.combined_tags, cfg.data.align_max_items)
         return HydraDataset(docs, vocabs, cfg.data, cfg.model.n_slots,
                             role=split if chunk_mode else None)
 
     model.tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+    model.count_min_prob = cfg.infer.count_min_prob
     dev = dataset("dev")
     best_tau, best_val = taus[0], -1.0
     for tau in taus:

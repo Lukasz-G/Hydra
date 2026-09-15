@@ -60,6 +60,7 @@ def tag_document(model: torch.nn.Module, vocabs: Vocabs, cfg: Config,
     doc = [Token(s, None, None, None) for s in surfaces]
     ds = HydraDataset([doc], vocabs, cfg.data, cfg.model.n_slots)
     model.tag_cond_min_prob = cfg.infer.tag_cond_min_prob
+    model.count_min_prob = cfg.infer.count_min_prob
     results: list[tuple[str, str, str]] = []
     bs = cfg.infer.batch_chunks
     with torch.inference_mode():

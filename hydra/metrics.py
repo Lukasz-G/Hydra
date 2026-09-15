@@ -60,6 +60,21 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
         cls_arg[cls_prob < cls_min_prob] = LABEL_UNK               # low confidence -> generate
         cls_ids = cls_arg.cpu().numpy()                            # (B, T, K)
 
+    # model.count_head: an explicit item count replaces the implicit
+    # "read slots until the first NULL POS" rule. Clamped to >=1 (slot 0 is
+    # always an item) and <=K.
+    counts = None
+    if out.count_logits is not None:
+        cl = out.count_logits[..., 1:].float()
+        cprob, cidx = cl.softmax(dim=-1).max(dim=-1)
+        gate = getattr(model, "count_min_prob", 0.5) if model is not None else 0.5
+        counts = cidx.add(1).clamp(1, pos_ids.shape[-1])
+        # below the bar, defer to the first-NULL rule (0 = "no opinion").
+        # An untrained head peaks near 1/(K+1), so warm-starting a checkpoint
+        # decodes exactly as it did before the head existed.
+        counts = torch.where(cprob >= gate, counts, torch.zeros_like(counts))
+        counts = counts.cpu().numpy()
+
     pos_ids = pos_ids.cpu().numpy()
     morph_ids = morph_ids.cpu().numpy()
     char_ids = char_ids.cpu().numpy()
@@ -70,8 +85,11 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
         row: list[Prediction] = []
         for t in range(T):
             lemmas, poss, morphs = [], [], []
+            n_k = counts[b, t] if counts is not None else 0
             for k in range(K):
-                if k > 0 and pos_ids[b, t, k] == NULL:
+                if n_k and k >= n_k:
+                    break
+                if not n_k and k > 0 and pos_ids[b, t, k] == NULL:
                     break
                 lemma = ""
                 if cls_ids is not None and cls_ids[b, t, k] != LABEL_UNK:

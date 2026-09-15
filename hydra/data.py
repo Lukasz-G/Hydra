@@ -215,6 +215,9 @@ def load_strata(metadata_csv: str | Path) -> dict[str, str]:
     return strata
 
 
+FORCE_MULT = 3.0   # see 'first_pick' below
+
+
 def stratified_split_files(files: list[Path], metadata_csv: str | Path,
                            dev_fraction: float, test_fraction: float,
                            seed: int,
@@ -256,6 +259,9 @@ def stratified_split_files(files: list[Path], metadata_csv: str | Path,
         want = {"dev": total * dev_fraction, "test": total * test_fraction}
         got = {"dev": 0.0, "test": 0.0}
         held_out_budget = max(0, len(members) - 1)  # keep >=1 file per stratum in train
+        # only under group_by_manuscript, so splits made before 2026-09-15
+        # still reproduce exactly
+        first_pick = group_by_manuscript
         for name, n in members:
             role = "train"
             if held_out_budget > 0:
@@ -264,7 +270,17 @@ def stratified_split_files(files: list[Path], metadata_csv: str | Path,
                 # must not blow past the fraction)
                 for cand in sorted(("dev", "test"),
                                    key=lambda r: got[r] / max(want[r], 1)):
-                    if got[cand] < want[cand] and got[cand] + n <= want[cand] * 1.5 + 200:
+                    fits = got[cand] + n <= want[cand] * 1.5 + 200
+                    # A stratum of a few LARGE documents could otherwise never
+                    # be held out at all: every member overshoots the budget,
+                    # every member is refused, and the whole stratum lands in
+                    # train. That is how ReF -- the biggest corpus in the
+                    # stage-2 pool, but one of large texts in small strata --
+                    # ended up with a single file in test. Taking the first
+                    # candidate unconditionally guarantees each stratum is
+                    # represented; the budget still governs everything after.
+                    forced = first_pick and got[cand] == 0 and n <= want[cand] * FORCE_MULT
+                    if got[cand] < want[cand] and (fits or forced):
                         role = cand
                         break
             if role != "train":

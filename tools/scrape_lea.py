@@ -53,6 +53,17 @@ PUNCT = set(".,;:!?()[]{}\"'`«»‹›„“”‘’-–—…*/|\\")
 LAYER_LEMMA = "Lemma"
 LAYER_POS = "M1a_DDDTS_Lemma"
 LAYER_MORPH = "M2c_Flexion_Beleg_2"
+LAYER_LANG = "Sprache"
+# Measured over ALL 334,709 annotated tokens: ahd. 64.5%, as. 16.5%,
+# lat. 15.6%, anfrk. 1.5%, mhd./gmh 1.3%, grc 0.06%. (A 120-page sample
+# had said Latin was 2.1% -- crawl and count, never sample.)
+# The Germanic vernaculars all carry DDDTS annotation and belong in the
+# pool; Latin and Greek are the source text and interlinear glosses,
+# annotated with the SAME German tagset, so training the tagger on them
+# would teach it German labels for Latin words. They are kept as
+# context-only tokens: the running text stays intact for the masked-LM
+# objective, but no tagging loss is computed on them.
+NON_VERNACULAR = ("lat", "grc", "gr.")
 
 TABLE_RE = re.compile(r"<table\b.*?</table>", re.S)
 THEAD_RE = re.compile(r"<thead\b.*?</thead>", re.S)
@@ -103,11 +114,12 @@ def crawl(cache: Path) -> list[Path]:
     return sorted(cache.glob("*.html"))
 
 
-def parse_page(body: str, n_punct=None) -> tuple[list[str], int]:
+def parse_page(body: str, n_punct=None, n_lat=None) -> tuple[list[str], int]:
     """Return (tsv lines, n_skipped_tables); n_punct[0] accumulates dropped
     punctuation/reference tokens."""
     lines, skipped = [], 0
     n_punct = n_punct if n_punct is not None else [0]
+    n_lat = n_lat if n_lat is not None else [0]
     for table in TABLE_RE.findall(body):
         head = THEAD_RE.search(table)
         if not head:
@@ -126,11 +138,19 @@ def parse_page(body: str, n_punct=None) -> tuple[list[str], int]:
         morph = layers.get(LAYER_MORPH, [""] * n)
         if len(morph) != n:
             morph = [""] * n
+        lang = layers.get(LAYER_LANG, [""] * n)
+        if len(lang) != n:
+            lang = [""] * n
         for i in range(n):
             surf = surfaces[i].strip()
             if not surf:
                 continue
             lem_i, pos_i = layers[LAYER_LEMMA][i], layers[LAYER_POS][i]
+            lang_i = lang[i] if i < len(lang) else ""
+            if lang_i and lang_i.lower().startswith(NON_VERNACULAR):
+                n_lat[0] += 1
+                lines.append(surf)               # context-only: no German tags
+                continue
             if not (lem_i and pos_i) and all(ch in PUNCT or ch.isdigit() for ch in surf):
                 # unannotated punctuation or a verse-reference marker
                 n_punct[0] += 1
@@ -153,10 +173,12 @@ def build(cache: Path, out: Path) -> None:
         works.setdefault(re.split(r"[_.\-]", p.stem)[0], []).append(p)
     tot_tok = tot_ctx = tot_skip = 0
     dropped = [0]
+    latin = [0]
     for work, chapters in sorted(works.items()):
         lines: list[str] = []
         for p in sorted(chapters):
-            ls, sk = parse_page(p.read_text(encoding="utf-8", errors="replace"), dropped)
+            ls, sk = parse_page(p.read_text(encoding="utf-8", errors="replace"),
+                                dropped, latin)
             lines += ls
             tot_skip += sk
         n_tok = sum(1 for ln in lines if "\t" in ln)
@@ -167,7 +189,8 @@ def build(cache: Path, out: Path) -> None:
         print(f"{work:12s} {len(chapters):4d} pages  {n_tok:8d} annotated  {n_ctx:7d} context")
     print(f"\n{len(works)} works, {tot_tok:,} annotated tokens, "
           f"{tot_ctx:,} context-only, {dropped[0]:,} punctuation/reference dropped "
-          f"to match ReM tokenisation, {tot_skip} tables skipped")
+          f"to match ReM tokenisation, {latin[0]:,} Latin/Greek kept as context, "
+          f"{tot_skip} tables skipped")
 
 
 def main() -> None:

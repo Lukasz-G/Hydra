@@ -41,8 +41,19 @@ chunk_len = 128
 halo = 64
 on_mismatch = "skip"
 multi_item_upsample = 1
-lemma_type_min_freq = 1
-word_type_min_freq = 2
+# Pooling four corpora multiplies the closed vocabularies, and at the
+# single-corpus defaults the model came out at 100.6M parameters and OOM'd in
+# the backward pass on a 24GB card: 95,313 lemma types (ReM alone has ~37k)
+# and 238,041 word types make the two classification heads ~90M on their own.
+#
+# Raising the thresholds is the principled fix rather than shrinking the batch.
+# A lemma seen once cannot be learned as a CLASS, and it does not need to be:
+# the character generator exists for exactly those, and the classify-or-
+# generate gate already prefers it when the classifier is unsure. min_freq 3
+# keeps 36,985 lemma types -- the same order as ReM's own vocabulary -- and
+# still covers 98.7% of lemma tokens.
+lemma_type_min_freq = 3
+word_type_min_freq = 5
 mask_prob = 0.15
 num_workers = 4
 

@@ -40,6 +40,15 @@ from pathlib import Path
 BASE = "https://titus.uni-frankfurt.de/lea/"
 DELAY = 0.5           # be polite; the corpus is small and we cache
 NO_MORPH = "--"       # ReM's uninflected marker, kept for consistency
+# LeA tokenises the reading edition's punctuation as separate, unannotated
+# tokens; ReM's diplomatic transcription has no punctuation tokens at all
+# (measured: 0 in the whole MHG corpus, against 10,308 here). That is a
+# TOKENISATION mismatch, not just an annotation one, so pooling the two
+# unchanged would feed the masked-LM objective a stream of editorial
+# punctuation with no counterpart in the other corpora. This punctuation is
+# the modern editor's, not the scribe's, so dropping it is also the
+# philologically conservative choice.
+PUNCT = set(".,;:!?()[]{}\"'`«»‹›„“”‘’-–—…*/|\\")
 
 LAYER_LEMMA = "Lemma"
 LAYER_POS = "M1a_DDDTS_Lemma"
@@ -94,9 +103,11 @@ def crawl(cache: Path) -> list[Path]:
     return sorted(cache.glob("*.html"))
 
 
-def parse_page(body: str) -> tuple[list[str], int]:
-    """Return (tsv lines, n_skipped_tables)."""
+def parse_page(body: str, n_punct=None) -> tuple[list[str], int]:
+    """Return (tsv lines, n_skipped_tables); n_punct[0] accumulates dropped
+    punctuation/reference tokens."""
     lines, skipped = [], 0
+    n_punct = n_punct if n_punct is not None else [0]
     for table in TABLE_RE.findall(body):
         head = THEAD_RE.search(table)
         if not head:
@@ -119,7 +130,12 @@ def parse_page(body: str) -> tuple[list[str], int]:
             surf = surfaces[i].strip()
             if not surf:
                 continue
-            lem, pos, mor = layers[LAYER_LEMMA][i], layers[LAYER_POS][i], morph[i]
+            lem_i, pos_i = layers[LAYER_LEMMA][i], layers[LAYER_POS][i]
+            if not (lem_i and pos_i) and all(ch in PUNCT or ch.isdigit() for ch in surf):
+                # unannotated punctuation or a verse-reference marker
+                n_punct[0] += 1
+                continue
+            lem, pos, mor = lem_i, pos_i, morph[i]
             if not lem or not pos:
                 lines.append(surf)               # context-only token
             else:
@@ -136,10 +152,11 @@ def build(cache: Path, out: Path) -> None:
     for p in pages:
         works.setdefault(re.split(r"[_.\-]", p.stem)[0], []).append(p)
     tot_tok = tot_ctx = tot_skip = 0
+    dropped = [0]
     for work, chapters in sorted(works.items()):
         lines: list[str] = []
         for p in sorted(chapters):
-            ls, sk = parse_page(p.read_text(encoding="utf-8", errors="replace"))
+            ls, sk = parse_page(p.read_text(encoding="utf-8", errors="replace"), dropped)
             lines += ls
             tot_skip += sk
         n_tok = sum(1 for ln in lines if "\t" in ln)
@@ -149,7 +166,8 @@ def build(cache: Path, out: Path) -> None:
         (out / f"{work}.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
         print(f"{work:12s} {len(chapters):4d} pages  {n_tok:8d} annotated  {n_ctx:7d} context")
     print(f"\n{len(works)} works, {tot_tok:,} annotated tokens, "
-          f"{tot_ctx:,} context-only, {tot_skip} tables skipped")
+          f"{tot_ctx:,} context-only, {dropped[0]:,} punctuation/reference dropped "
+          f"to match ReM tokenisation, {tot_skip} tables skipped")
 
 
 def main() -> None:

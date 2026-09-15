@@ -83,6 +83,12 @@ class DataConfig:
     # must set this to the BASELINE's n_slots (8) so both arms skip the same
     # tokens and are scored on the same n.
     align_max_items: int = 0
+    # Hold out MANUSCRIPTS rather than sigles under split_mode='stratified'.
+    # ReM's sigles are not manuscript-unique -- M402/M402Y are one book -- so
+    # sigle-level holdout let one scribe's hand reach both sides (15.2% of dev
+    # tokens in runs/s_crf; test was clean). Default OFF so every split
+    # produced before 2026-09-15 still reproduces exactly.
+    group_by_manuscript: bool = False
     num_workers: int = 0
 
     def __post_init__(self) -> None:

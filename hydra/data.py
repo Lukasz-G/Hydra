@@ -177,6 +177,34 @@ def file_sigle(path: str | Path) -> str:
     return m.group(1) if m else Path(path).stem
 
 
+def load_manuscript_ids(metadata_csv: str | Path) -> dict[str, str]:
+    """sigle -> a manuscript identity, for holding out MANUSCRIPTS not sigles.
+
+    ReM's sigles are not manuscript-unique: M402 and M402Y are both the
+    Berliner Evangelistar, same shelfmark dating and writing place, differing
+    only in annotation group, and the same holds for M403/M403Y and M071U/W.
+    Splitting by sigle therefore lets one scribe's hand appear on both sides
+    (measured on runs/s_crf: 15.2% of dev tokens, though 0% of test).
+
+    Identity is title + dating + writing place, which is as close to "the same
+    physical book" as the metadata gets. Sigles whose metadata lacks all three
+    fall back to themselves, so an unknown manuscript is never merged with
+    another by accident.
+    """
+    import csv
+    ids: dict[str, str] = {}
+    with open(metadata_csv, encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            title = re.sub(r"</?h4>", "", row.get("title") or "")
+            title = re.sub(r"^M\d{3}[A-Za-z]*:\s*", "", title)
+            title = re.sub(r"[^0-9a-zA-ZÀ-ɏ]", "", title).lower()
+            date = (row.get("Datierung (Hs.)") or "").strip()
+            place = (row.get("Sprache (Hs.)/ Schreibort") or "").strip().rstrip("/")
+            key = "|".join((title, date, place))
+            ids[row["sigle"]] = key if title or date or place else row["sigle"]
+    return ids
+
+
 def load_strata(metadata_csv: str | Path) -> dict[str, str]:
     """sigle -> stratum ('dialect/period') from the ReM metadata table."""
     import csv
@@ -189,15 +217,36 @@ def load_strata(metadata_csv: str | Path) -> dict[str, str]:
 
 def stratified_split_files(files: list[Path], metadata_csv: str | Path,
                            dev_fraction: float, test_fraction: float,
-                           seed: int) -> dict[str, list[str]]:
+                           seed: int,
+                           group_by_manuscript: bool = False) -> dict[str, list[str]]:
     """Manuscript-held-out split balanced by stratum, weighted by token count:
     within each stratum, files are assigned to dev/test until each holds its
     token-fraction of the stratum."""
     strata_of = load_strata(metadata_csv)
+    # ReM writes some sigle suffixes lower-case in FILE names (M402y-N1.txt)
+    # but upper-case in the metadata (M402Y), so the join must be
+    # case-insensitive or 12 files silently inherit the base manuscript's
+    # stratum -- 10.7% of ReM's tokens.
+    strata_ci = {k.upper(): v for k, v in strata_of.items()}
     groups: dict[str, list[tuple[str, int]]] = {}
-    for f in files:
-        stratum = strata_of.get(file_sigle(f), "unknown")
-        groups.setdefault(stratum, []).append((str(f), count_tokens(f)))
+    if group_by_manuscript:
+        # assign whole MANUSCRIPTS, so two sigles of one book cannot be split
+        ms_of = {k.upper(): v for k, v in load_manuscript_ids(metadata_csv).items()}
+        by_ms: dict[str, list[Path]] = {}
+        for f in files:
+            sig = file_sigle(f).upper()
+            by_ms.setdefault(ms_of.get(sig, sig), []).append(f)
+        for ms, members in by_ms.items():
+            # a manuscript's stratum is that of its first sigle, alphabetically
+            sig = sorted(file_sigle(m).upper() for m in members)[0]
+            stratum = strata_ci.get(sig, "unknown")
+            n = sum(count_tokens(m) for m in members)
+            groups.setdefault(stratum, []).append(
+                ([str(m) for m in members], n))
+    else:
+        for f in files:
+            stratum = strata_ci.get(file_sigle(f).upper(), "unknown")
+            groups.setdefault(stratum, []).append(([str(f)], count_tokens(f)))
     rng = random.Random(seed)
     out: dict[str, list[str]] = {"train": [], "dev": [], "test": []}
     for stratum in sorted(groups):
@@ -221,7 +270,7 @@ def stratified_split_files(files: list[Path], metadata_csv: str | Path,
             if role != "train":
                 got[role] += n
                 held_out_budget -= 1
-            out[role].append(name)
+            out[role].extend(name)
     return {k: sorted(v) for k, v in out.items()}
 
 
@@ -240,7 +289,8 @@ def resolve_splits(cfg: DataConfig, run_dir: Path | None = None) -> dict[str, li
         splits = {"train": names, "dev": names, "test": names}
     elif cfg.split_mode == "stratified":
         splits = stratified_split_files(list_corpus_files(cfg.corpus_dir), cfg.metadata_csv,
-                                        cfg.dev_fraction, cfg.test_fraction, cfg.split_seed)
+                                        cfg.dev_fraction, cfg.test_fraction, cfg.split_seed,
+                                        cfg.group_by_manuscript)
     else:
         files = list_corpus_files(cfg.corpus_dir)
         splits = split_corpus_files(files, cfg.dev_fraction, cfg.test_fraction, cfg.split_seed)

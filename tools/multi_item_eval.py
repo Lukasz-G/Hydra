@@ -24,7 +24,7 @@ count; without it the ablation silently drops every multi-item token. The
 assertion here is the backstop for that.
 
 Usage:
-  python tools/multi_item_eval.py RUN_DIR [RUN_DIR ...] [--split test]
+  python tools/multi_item_eval.py RUN_DIR [RUN_DIR ...] [--split=test] [--batch=4]
 """
 from __future__ import annotations
 
@@ -42,7 +42,8 @@ from hydra.snap import LemmaSnapper                               # noqa: E402
 from hydra.tag import load_model_for_inference                    # noqa: E402
 
 
-def flat_predictions(run_dir: Path, split: str, device: torch.device):
+def flat_predictions(run_dir: Path, split: str, device: torch.device,
+                     batch_chunks: int = 0):
     """Every supervised token of the split, in file order, as
     (surface, gold_lemma, gold_pos, pred_lemma, pred_pos)."""
     model, vocabs, cfg = load_model_for_inference(run_dir / "model_only.pt", device)
@@ -55,7 +56,9 @@ def flat_predictions(run_dir: Path, split: str, device: torch.device):
     snapper = LemmaSnapper(vocabs.lemma_inventory) if vocabs.lemma_counts else None
 
     rows = []
-    bs = cfg.infer.batch_chunks
+    # a run's own infer.batch_chunks can be 32, which OOMs if this runs
+    # alongside a training job on the same GPU (observed: 17GB in use)
+    bs = batch_chunks or cfg.infer.batch_chunks
     with torch.inference_mode():
         for lo in range(0, len(ds), bs):
             idxs = list(range(lo, min(lo + bs, len(ds))))
@@ -80,17 +83,21 @@ def flat_predictions(run_dir: Path, split: str, device: torch.device):
 
 def main() -> None:
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    split = "test"
+    split, batch, dump = "test", 0, ""
     for a in sys.argv[1:]:
         if a.startswith("--split="):
             split = a.split("=", 1)[1]
+        elif a.startswith("--batch="):
+            batch = int(a.split("=", 1)[1])
+        elif a.startswith("--dump="):
+            dump = a.split("=", 1)[1]
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     results = {}
     ref = None
     for rd in args:
         rd = Path(rd)
-        rows, cfg = flat_predictions(rd, split, device)
+        rows, cfg = flat_predictions(rd, split, device, batch)
         key = (len(rows), tuple(r[0] for r in rows[:500]), tuple(r[2] for r in rows[:500]))
         if ref is None:
             ref = key
@@ -101,6 +108,16 @@ def main() -> None:
                 f"not be the same tokens. Check data.align_max_items."
             )
         results[rd.name] = (rows, cfg)
+        if dump:
+            # one TSV per run: lets the same GPU pass answer several questions
+            # offline (discontinuous-unit breakdowns, error analysis) without
+            # re-running inference
+            path = f"{dump}.{rd.name}.tsv"
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write("surface\tgold_lemma\tgold_pos\tpred_lemma\tpred_pos\n")
+                for r in rows:
+                    fh.write("\t".join(r) + "\n")
+            print(f"wrote {path} ({len(rows)} rows)")
 
     print(f"split={split}  runs={list(results)}\n")
     hdr = f"{'run':16s} {'slots':>5} {'comb':>5} | {'n_multi':>8} {'lemma':>8} {'pos':>8} " \

@@ -233,6 +233,7 @@ def train(cfg: Config, resume: str | None = None,
         t0 = time.time()
         running: dict[str, float] = {}
         n_running = 0
+        epoch_loss, epoch_n = 0.0, 0
         for batch in loader:
             if cfg.model.tag_cond_soft:
                 # ramp the hard->soft conditioning mix. At step 0 lambda is 0,
@@ -274,6 +275,10 @@ def train(cfg: Config, resume: str | None = None,
             for k, v in parts.items():
                 running[k] = running.get(k, 0.0) + v
             n_running += 1
+            # `running` is cleared every log window, so it cannot serve as an
+            # epoch summary; MLM pretraining selects on this instead
+            epoch_loss += parts.get("loss_mlm", parts.get("loss", 0.0))
+            epoch_n += 1
             if info.is_main and step % cfg.train.log_every_steps == 0:
                 avg = {k: v / n_running for k, v in running.items()}
                 logger.log(event="train", epoch=epoch, step=step,
@@ -301,6 +306,18 @@ def train(cfg: Config, resume: str | None = None,
                 logger.log(event="dev", epoch=epoch, step=step,
                            epoch_seconds=round(time.time() - t0, 1), **last_dev)
                 metric = last_dev.get("acc_lemma_pos", 0.0)
+            elif cfg.model.pretrain_mlm:
+                # MLM-only pretraining has no tagging heads, so there is no dev
+                # accuracy to track. Selecting on the running masked-LM loss
+                # keeps early stopping meaningful; without this the metric
+                # never leaves its -1.0 sentinel, patience drains one epoch at
+                # a time and the run stops on the patience counter alone --
+                # observed on runs/stage2_pre, which halted at epoch 7 of 12
+                # with 'best=-1.0' while the loss was still falling.
+                metric = -epoch_loss / max(epoch_n, 1)
+                logger.log(event="pretrain", epoch=epoch, step=step,
+                           epoch_seconds=round(time.time() - t0, 1),
+                           mlm_loss=round(-metric, 4))
             improved = metric > best_metric + cfg.train.min_delta
             if improved:
                 best_metric = metric

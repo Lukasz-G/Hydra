@@ -1,0 +1,115 @@
+# STAGE 2, CHUNK PROTOCOL: the same four-corpus model under the protocol that
+# does NOT hold manuscripts out.
+#
+# This exists to price the protocol itself. split_mode='chunk' puts every file
+# in all three splits and divides CHUNKS between them, so the same manuscript
+# -- often the same scribe, the same page -- appears in train and in test. It
+# is the protocol Pie and RNNTagger/Schmid are evaluated under, which is why we
+# keep it: published baselines are only comparable on these terms.
+#
+# runs/stage2 is the same configuration under split_mode='stratified' with
+# group_by_manuscript, where no manuscript crosses sides. Everything else here
+# is byte-identical to that config, so the difference between the two runs is
+# the protocol and nothing else. Reporting either number alone is fine;
+# comparing one to the other across papers is what this pair is meant to stop.
+#
+# The existing stratified model CANNOT simply be re-scored under the chunk
+# split: its chunk-test set would be drawn from documents it trained on. The
+# protocol has to be decided before training, so this is a separate run.
+#
+#   python -m hydra.cli train --config configs/stage2_chunk_remote.toml
+
+[run]
+run_dir = "runs/stage2_chunk"
+seed = 1337
+
+[data]
+corpus_dir = "/workspace/data/STAGE2"
+dev_fraction = 0.05
+test_fraction = 0.05
+split_seed = 42
+split_mode = "chunk"
+# both are inert under split_mode='chunk' -- no file is held out at all, so
+# there is nothing to group or stratify. Left here, switched off, so the two
+# configs diff to exactly the protocol lines.
+group_by_manuscript = false
+max_word_len = 48
+max_lemma_len = 32
+chunk_len = 128
+halo = 64
+on_mismatch = "skip"
+multi_item_upsample = 1
+# Pooling four corpora multiplies the closed vocabularies, and at the
+# single-corpus defaults the model came out at 100.6M parameters and OOM'd in
+# the backward pass on a 24GB card: 95,313 lemma types (ReM alone has ~37k)
+# and 238,041 word types make the two classification heads ~90M on their own.
+#
+# Raising the thresholds is the principled fix rather than shrinking the batch.
+# A lemma seen once cannot be learned as a CLASS, and it does not need to be:
+# the character generator exists for exactly those, and the classify-or-
+# generate gate already prefers it when the classifier is unsure. min_freq 3
+# keeps 36,985 lemma types -- the same order as ReM's own vocabulary -- and
+# still covers 98.7% of lemma tokens.
+lemma_type_min_freq = 3
+word_type_min_freq = 5
+mask_prob = 0.15
+num_workers = 4
+
+[model]
+d_char = 64
+d_tok = 256
+d_model = 512
+n_slots = 8
+kernel_size = 3
+char_tcn_dilations = [1, 2, 4, 8]
+ctx_tcn_dilations = [1, 2, 4, 8, 16]
+d_dec = 256
+lemma_cross_attention = true
+lemma_classifier = true
+ctx_self_attention = true
+masked_lm = true
+joint_tag = true
+tag_condition = "morph+lemma"
+# linear-chain CRF over the slot-0 POS sequence. §5.4 showed the cascade's
+# remaining headroom is gated by POS accuracy; this models the cross-token
+# label dependency the per-token heads cannot. Transitions are zero-init, so
+# warm-starting s_tagcond is a no-op at step 0 and this isolates the CRF.
+pos_crf = true
+dropout = 0.15
+
+[loss]
+w_pos = 1.0
+w_morph = 1.0
+w_lemma = 1.5
+w_lemma_cls = 1.0
+w_mlm = 0.5
+w_joint_tag = 0.5
+null_weight = 0.2
+
+[train]
+# 20 OOM'd in the training BACKWARD on a 24GB 4090 (2026-09-11); 12 runs
+# at ~16.9GB and matches what s_joint itself was trained at, so the
+# optimisation regime stays comparable to the baseline.
+batch_chunks = 12
+max_epochs = 30
+lr = 3e-4
+lr_min = 1e-5
+warmup_steps = 1000
+weight_decay = 0.01
+clip_norm = 1.0
+amp = true
+amp_dtype = "bf16"
+patience = 8
+min_delta = 0.0005
+log_every_steps = 50
+
+[infer]
+# eval is the memory peak, not training: the lemma-classifier logits are
+# (batch, 128, 8, ~36.9k) -- 2.4 GB in fp16 at batch 32, before the lemma
+# grid and activations. The local 16GB run OOM'd here at its first dev
+# eval (2026-09-11). Keep this well below train batch_chunks.
+batch_chunks = 12
+snap_lemmas = true
+classifier_min_prob = 0.3
+tag_cond_min_prob = 0.0
+tag_cond_oracle = false

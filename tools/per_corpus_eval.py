@@ -4,6 +4,7 @@ Usage:
   python tools/per_corpus_eval.py RUN_DIR [--tau=0.3] [--split=test]
                                           [--meta=meta/stage2_metadata.csv]
                                           [--field=corpus]
+                                          [--files=LIST.json] [--data-dir=DIR]
 
 Why this exists. Stage 2 trains one model on ReM, ReF, ReN and LeA at once,
 and a single pooled accuracy cannot answer the question the experiment is
@@ -21,6 +22,14 @@ directly comparable, and the pooled line is reproduced here as ALL to prove it.
 OOV stays defined against the POOLED training surfaces, which is the honest
 definition for a pooled model: a ReN word the model met in ReF training is not
 unseen just because it is new to ReN.
+
+--files scores an explicit list of documents instead of a split, which is how
+two models trained on DIFFERENT splits can be compared honestly. The pooled
+run and the ReM-only run hold out different manuscripts, so their headline
+numbers are not comparable at all; the 15 files in both test sets are the only
+ReM neither model was trained on, and on those the comparison is exact.
+--data-dir re-resolves the listed basenames against another corpus directory,
+since the pooled corpus keeps its own copy of the same ReM files.
 """
 from __future__ import annotations
 
@@ -60,6 +69,7 @@ def main() -> None:
     run_dir = Path(sys.argv[1])
     tau, split = None, "test"
     meta_path, field = "meta/stage2_metadata.csv", "corpus"
+    file_list, data_dir = None, None
     for a in sys.argv[2:]:
         if a.startswith("--tau="):
             tau = float(a.split("=", 1)[1])
@@ -69,6 +79,10 @@ def main() -> None:
             meta_path = a.split("=", 1)[1]
         elif a.startswith("--field="):
             field = a.split("=", 1)[1]
+        elif a.startswith("--files="):
+            file_list = a.split("=", 1)[1]
+        elif a.startswith("--data-dir="):
+            data_dir = a.split("=", 1)[1]
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     ckpt = run_dir / "best.pt"
@@ -86,7 +100,16 @@ def main() -> None:
     with open(meta_path, encoding="utf-8") as fh:
         group_of = {r["file"]: r[field] for r in csv.DictReader(fh) if r.get("file")}
 
-    files = json.loads((run_dir / "split.json").read_text(encoding="utf-8"))[split]
+    if file_list:
+        files = json.loads(Path(file_list).read_text(encoding="utf-8"))
+        split = Path(file_list).stem
+    else:
+        files = json.loads((run_dir / "split.json").read_text(encoding="utf-8"))[split]
+    if data_dir:
+        files = [str(Path(data_dir) / Path(f).name) for f in files]
+    missing = [f for f in files if not Path(f).exists()]
+    if missing:
+        raise SystemExit(f"{len(missing)} listed files not found, e.g. {missing[:3]}")
     groups: dict[str, list[str]] = defaultdict(list)
     for f in files:
         name = Path(f).name

@@ -25,7 +25,17 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
                                 batch["mlm"].reshape(-1), ignore_index=IGNORE)
         l_mlm = torch.where(torch.isnan(l_mlm), zero, l_mlm)
         total = cfg.w_mlm * l_mlm
-        return total, {"loss": float(total.detach()), "loss_mlm": float(l_mlm.detach())}
+        parts = {"loss_mlm": float(l_mlm.detach())}
+        # the language head is trained during pretraining too, so the encoder
+        # arrives at fine-tuning already able to tell the varieties apart
+        if out.lang_logits is not None and "lang" in batch:
+            l_lang = F.cross_entropy(out.lang_logits.reshape(-1, out.lang_logits.shape[-1]),
+                                     batch["lang"].reshape(-1), ignore_index=IGNORE)
+            l_lang = torch.where(torch.isnan(l_lang), zero, l_lang)
+            total = total + cfg.w_lang * l_lang
+            parts["loss_lang"] = float(l_lang.detach())
+        parts["loss"] = float(total.detach())
+        return total, parts
 
     pos_t = batch["pos"]      # (B, T, K)
     morph_t = batch["morph"]  # (B, T, K)
@@ -101,6 +111,13 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
         l_count = torch.where(torch.isnan(l_count), zero, l_count)
         total = total + cfg.w_count * l_count
         parts["loss_count"] = float(l_count.detach())
+
+    if out.lang_logits is not None and "lang" in batch:
+        l_lang = F.cross_entropy(out.lang_logits.reshape(-1, out.lang_logits.shape[-1]),
+                                 batch["lang"].reshape(-1), ignore_index=IGNORE)
+        l_lang = torch.where(torch.isnan(l_lang), zero, l_lang)
+        total = total + cfg.w_lang * l_lang
+        parts["loss_lang"] = float(l_lang.detach())
 
     parts["loss"] = float(total.detach())
     return total, parts

@@ -77,7 +77,8 @@ class Vocabs:
                  lemma_type_min_freq: int = 1,
                  surface_counts: dict[str, int] | None = None,
                  word_type_min_freq: int = 2,
-                 joint_counts: dict[str, int] | None = None):
+                 joint_counts: dict[str, int] | None = None,
+                 langs: "LabelVocab | None" = None):
         self.chars = chars
         self.pos = pos
         self.morph = morph
@@ -94,6 +95,9 @@ class Vocabs:
         # combined POS|morph tags for the joint-tag auxiliary head
         self.joint_counts = joint_counts or {}
         self.joint_types = LabelVocab.build(list(self.joint_counts))
+        # language / variety of the document a token came from; the
+        # language-ID cascade predicts this first and feeds it forward
+        self.langs = langs if langs is not None else LabelVocab.build([])
 
     @property
     def lemma_inventory(self) -> set[str]:
@@ -116,7 +120,10 @@ class Vocabs:
         lemma_counts: dict[str, int] = {}
         surface_counts: dict[str, int] = {}
         joint_counts: dict[str, int] = {}
+        lang_labels: set[str] = set()
         for tok in tokens:
+            if getattr(tok, "lang", None):
+                lang_labels.add(tok.lang)
             surfaces.add(tok.surface)
             strings.add(tok.surface)
             wkey = getattr(tok, "norm", None)
@@ -136,7 +143,7 @@ class Vocabs:
         return cls(CharVocab.build(strings), LabelVocab.build(pos_labels),
                    LabelVocab.build(morph_labels), surfaces, lemma_counts,
                    lemma_type_min_freq, surface_counts, word_type_min_freq,
-                   joint_counts)
+                   joint_counts, LabelVocab.build(lang_labels))
 
     def save(self, path: str | Path) -> None:
         payload = {
@@ -149,6 +156,7 @@ class Vocabs:
             "surface_counts": dict(sorted(self.surface_counts.items())),
             "word_type_min_freq": self.word_type_min_freq,
             "joint_counts": dict(sorted(self.joint_counts.items())),
+            "langs": self.langs.itos[len(LabelVocab.specials):],
         }
         Path(path).write_text(json.dumps(payload, ensure_ascii=False, indent=1),
                               encoding="utf-8")
@@ -160,4 +168,5 @@ class Vocabs:
                    LabelVocab(payload["morph"]), set(payload["train_surfaces"]),
                    payload.get("lemma_counts"), payload.get("lemma_type_min_freq", 1),
                    payload.get("surface_counts"), payload.get("word_type_min_freq", 2),
-                   payload.get("joint_counts"))
+                   payload.get("joint_counts"),
+                   LabelVocab(payload.get("langs", [])))

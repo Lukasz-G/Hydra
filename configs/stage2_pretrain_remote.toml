@@ -27,6 +27,9 @@ split_mode = "stratified"
 # documents still be held out (see hydra/data.py)
 group_by_manuscript = true
 metadata_csv = "meta/stage2_metadata.csv"
+# per-document variety labels: ReM / ReF / ReN / LeA
+language_map = "meta/stage2_metadata.csv"
+language_field = "corpus"
 # ReN's transcription-only texts: the one body of running text not
 # already inside the pool
 extra_train_dir = "/workspace/data/MND_raw"
@@ -53,6 +56,11 @@ mask_prob = 0.15
 num_workers = 4
 
 [model]
+# language-ID cascade: predict the variety first, feed it forward into
+# POS/morph/lemma. Active in BOTH phases -- the head sits above the
+# pretrain_mlm return, so the encoder learns the varieties apart before
+# any tagging loss exists.
+language_head = true
 d_char = 64
 d_tok = 256
 d_model = 512

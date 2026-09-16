@@ -19,7 +19,7 @@ import torch
 from torch.utils.data import Dataset
 
 from .config import DataConfig
-from .vocab import EOW, PAD, UNK, Vocabs
+from .vocab import EOW, PAD, UNK, Vocabs, LabelVocab
 
 log = logging.getLogger(__name__)
 
@@ -35,6 +35,9 @@ class Token:
     # normalised form carried by the corpus itself (2-column unannotated files,
     # e.g. noised MHDBDB with its clean source form); overrides the lookup
     norm: str | None = None
+    # language/variety of the DOCUMENT this token came from. Supervision
+    # for the language-ID head is free: every file's corpus is known.
+    lang: str | None = None
 
     @property
     def n_items(self) -> int:
@@ -332,14 +335,26 @@ def load_norm_lookup(path: str | Path) -> dict[str, str]:
 
 def load_split_tokens(files: list[str], on_mismatch: str, n_slots: int,
                       combined_tags: bool = False,
-                      max_items: int = 0) -> list[list[Token]]:
-    """Parse each file into its own document (token list)."""
+                      max_items: int = 0,
+                      lang_of: "dict[str, str] | None" = None) -> list[list[Token]]:
+    """Parse each file into its own document (token list).
+
+    lang_of maps a file's basename (or its stem) to a language/variety label,
+    which is stamped on every token of that document. That is the supervision
+    for the language-ID head, and it costs nothing: the corpus a file belongs
+    to is already known."""
     docs = []
     total_skipped = 0
     for f in files:
         tokens, skipped = parse_tsv_file(f, on_mismatch, n_slots, combined_tags, max_items)
         total_skipped += skipped
         if tokens:
+            if lang_of:
+                name = Path(f).name
+                lab = lang_of.get(name) or lang_of.get(Path(f).stem)
+                if lab:
+                    for t in tokens:
+                        t.lang = lab
             docs.append(tokens)
     if total_skipped:
         log.info("parsed %d files, %d malformed tokens kept as context-only",
@@ -356,6 +371,7 @@ class EncodedDoc:
     lemtype: np.ndarray  # (n, n_slots) int32: lemma-type id (UNK if rare/unseen) | IGNORE
     joint: np.ndarray    # (n, n_slots) int32: combined POS|morph tag id | IGNORE
     wtype: np.ndarray    # (n,) int32: word-type id of the surface (masked-LM target)
+    lang: np.ndarray     # (n,) int16: language/variety id of the document
     n_items: np.ndarray  # (n,) int8, 0 for context-only
     surfaces: list[str]
     gold: list[tuple[str, str, str] | None]  # '+'-joined (lemma, pos, morph) or None
@@ -372,6 +388,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
     lemtype = np.full((n, n_slots), IGNORE, dtype=np.int32)
     joint = np.full((n, n_slots), IGNORE, dtype=np.int32)
     wtype = np.full(n, IGNORE, dtype=np.int32)
+    lang = np.full(n, IGNORE, dtype=np.int16)
     n_items = np.zeros(n, dtype=np.int8)
     truncated = 0
     for i, tok in enumerate(tokens):
@@ -384,6 +401,10 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
         else:
             wkey = tok.surface
         wtype[i] = vocabs.word_types.encode(wkey)
+        # set for EVERY token, annotated or not: the language head is
+        # trained in MLM pretraining too, where nothing else is
+        if tok.lang is not None and len(vocabs.langs) > len(LabelVocab.specials):
+            lang[i] = vocabs.langs.encode(tok.lang)
         ids = vocabs.chars.encode(tok.surface) or [UNK]
         if len(ids) > max_word_len:
             ids = ids[:max_word_len]
@@ -407,7 +428,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
         log.warning("%d surfaces longer than %d chars were truncated", truncated, max_word_len)
     gold = [None if t.lemmas is None else
             ("+".join(t.lemmas), "+".join(t.pos), "+".join(t.morph)) for t in tokens]
-    return EncodedDoc(chars, pos, morph, lemma, lemtype, joint, wtype, n_items,
+    return EncodedDoc(chars, pos, morph, lemma, lemtype, joint, wtype, lang, n_items,
                       [t.surface for t in tokens], gold)
 
 
@@ -490,6 +511,7 @@ class HydraDataset(Dataset):
         lemtype = self._slice_padded(doc.lemtype, start, start + T, IGNORE)
         joint = self._slice_padded(doc.joint, start, start + T, IGNORE)
         wtype = self._slice_padded(doc.wtype, start, start + T, IGNORE)
+        lang = self._slice_padded(doc.lang, start, start + T, IGNORE)
         n_items = self._slice_padded(doc.n_items, start, start + T, 0)
 
         if self.noiser is not None:
@@ -534,6 +556,7 @@ class HydraDataset(Dataset):
             "lemtype": torch.from_numpy(lemtype.astype(np.int64)),
             "joint": torch.from_numpy(joint.astype(np.int64)),
             "mlm": torch.from_numpy(mlm),
+            "lang": torch.from_numpy(lang.astype(np.int64)),
             "token_mask": torch.from_numpy(n_items > 0),
             "n_items": torch.from_numpy(n_items.astype(np.int64)),
         }

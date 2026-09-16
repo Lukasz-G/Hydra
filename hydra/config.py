@@ -83,6 +83,11 @@ class DataConfig:
     # must set this to the BASELINE's n_slots (8) so both arms skip the same
     # tokens and are scored on the same n.
     align_max_items: int = 0
+    # CSV with a 'file' column and a label column (default 'corpus') giving the
+    # language/variety of each document. Supervision for model.language_head,
+    # and free: the corpus a file belongs to is already known.
+    language_map: str | None = None
+    language_field: str = "corpus"
     # Hold out MANUSCRIPTS rather than sigles under split_mode='stratified'.
     # ReM's sigles are not manuscript-unique -- M402/M402Y are one book -- so
     # sigle-level holdout let one scribe's hand reach both sides (15.2% of dev
@@ -155,6 +160,13 @@ class ModelConfig:
     # about as good as on single-item tokens. This predicts the count directly
     # from the token representation instead.
     count_head: bool = False
+    # language-ID cascade: predict which variety a token's document is in, and
+    # feed that prediction forward into the POS, morph and lemma heads -- the
+    # same predict-then-condition discipline as tag_condition, one level up.
+    # Active in MLM pretraining as well as fine-tuning: the head sits above the
+    # pretrain_mlm return, so a pretrained encoder already knows the varieties
+    # apart before any tagging loss is seen.
+    language_head: bool = False
     dropout: float = 0.15
 
     def __post_init__(self) -> None:
@@ -172,6 +184,7 @@ class LossConfig:
     w_mlm: float = 0.5
     w_joint_tag: float = 0.5
     w_count: float = 0.5        # model.count_head
+    w_lang: float = 0.5         # model.language_head
     null_weight: float = 0.2
     # label smoothing for the tagging/classification heads (pos, morph, lemma
     # chars, lemma classifier, joint tag); the masked-LM aux stays unsmoothed —
@@ -238,6 +251,9 @@ class InferConfig:
     # ~1/(K+1) probability, far below this bar, so at step 0 decoding is
     # exactly the first-NULL behaviour of the checkpoint being warm-started.
     count_min_prob: float = 0.5
+    # language-ID gate: trust the predicted language as conditioning only above
+    # this probability, else the learned "unsure" row. 0.0 = always trust it.
+    lang_min_prob: float = 0.0
 
 
 @dataclass(frozen=True)

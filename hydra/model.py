@@ -51,6 +51,10 @@ class ModelOutput:
     # target -- it marks context-only tokens). Decoding prefers this over
     # the implicit first-NULL rule.
     count_logits: torch.Tensor | None = None      # (B, T, K+1)
+    # model.language_head: which variety this token's document is in.
+    # Predicted FIRST and fed forward, so the cascade is
+    # language -> POS -> morph -> lemma.
+    lang_logits: torch.Tensor | None = None       # (B, T, n_langs)
 
 
 class TCNBlock(nn.Module):
@@ -342,7 +346,8 @@ class PosCRF(nn.Module):
 class HydraModel(nn.Module):
     def __init__(self, cfg: ModelConfig, n_chars: int, n_pos: int, n_morph: int,
                  max_word_len: int, max_lemma_len: int, chunk_len: int, halo: int,
-                 n_lemma_types: int = 0, n_word_types: int = 0, n_joint_types: int = 0):
+                 n_lemma_types: int = 0, n_word_types: int = 0, n_joint_types: int = 0,
+                 n_langs: int = 0):
         super().__init__()
         self.cfg = cfg
         self.T = chunk_len
@@ -390,6 +395,22 @@ class HydraModel(nn.Module):
             nn.Linear(cfg.d_model, cfg.d_model))
         self.slot_norm = nn.LayerNorm(cfg.d_model)
 
+        # --- language-ID cascade -------------------------------------------
+        # Predicts the variety a token's document is in, then conditions every
+        # downstream head on it, exactly as tag_condition conditions on POS one
+        # level further down. The projection is ZERO-INITIALISED, so adding the
+        # head to a trained checkpoint is a no-op at step 0 and the cascade is
+        # the isolated change. Index n_langs is the "unsure" row used when the
+        # gate rejects a prediction or the label is IGNORE.
+        self.lang_head = self.lang_cond_emb = self.lang_to_tag = None
+        self.n_langs = n_langs
+        self.lang_min_prob = 0.0
+        if cfg.language_head and n_langs > 0:
+            self.lang_head = nn.Linear(cfg.d_model, n_langs)
+            self.lang_cond_emb = nn.Embedding(n_langs + 1, cfg.tag_cond_dim)
+            self.lang_to_tag = nn.Linear(cfg.tag_cond_dim, cfg.d_model)
+            nn.init.zeros_(self.lang_to_tag.weight)
+            nn.init.zeros_(self.lang_to_tag.bias)
         self.count_head = nn.Linear(cfg.d_model, cfg.n_slots + 1) if cfg.count_head else None
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
@@ -492,12 +513,14 @@ class HydraModel(nn.Module):
 
     def forward(self, chars: torch.Tensor,
                 lemma_teacher: torch.Tensor | None = None,
-                tag_teacher: tuple[torch.Tensor, torch.Tensor] | None = None) -> ModelOutput:
+                tag_teacher: tuple[torch.Tensor, torch.Tensor] | None = None,
+                lang_teacher: torch.Tensor | None = None) -> ModelOutput:
         """chars: (B, S, W) int64 with S = T + 2H.
         lemma_teacher: gold lemma char grid (B, T, K, L) for teacher-forced
         training of the AR decoder (ignored by the grid decoder).
         tag_teacher: (pos, morph) gold ids (B, T, K) teacher-forcing the
         model.tag_condition cascade; None -> the heads' own predictions."""
+        lang_t = lang_teacher
         B, S, W = chars.shape
         T, H, K = self.T, self.H, self.K
         char_valid = chars != PAD                      # (B, S, W)
@@ -535,12 +558,24 @@ class HydraModel(nn.Module):
 
         center = slice(H, H + T)
 
+        h = self.fuse(torch.cat([tok[:, center], ctx[:, center]], dim=-1))  # (B, T, d_model)
+
+        # language is predicted FIRST, so it can condition everything below it.
+        # It is computed before the pretrain_mlm return on purpose: the head is
+        # trained during masked-LM pretraining as well as fine-tuning.
+        lang_logits = self.lang_head(h) if self.lang_head is not None else None
+
         if self.cfg.pretrain_mlm:
             # MLM-only pretraining: no slot decoding, no lemma decoder
             mlm_logits = self.mlm_head(ctx[:, center])
-            return ModelOutput(None, None, None, None, mlm_logits, None)
+            return ModelOutput(None, None, None, None, mlm_logits, None,
+                               lang_logits=lang_logits)
 
-        h = self.fuse(torch.cat([tok[:, center], ctx[:, center]], dim=-1))  # (B, T, d_model)
+        if lang_logits is not None:
+            # gold language teacher-forces in training, the prediction is used
+            # at inference -- the same discipline as the POS/morph cascade
+            lang_ids = self._cond_ids(lang_logits, lang_t, self.n_langs)
+            h = h + self.lang_to_tag(self.lang_cond_emb(lang_ids))
 
         hs = h.unsqueeze(2) + self.slot_emb.view(1, 1, K, -1)               # (B, T, K, d_model)
         hs = self.slot_norm(hs + self.slot_mlp(hs))
@@ -611,7 +646,8 @@ class HydraModel(nn.Module):
                 # generation happens outside (metrics.decode_batch drives it)
                 return ModelOutput(pos_logits, morph_logits, None, lemma_cls_logits,
                                    mlm_logits, joint_logits, flat, char_states,
-                                   char_pad_mask, pos_path, count_logits)
+                                   char_pad_mask, pos_path, count_logits,
+                                   lang_logits)
             gold = lemma_teacher.reshape(B * T * K, -1).clamp_min(PAD)  # IGNORE -> PAD
             prev = torch.cat([gold.new_full((gold.shape[0], 1), PAD), gold[:, :-1]], dim=1)
             lemma_logits = self.lemma_decoder(flat, prev, char_states, char_pad_mask)
@@ -621,4 +657,4 @@ class HydraModel(nn.Module):
 
         return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits,
                            mlm_logits, joint_logits, pos_path=pos_path,
-                           count_logits=count_logits)
+                           count_logits=count_logits, lang_logits=lang_logits)

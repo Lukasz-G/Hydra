@@ -29,7 +29,8 @@ def load_model_for_inference(model_path: str | Path,
                        cfg.data.chunk_len, cfg.data.halo,
                        n_lemma_types=len(vocabs.lemma_types),
                        n_word_types=len(vocabs.word_types),
-                       n_joint_types=len(vocabs.joint_types)).to(device)
+                       n_joint_types=len(vocabs.joint_types),
+                       n_langs=len(vocabs.langs)).to(device)
     model.load_state_dict(payload["model"])
     model.eval()
     return model, vocabs, cfg

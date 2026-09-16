@@ -84,13 +84,23 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
     barrier(info)
     splits = json.loads(split_path.read_text(encoding="utf-8"))
 
+    lang_of = None
+    if cfg.data.language_map:
+        import csv as _csv
+        with open(cfg.data.language_map, encoding="utf-8") as _fh:
+            lang_of = {r["file"]: r[cfg.data.language_field]
+                       for r in _csv.DictReader(_fh) if r.get("file")}
+        log.info("language map: %d files, %d labels (%s)", len(lang_of),
+                 len(set(lang_of.values())), ", ".join(sorted(set(lang_of.values()))))
     train_docs = load_split_tokens(splits["train"], cfg.data.on_mismatch, cfg.model.n_slots,
-                             cfg.data.combined_tags, cfg.data.align_max_items)
+                             cfg.data.combined_tags, cfg.data.align_max_items,
+                             lang_of)
     if cfg.data.extra_train_dir:
         from .data import list_corpus_files
         extra_files = [str(f) for f in list_corpus_files(cfg.data.extra_train_dir)]
         train_docs += load_split_tokens(extra_files, cfg.data.on_mismatch, cfg.model.n_slots,
-                             cfg.data.combined_tags, cfg.data.align_max_items)
+                             cfg.data.combined_tags, cfg.data.align_max_items,
+                             lang_of)
         if info.is_main:
             log.info("added %d unannotated files from %s", len(extra_files),
                      cfg.data.extra_train_dir)
@@ -121,7 +131,8 @@ def prepare_data(cfg: Config, info: DistInfo, run_dir: Path, resuming: bool = Fa
             dev_ds = HydraDataset(train_docs, vocabs, cfg.data, cfg.model.n_slots, role="dev")
         else:
             dev_docs = load_split_tokens(splits["dev"], cfg.data.on_mismatch, cfg.model.n_slots,
-                             cfg.data.combined_tags, cfg.data.align_max_items)
+                             cfg.data.combined_tags, cfg.data.align_max_items,
+                             lang_of)
             dev_ds = HydraDataset(dev_docs, vocabs, cfg.data, cfg.model.n_slots)
     return vocabs, train_ds, dev_ds
 
@@ -152,7 +163,8 @@ def train(cfg: Config, resume: str | None = None,
                        cfg.data.chunk_len, cfg.data.halo,
                        n_lemma_types=len(vocabs.lemma_types),
                        n_word_types=len(vocabs.word_types),
-                       n_joint_types=len(vocabs.joint_types)).to(info.device)
+                       n_joint_types=len(vocabs.joint_types),
+                       n_langs=len(vocabs.langs)).to(info.device)
     if init_weights and not resume:
         # warm-start from a compatible checkpoint: matching keys only, fresh
         # optimizer/schedule (e.g. adding the lemma classifier to a trained model)
@@ -249,12 +261,13 @@ def train(cfg: Config, resume: str | None = None,
             optimizer.zero_grad(set_to_none=True)
             chars = batch["chars"].to(info.device, non_blocking=True)
             targets = {k: batch[k].to(info.device, non_blocking=True)
-                       for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm")}
+                       for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm", "lang")}
             with torch.autocast(info.device.type, dtype=amp_dtype, enabled=use_amp):
                 # gold tags teacher-force the tag_condition cascade: a
                 # half-trained POS head must never feed the morph/lemma heads
                 out = model(chars, lemma_teacher=targets["lemma"],
-                            tag_teacher=(targets["pos"], targets["morph"]))
+                            tag_teacher=(targets["pos"], targets["morph"]),
+                            lang_teacher=targets["lang"])
                 loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos),
                                            crf=unwrap(model).pos_crf)
             scaler.scale(loss).backward()
@@ -301,6 +314,7 @@ def train(cfg: Config, resume: str | None = None,
                 # tracks what test will actually do
                 unwrap(model).tag_cond_min_prob = cfg.infer.tag_cond_min_prob
                 unwrap(model).count_min_prob = cfg.infer.count_min_prob
+                unwrap(model).lang_min_prob = cfg.infer.lang_min_prob
                 # dev eval mirrors inference: pure soft, whatever the ramp is
                 # mid-training, so the reported curve is the deployed model
                 unwrap(model).tag_cond_lambda = 1.0

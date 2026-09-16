@@ -167,6 +167,10 @@ class ModelConfig:
     # pretrain_mlm return, so a pretrained encoder already knows the varieties
     # apart before any tagging loss is seen.
     language_head: bool = False
+    # predict the token's whole '+'-joined POS sequence as one class and feed
+    # it into the slot heads. Measured worth: +0.64pp overall POS (sd 0.04,
+    # 3 seeds) for the representation, 81% of it on single-item tokens.
+    combo_head: bool = False
     dropout: float = 0.15
 
     def __post_init__(self) -> None:
@@ -185,6 +189,7 @@ class LossConfig:
     w_joint_tag: float = 0.5
     w_count: float = 0.5        # model.count_head
     w_lang: float = 0.5         # model.language_head
+    w_combo: float = 0.5        # model.combo_head
     null_weight: float = 0.2
     # label smoothing for the tagging/classification heads (pos, morph, lemma
     # chars, lemma classifier, joint tag); the masked-LM aux stays unsmoothed —
@@ -254,6 +259,7 @@ class InferConfig:
     # language-ID gate: trust the predicted language as conditioning only above
     # this probability, else the learned "unsure" row. 0.0 = always trust it.
     lang_min_prob: float = 0.0
+    combo_min_prob: float = 0.0
 
 
 @dataclass(frozen=True)

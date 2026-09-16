@@ -40,6 +40,7 @@ class ModelOutput:
     lemma_cls_logits: torch.Tensor | None = None  # (B, T, K, n_lemma_types)
     mlm_logits: torch.Tensor | None = None        # (B, T, n_word_types)
     joint_logits: torch.Tensor | None = None      # (B, T, K, n_joint_types)
+    combo_logits: torch.Tensor | None = None      # (B, T, n_combos)
     # AR decoding state (set when lemma_decoder='ar_tcn' runs without teacher):
     slot_states: torch.Tensor | None = None       # (B*T*K, d_model)
     char_states: torch.Tensor | None = None       # (B*T*K, W, d_tok)
@@ -347,7 +348,7 @@ class HydraModel(nn.Module):
     def __init__(self, cfg: ModelConfig, n_chars: int, n_pos: int, n_morph: int,
                  max_word_len: int, max_lemma_len: int, chunk_len: int, halo: int,
                  n_lemma_types: int = 0, n_word_types: int = 0, n_joint_types: int = 0,
-                 n_langs: int = 0):
+                 n_langs: int = 0, n_combos: int = 0):
         super().__init__()
         self.cfg = cfg
         self.T = chunk_len
@@ -411,6 +412,35 @@ class HydraModel(nn.Module):
             self.lang_to_tag = nn.Linear(cfg.tag_cond_dim, cfg.d_model)
             nn.init.zeros_(self.lang_to_tag.weight)
             nn.init.zeros_(self.lang_to_tag.bias)
+        # Combined-tag head: the token's WHOLE '+'-joined POS sequence as one
+        # class, predicted per token and then fed forward into the slot heads.
+        #
+        # Motivated by measurement, not symmetry. Across three matched seeds the
+        # combined-tag representation beats per-slot tags by +0.64pp overall POS
+        # at sd 0.04 -- three times the 0.21pp noise floor -- and 81% of the
+        # tokens it gains are SINGLE-item. So this is not a multi-item device
+        # and must not be built as one: it is a per-token view of the tag that
+        # the per-slot heads never get to see.
+        #
+        # It conditions rather than replaces, because the two representations
+        # win different columns: slots still win multi-item lemma. Same
+        # zero-init discipline as the language and tag cascades, so adding it
+        # to a trained checkpoint is a provable no-op at step 0.
+        self.combo_head = self.combo_cond_emb = self.combo_to_tag = None
+        self.n_combos = n_combos
+        self.combo_min_prob = 0.0
+        if cfg.combo_head and n_combos <= 0:
+            raise ValueError(
+                "combo_head=true but the vocabulary carries no combined tags. "
+                "Rebuild vocab.json (delete it and re-run, or warm-start with "
+                "a vocab built by this version) -- the head would otherwise be "
+                "unsupervised and silently do nothing.")
+        if cfg.combo_head:
+            self.combo_head = nn.Linear(cfg.d_model, n_combos)
+            self.combo_cond_emb = nn.Embedding(n_combos + 1, cfg.tag_cond_dim)
+            self.combo_to_tag = nn.Linear(cfg.tag_cond_dim, cfg.d_model)
+            nn.init.zeros_(self.combo_to_tag.weight)
+            nn.init.zeros_(self.combo_to_tag.bias)
         self.count_head = nn.Linear(cfg.d_model, cfg.n_slots + 1) if cfg.count_head else None
         self.pos_head = nn.Linear(cfg.d_model, n_pos)
         self.morph_head = nn.Linear(cfg.d_model, n_morph)
@@ -468,7 +498,7 @@ class HydraModel(nn.Module):
                 nn.Linear(cfg.d_dec, n_lemma_types))
 
     def _cond_ids(self, logits: torch.Tensor, teacher: torch.Tensor | None,
-                  n_classes: int) -> torch.Tensor:
+                  n_classes: int, min_prob: float | None = None) -> torch.Tensor:
         """Resolve tag ids for the conditioning path: gold when teacher-forced,
         otherwise the (optionally confidence-gated) argmax. IGNORE targets and
         rejected low-confidence predictions both map to the learned "unsure"
@@ -476,10 +506,13 @@ class HydraModel(nn.Module):
         upstream head through this path."""
         if teacher is not None:
             return torch.where(teacher < 0, n_classes, teacher.long())
-        if self.tag_cond_min_prob > 0:
+        # each cascade carries its own gate; defaulting to tag_cond_min_prob
+        # kept infer.lang_min_prob silently inert, which is the kind of knob
+        # that reads as "tried and did nothing" when it was never wired
+        gate = self.tag_cond_min_prob if min_prob is None else min_prob
+        if gate > 0:
             conf, ids = logits.float().softmax(dim=-1).max(dim=-1)
-            return torch.where(conf >= self.tag_cond_min_prob, ids,
-                               torch.full_like(ids, n_classes))
+            return torch.where(conf >= gate, ids, torch.full_like(ids, n_classes))
         return logits.argmax(dim=-1)
 
     def _cond_vec(self, logits: torch.Tensor, emb: nn.Embedding, n_classes: int,
@@ -514,13 +547,15 @@ class HydraModel(nn.Module):
     def forward(self, chars: torch.Tensor,
                 lemma_teacher: torch.Tensor | None = None,
                 tag_teacher: tuple[torch.Tensor, torch.Tensor] | None = None,
-                lang_teacher: torch.Tensor | None = None) -> ModelOutput:
+                lang_teacher: torch.Tensor | None = None,
+                combo_teacher: torch.Tensor | None = None) -> ModelOutput:
         """chars: (B, S, W) int64 with S = T + 2H.
         lemma_teacher: gold lemma char grid (B, T, K, L) for teacher-forced
         training of the AR decoder (ignored by the grid decoder).
         tag_teacher: (pos, morph) gold ids (B, T, K) teacher-forcing the
         model.tag_condition cascade; None -> the heads' own predictions."""
         lang_t = lang_teacher
+        combo_t = combo_teacher
         B, S, W = chars.shape
         T, H, K = self.T, self.H, self.K
         char_valid = chars != PAD                      # (B, S, W)
@@ -574,8 +609,18 @@ class HydraModel(nn.Module):
         if lang_logits is not None:
             # gold language teacher-forces in training, the prediction is used
             # at inference -- the same discipline as the POS/morph cascade
-            lang_ids = self._cond_ids(lang_logits, lang_t, self.n_langs)
+            lang_ids = self._cond_ids(lang_logits, lang_t, self.n_langs,
+                                      self.lang_min_prob)
             h = h + self.lang_to_tag(self.lang_cond_emb(lang_ids))
+
+        # the combined tag sits BELOW language and ABOVE the slots: it is a
+        # property of one token, and what it conditions is how that token's
+        # slots are filled in
+        combo_logits = self.combo_head(h) if self.combo_head is not None else None
+        if combo_logits is not None:
+            combo_ids = self._cond_ids(combo_logits, combo_t, self.n_combos,
+                                       self.combo_min_prob)
+            h = h + self.combo_to_tag(self.combo_cond_emb(combo_ids))
 
         hs = h.unsqueeze(2) + self.slot_emb.view(1, 1, K, -1)               # (B, T, K, d_model)
         hs = self.slot_norm(hs + self.slot_mlp(hs))
@@ -645,7 +690,7 @@ class HydraModel(nn.Module):
             if lemma_teacher is None:
                 # generation happens outside (metrics.decode_batch drives it)
                 return ModelOutput(pos_logits, morph_logits, None, lemma_cls_logits,
-                                   mlm_logits, joint_logits, flat, char_states,
+                                   mlm_logits, joint_logits, combo_logits, flat, char_states,
                                    char_pad_mask, pos_path, count_logits,
                                    lang_logits)
             gold = lemma_teacher.reshape(B * T * K, -1).clamp_min(PAD)  # IGNORE -> PAD
@@ -656,5 +701,5 @@ class HydraModel(nn.Module):
         lemma_logits = lemma_logits.view(B, T, K, lemma_logits.shape[1], -1)
 
         return ModelOutput(pos_logits, morph_logits, lemma_logits, lemma_cls_logits,
-                           mlm_logits, joint_logits, pos_path=pos_path,
+                           mlm_logits, joint_logits, combo_logits, pos_path=pos_path,
                            count_logits=count_logits, lang_logits=lang_logits)

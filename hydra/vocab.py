@@ -78,7 +78,8 @@ class Vocabs:
                  surface_counts: dict[str, int] | None = None,
                  word_type_min_freq: int = 2,
                  joint_counts: dict[str, int] | None = None,
-                 langs: "LabelVocab | None" = None):
+                 langs: "LabelVocab | None" = None,
+                 combo_counts: dict[str, int] | None = None):
         self.chars = chars
         self.pos = pos
         self.morph = morph
@@ -98,6 +99,25 @@ class Vocabs:
         # language / variety of the document a token came from; the
         # language-ID cascade predicts this first and feeds it forward
         self.langs = langs if langs is not None else LabelVocab.build([])
+        # the whole '+'-joined POS sequence of a token as ONE label. Three
+        # matched seeds show this representation is worth +0.64pp overall POS
+        # (sd 0.04) over per-slot tags, and that 81% of what it gains is on
+        # SINGLE-item tokens -- so it is not a multi-item device and the head
+        # that learns it is a per-token head, not a per-slot one.
+        self.combo_counts = combo_counts or {}
+        self.combo_types = LabelVocab.build(list(self.combo_counts))
+
+    @property
+    def has_combos(self) -> bool:
+        """True when the combined-tag vocabulary holds real labels.
+
+        A vocab.json written before this head existed loads with the two
+        specials and nothing else. Building the head on that would leave it
+        unsupervised and its zero-init projection ungradiented -- a head that
+        exists, costs parameters and does exactly nothing, which is the
+        failure mode that made infer.lang_min_prob look tried-and-useless.
+        Callers pass n_combos=0 in that case so the model can refuse."""
+        return len(self.combo_types) > len(LabelVocab.specials)
 
     @property
     def lemma_inventory(self) -> set[str]:
@@ -120,6 +140,7 @@ class Vocabs:
         lemma_counts: dict[str, int] = {}
         surface_counts: dict[str, int] = {}
         joint_counts: dict[str, int] = {}
+        combo_counts: dict[str, int] = {}
         lang_labels: set[str] = set()
         for tok in tokens:
             if getattr(tok, "lang", None):
@@ -140,10 +161,12 @@ class Vocabs:
             for p, m in zip(tok.pos, tok.morph):
                 j = f"{p}|{m}"
                 joint_counts[j] = joint_counts.get(j, 0) + 1
+            combo = "+".join(tok.pos)
+            combo_counts[combo] = combo_counts.get(combo, 0) + 1
         return cls(CharVocab.build(strings), LabelVocab.build(pos_labels),
                    LabelVocab.build(morph_labels), surfaces, lemma_counts,
                    lemma_type_min_freq, surface_counts, word_type_min_freq,
-                   joint_counts, LabelVocab.build(lang_labels))
+                   joint_counts, LabelVocab.build(lang_labels), combo_counts)
 
     def save(self, path: str | Path) -> None:
         payload = {
@@ -157,6 +180,7 @@ class Vocabs:
             "word_type_min_freq": self.word_type_min_freq,
             "joint_counts": dict(sorted(self.joint_counts.items())),
             "langs": self.langs.itos[len(LabelVocab.specials):],
+            "combo_counts": dict(sorted(self.combo_counts.items())),
         }
         Path(path).write_text(json.dumps(payload, ensure_ascii=False, indent=1),
                               encoding="utf-8")
@@ -169,4 +193,5 @@ class Vocabs:
                    payload.get("lemma_counts"), payload.get("lemma_type_min_freq", 1),
                    payload.get("surface_counts"), payload.get("word_type_min_freq", 2),
                    payload.get("joint_counts"),
-                   LabelVocab(payload.get("langs", [])))
+                   LabelVocab(payload.get("langs", [])),
+                   payload.get("combo_counts"))

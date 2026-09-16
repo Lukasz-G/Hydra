@@ -372,6 +372,7 @@ class EncodedDoc:
     joint: np.ndarray    # (n, n_slots) int32: combined POS|morph tag id | IGNORE
     wtype: np.ndarray    # (n,) int32: word-type id of the surface (masked-LM target)
     lang: np.ndarray     # (n,) int16: language/variety id of the document
+    combo: np.ndarray    # (n,) int32: whole '+'-joined POS sequence as one id
     n_items: np.ndarray  # (n,) int8, 0 for context-only
     surfaces: list[str]
     gold: list[tuple[str, str, str] | None]  # '+'-joined (lemma, pos, morph) or None
@@ -389,6 +390,7 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
     joint = np.full((n, n_slots), IGNORE, dtype=np.int32)
     wtype = np.full(n, IGNORE, dtype=np.int32)
     lang = np.full(n, IGNORE, dtype=np.int16)
+    combo = np.full(n, IGNORE, dtype=np.int32)
     n_items = np.zeros(n, dtype=np.int8)
     truncated = 0
     for i, tok in enumerate(tokens):
@@ -422,14 +424,19 @@ def encode_document(tokens: list[Token], vocabs: Vocabs, max_word_len: int,
             lids = vocabs.chars.encode(tok.lemmas[s])[:max_lemma_len - 1]
             lemma[i, s, :len(lids)] = lids
             lemma[i, s, len(lids)] = EOW
+        # the token's whole POS sequence as one label, for the combined-tag
+        # head. Supervised only where the token is (single item included --
+        # that is where most of this representation's advantage lives).
+        if len(vocabs.combo_types) > len(LabelVocab.specials):
+            combo[i] = vocabs.combo_types.encode("+".join(tok.pos))
         # unused slots: NULL POS target, everything else stays IGNORE
         pos[i, k:] = 0  # vocab.NULL
     if truncated:
         log.warning("%d surfaces longer than %d chars were truncated", truncated, max_word_len)
     gold = [None if t.lemmas is None else
             ("+".join(t.lemmas), "+".join(t.pos), "+".join(t.morph)) for t in tokens]
-    return EncodedDoc(chars, pos, morph, lemma, lemtype, joint, wtype, lang, n_items,
-                      [t.surface for t in tokens], gold)
+    return EncodedDoc(chars, pos, morph, lemma, lemtype, joint, wtype, lang, combo,
+                      n_items, [t.surface for t in tokens], gold)
 
 
 class HydraDataset(Dataset):
@@ -512,6 +519,7 @@ class HydraDataset(Dataset):
         joint = self._slice_padded(doc.joint, start, start + T, IGNORE)
         wtype = self._slice_padded(doc.wtype, start, start + T, IGNORE)
         lang = self._slice_padded(doc.lang, start, start + T, IGNORE)
+        combo = self._slice_padded(doc.combo, start, start + T, IGNORE)
         n_items = self._slice_padded(doc.n_items, start, start + T, 0)
 
         if self.noiser is not None:
@@ -557,6 +565,7 @@ class HydraDataset(Dataset):
             "joint": torch.from_numpy(joint.astype(np.int64)),
             "mlm": torch.from_numpy(mlm),
             "lang": torch.from_numpy(lang.astype(np.int64)),
+            "combo": torch.from_numpy(combo.astype(np.int64)),
             "token_mask": torch.from_numpy(n_items > 0),
             "n_items": torch.from_numpy(n_items.astype(np.int64)),
         }

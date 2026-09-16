@@ -30,7 +30,9 @@ def load_model_for_inference(model_path: str | Path,
                        n_lemma_types=len(vocabs.lemma_types),
                        n_word_types=len(vocabs.word_types),
                        n_joint_types=len(vocabs.joint_types),
-                       n_langs=len(vocabs.langs)).to(device)
+                       n_langs=len(vocabs.langs),
+                       n_combos=len(vocabs.combo_types) if vocabs.has_combos else 0
+                       ).to(device)
     model.load_state_dict(payload["model"])
     model.eval()
     return model, vocabs, cfg

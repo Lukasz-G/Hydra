@@ -164,7 +164,9 @@ def train(cfg: Config, resume: str | None = None,
                        n_lemma_types=len(vocabs.lemma_types),
                        n_word_types=len(vocabs.word_types),
                        n_joint_types=len(vocabs.joint_types),
-                       n_langs=len(vocabs.langs)).to(info.device)
+                       n_langs=len(vocabs.langs),
+                       n_combos=len(vocabs.combo_types) if vocabs.has_combos else 0
+                       ).to(info.device)
     if init_weights and not resume:
         # warm-start from a compatible checkpoint: matching keys only, fresh
         # optimizer/schedule (e.g. adding the lemma classifier to a trained model)
@@ -261,13 +263,15 @@ def train(cfg: Config, resume: str | None = None,
             optimizer.zero_grad(set_to_none=True)
             chars = batch["chars"].to(info.device, non_blocking=True)
             targets = {k: batch[k].to(info.device, non_blocking=True)
-                       for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm", "lang")}
+                       for k in ("pos", "morph", "lemma", "lemtype", "joint", "mlm",
+                                 "lang", "combo")}
             with torch.autocast(info.device.type, dtype=amp_dtype, enabled=use_amp):
                 # gold tags teacher-force the tag_condition cascade: a
                 # half-trained POS head must never feed the morph/lemma heads
                 out = model(chars, lemma_teacher=targets["lemma"],
                             tag_teacher=(targets["pos"], targets["morph"]),
-                            lang_teacher=targets["lang"])
+                            lang_teacher=targets["lang"],
+                            combo_teacher=targets["combo"])
                 loss, parts = compute_loss(out, targets, cfg.loss, len(vocabs.pos),
                                            crf=unwrap(model).pos_crf)
             scaler.scale(loss).backward()
@@ -315,6 +319,7 @@ def train(cfg: Config, resume: str | None = None,
                 unwrap(model).tag_cond_min_prob = cfg.infer.tag_cond_min_prob
                 unwrap(model).count_min_prob = cfg.infer.count_min_prob
                 unwrap(model).lang_min_prob = cfg.infer.lang_min_prob
+                unwrap(model).combo_min_prob = cfg.infer.combo_min_prob
                 # dev eval mirrors inference: pure soft, whatever the ramp is
                 # mid-training, so the reported curve is the deployed model
                 unwrap(model).tag_cond_lambda = 1.0

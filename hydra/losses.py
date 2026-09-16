@@ -119,5 +119,16 @@ def compute_loss(out: ModelOutput, batch: dict[str, torch.Tensor],
         total = total + cfg.w_lang * l_lang
         parts["loss_lang"] = float(l_lang.detach())
 
+    # combined tag: the token's whole POS sequence as one class. Supervised on
+    # EVERY tagged token, single-item included -- three seeds say that is where
+    # 81% of this representation's advantage is, so restricting it to '+'
+    # tokens would train it out of the part that pays.
+    if out.combo_logits is not None and "combo" in batch:
+        l_combo = F.cross_entropy(out.combo_logits.reshape(-1, out.combo_logits.shape[-1]),
+                                  batch["combo"].reshape(-1), ignore_index=IGNORE)
+        l_combo = torch.where(torch.isnan(l_combo), zero, l_combo)
+        total = total + cfg.w_combo * l_combo
+        parts["loss_combo"] = float(l_combo.detach())
+
     parts["loss"] = float(total.detach())
     return total, parts

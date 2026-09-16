@@ -195,7 +195,11 @@ def train(cfg: Config, resume: str | None = None,
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp and amp_dtype == torch.float16)
 
     start_epoch, step = 0, 0
-    best_metric = -1.0
+    # -1.0 is a sentinel below any accuracy. MLM pretraining selects on
+    # NEGATIVE mean loss, which is far below -1.0, so it needs -inf or nothing
+    # ever counts as an improvement -- exactly how runs/stage2_pre stopped at
+    # epoch 7 twice, the second time with the metric already computed correctly.
+    best_metric = float("-inf") if cfg.model.pretrain_mlm else -1.0
     patience_left = cfg.train.patience
     ema = EMA(unwrap(model), cfg.train.ema_decay) if cfg.train.ema_decay > 0 else None
     if resume:

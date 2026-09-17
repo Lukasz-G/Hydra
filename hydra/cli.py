@@ -10,6 +10,17 @@ from pathlib import Path
 
 import torch
 
+# Windows consoles default to a legacy codepage (cp1252 here), and this
+# project's own paths carry characters it cannot encode. hydra-tag ran to
+# completion, wrote its files, then died printing the success line -- which
+# reads exactly like the tagger failed. Nothing downstream should depend on
+# the console's codepage.
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):   # already wrapped / not reconfigurable
+        pass
+
 
 def _add_config_args(p: argparse.ArgumentParser) -> None:
     p.add_argument("--config", required=True, help="path to TOML config")

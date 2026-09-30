@@ -8,7 +8,7 @@ version = "2.0.0"
 description = "Neural tagger/lemmatizer for pre-modern languages (character-level TCN with slot decoding)"
 readme = "README.md"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Lukasz Gagala" }]
+authors = [{ name = "Łukasz Gągała" }]
 requires-python = ">=3.10"
 keywords = [
     "lemmatization", "part-of-speech-tagging", "historical-linguistics",

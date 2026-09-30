@@ -3,8 +3,9 @@ title: "Hydra: a character-level neural lemmatiser and morphological tagger for 
 message: "If you use this software, please cite it as below."
 type: software
 authors:
-  - family-names: Gagala
-    given-names: Lukasz
+  - family-names: Gągała
+    given-names: Łukasz
+    orcid: "https://orcid.org/0009-0002-0149-2038"
 repository-code: "https://github.com/Lukasz-G/Hydra"
 license: Apache-2.0
 version: "2.0.0"

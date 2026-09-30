@@ -1,8 +1,109 @@
 # Hydra
 
-Neural tagger/lemmatizer for pre-modern languages (Middle High German, Middle
-Dutch, …). Complete rewrite of the original mpi4py-based Hydra (the old code
-is preserved untouched in `legacy/`).
+Neural lemmatiser and morphological tagger for pre-modern languages, trained
+and evaluated on Middle High German, Early New High German, Middle Low German
+and Old German. It reads the manuscript's own spelling: there is no
+normalisation step and no tokeniser fitted to a modern corpus.
+
+Complete rewrite of the original mpi4py-based Hydra; the old code is preserved
+untouched in `legacy/`.
+
+## What it does
+
+**Reads medieval spelling directly.** Pre-modern vernaculars were never
+spelled to a standard. One poem gives the same name as `roͮlant`, `Roͮlant`
+and `roͮlanten`, and the page carries long s (`ſ`), superscript vowels
+(`uͤ`, `oͮ`), a nasal bar (`vn̄`) and scribal abbreviation marks (`Ieſꝰ`).
+Hydra's encoder works over characters and sees the whole word at once, so
+these are related forms and not unrelated strings, and nothing is normalised
+away before the model reads it.
+
+**Lemmatises words it has never met.** The lemma decoder is open-vocabulary:
+beside a closed-set classifier it generates the lemma character by character,
+conditioned on the surface. With whole manuscripts held out of training, 13.2%
+of test tokens carry a surface form that never occurred in training, and
+62.1% of those still get the right lemma.
+
+**Handles one written token that is several words.** Medieval scribes fuse
+words: `inhandon` is *in* + *hant*, `geſtu` is *gân* + *dû*. Every token is
+decoded through K = 8 parallel slots, each producing its own lemma, part of
+speech and morphology, with a NULL tag marking the slots a token does not use.
+ReM's `/` notation for discontinuous units is understood, so `ane/+bëten`
+stays one item whose parts sit apart in the sentence.
+
+**Learns from unannotated text and from scribal variation.** A masked-token
+objective lets raw transcription contribute to training, and a substitution
+model learned from ReM's paired diplomatic and normalised layers perturbs
+spelling afresh each epoch, so the encoder meets many realisations of one
+word.
+
+**Says which split protocol produced a number.** How a historical corpus is
+divided moves accuracy more than most modelling choices do, because a random
+split puts the same scribe's hand on both sides of it. Hydra supports three
+protocols and every figure below names the one it came from.
+
+## Results
+
+Test-set accuracy on the Reference Corpus Middle High German. Pie and
+RNNTagger were retrained on Hydra's own split assignments and scored with
+Hydra's metric definitions, so the rows are comparable; no published figure
+for those systems was reused. Pie reports no joint accuracy.
+
+| System | Protocol | Lemma | POS | Morph | Joint |
+|---|---|---|---|---|---|
+| Hydra | manuscript-held-out | 88.4 | 90.2 | 84.0 | 75.3 |
+| RNNTagger | manuscript-held-out | 88.4 | **91.3** | **85.6** | **77.5** |
+| Pie | manuscript-held-out | 82.5 | 87.9 | 81.1 | — |
+| Hydra | random chunk | **91.8** | **92.2** | **87.3** | **81.0** |
+| RNNTagger | random chunk | 88.5 | 90.2 | 86.6 | 79.8 |
+| Pie | random chunk | 83.3 | 86.6 | 80.3 | — |
+
+Two things this is meant to show, and one of them is not in Hydra's favour.
+Hydra leads on every column under the random-chunk protocol; under the harder
+one the lemma figures are level and RNNTagger is ahead on tag and joint
+accuracy. And the protocol is worth more than the architecture: the same
+recipe moves by over three points of lemma accuracy between the two rows with
+no parameter changed, which is several times any architectural difference we
+have been able to measure.
+
+One model over all four corpora, 6,229,750 pooled tokens, manuscript-held-out:
+
+| Corpus | Test tokens | Unseen surfaces | Lemma | POS |
+|---|---|---|---|---|
+| Early New High German (ReF) | 86,774 | 5.3% | 94.3 | 93.3 |
+| Middle Low German (ReN) | 67,584 | 5.8% | 93.7 | 92.5 |
+| Middle High German (ReM) | 125,624 | 11.6% | 83.5 | 86.2 |
+| Old German (LeA) | 14,147 | 23.1% | 72.3 | 84.1 |
+
+Against a ReM-only model the pooled model neither gains nor loses on Middle
+High German beyond the spread across random seeds, and it supplies taggers
+for three varieties that had none. Middle High German's lemma figure here is
+held down by tokens ReM leaves without an analysis at all; over the tokens
+that carry one it is 87.9.
+
+<!-- These figures come from the same run logs as the paper's, by way of
+     journal/make_numbers.py: batch2_3_results.log (Hydra s_joint, c_joint),
+     batch5_baselines.log (Pie, RNNTagger), batch6_results.log (the
+     four-corpus pool). Regenerate there rather than editing them here. -->
+
+## The corpora
+
+The corpora are not redistributed with this repository and the tracked configs
+point at local paths (`D:/Corpora/...`) that will need changing. They are
+available from their own projects:
+
+- **ReM** — Referenzkorpus Mittelhochdeutsch (1050–1350), v2.1:
+  <https://www.linguistics.rub.de/rem/>
+- **ReF** — Reference Corpus Early New High German (1350–1650), v1.0.2:
+  <https://doi.org/10.5281/zenodo.5793616>
+- **ReN** — Reference Corpus Middle Low German / Low Rhenish (1200–1650),
+  v1.1: <https://doi.org/10.25592/uhhfdm.9195>
+- **LeA** — the reading-corpus layer of Referenzkorpus Altdeutsch:
+  <http://hdl.handle.net/11022/0000-0007-C9C7-6>
+
+`tools/pool_stage2.py` converts and pools all four into the 4-column format
+below; `tools/convert_ren.py`, `tools/convert_ref.py` and `tools/map_lea_tags.py`
+handle the individual conversions and the tagset mapping.
 
 ## The task
 
@@ -75,7 +176,7 @@ guarantee.
 
 ```
 pip install -e .[dev]        # Python >= 3.10, PyTorch >= 2.1
-pytest -q                    # 78 tests, CPU, ~15 s
+pytest -q                    # 112 tests, CPU, ~20 s
 ```
 
 ## Train
@@ -165,3 +266,13 @@ meta/           corpus metadata: the ReM manuscript table driving the
                 stratified split, extracted spelling layers, norm lookup
 legacy/         the pre-2024 mpi4py implementation (reference only)
 ```
+
+## Licence and citation
+
+Apache-2.0, in `LICENSE`, with `NOTICE` recording the copyright. The licence
+covers the code in this repository. It does not cover the annotated corpora,
+which are not redistributed here and carry their own terms (see `NOTICE`).
+
+`CITATION.cff` carries the citation metadata, which GitHub's "Cite this
+repository" button reads. A paper describing the system and the evaluation
+protocols is in preparation; this file will name it when it appears.

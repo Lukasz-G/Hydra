@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+title: "Hydra: a character-level neural lemmatiser and morphological tagger for pre-modern languages"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Gagala
+    given-names: Lukasz
+repository-code: "https://github.com/Lukasz-G/Hydra"
+license: Apache-2.0
+version: "2.0.0"
+keywords:
+  - lemmatization
+  - part-of-speech tagging
+  - historical linguistics
+  - Middle High German
+  - digital humanities
+abstract: >-
+  Hydra lemmatises and morphologically tags pre-modern vernaculars from the
+  manuscript's own spelling, without a normalisation step or a tokeniser
+  fitted to a modern corpus. A character-level temporal convolutional encoder
+  feeds a bank of eight parallel decoding slots, so a single written token
+  that realises several words is decoded into several lemmas and tags at
+  once. It is trained on four reference corpora of historical German and
+  reports every figure under a named split protocol.

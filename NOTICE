@@ -1,0 +1,42 @@
+Hydra
+Copyright 2024-2026 Lukasz Gagala
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+---
+
+This licence covers the code in this repository. It does not cover the
+annotated corpora the code is trained and evaluated on, which are not
+redistributed here and carry their own terms:
+
+  ReM  Referenzkorpus Mittelhochdeutsch (1050-1350), v2.1
+       Roussel, Klein, Dipper, Wegera, Wich-Reif (2024)
+       https://www.linguistics.rub.de/rem/
+
+  ReF  Reference Corpus Early New High German (1350-1650), v1.0.2
+       Wegera, Solms, Demske, Dipper (2021)
+       https://doi.org/10.5281/zenodo.5793616
+
+  ReN  Reference Corpus Middle Low German / Low Rhenish (1200-1650), v1.1
+       ReN-Team (2021)
+       https://doi.org/10.25592/uhhfdm.9195
+
+  LeA  Referenzkorpus Altdeutsch, reading-corpus layer
+       Donhauser, Gippert, Luhr (2018)
+       http://hdl.handle.net/11022/0000-0007-C9C7-6
+
+meta/ contains tables derived from these corpora (manuscript metadata, a
+spelling-layer pair list and a normalisation lookup). Anyone redistributing
+them should check the terms of the corpus each is derived from.
+
+legacy/ preserves the earlier mpi4py implementation of Hydra for reference.

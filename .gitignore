@@ -8,3 +8,6 @@ tagged_texts/
 texts2tag/
 .claude/
 journal/
+# release assets built by tools/package_model.py; they go to a GitHub
+# release, never into the tree (the four-corpus model is 178 MB)
+dist/

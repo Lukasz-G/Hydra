@@ -49,14 +49,19 @@ def train_main(argv: list[str] | None = None) -> None:
 def tag_main(argv: list[str] | None = None) -> None:
     from .tag import tag_files
 
-    p = argparse.ArgumentParser(prog="hydra-tag")
-    p.add_argument("--model", required=True, help="checkpoint, e.g. runs/x/best.pt")
+    from .hub import describe, resolve
+
+    p = argparse.ArgumentParser(prog="hydra-tag", epilog=describe(),
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--model", required=True,
+                   help="a published model name (see below) or a checkpoint "
+                        "path, e.g. runs/x/best.pt")
     p.add_argument("--input", required=True, help="file or directory of .txt files")
     p.add_argument("--output", required=True, help="output directory")
     p.add_argument("--format", choices=["auto", "txt", "tsv"], default="auto")
     args = p.parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
-    written = tag_files(args.model, args.input, args.output, args.format)
+    written = tag_files(resolve(args.model), args.input, args.output, args.format)
     print(f"wrote {len(written)} file(s) to {args.output}")
 
 
@@ -65,8 +70,12 @@ def eval_main(argv: list[str] | None = None) -> None:
     from .evaluate import evaluate_dataset
     from .tag import load_model_for_inference
 
-    p = argparse.ArgumentParser(prog="hydra-eval")
-    p.add_argument("--model", required=True, help="checkpoint, e.g. runs/x/best.pt")
+    from .hub import describe, resolve
+
+    p = argparse.ArgumentParser(prog="hydra-eval", epilog=describe(),
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--model", required=True,
+                   help="a published model name (see below) or a checkpoint path")
     p.add_argument("--split", choices=["dev", "test"], default="test",
                    help="evaluate this split from the run's split.json")
     p.add_argument("--input", default=None,
@@ -75,7 +84,7 @@ def eval_main(argv: list[str] | None = None) -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model, vocabs, cfg = load_model_for_inference(args.model, device)
+    model, vocabs, cfg = load_model_for_inference(resolve(args.model), device)
 
     if args.input:
         path = Path(args.input)

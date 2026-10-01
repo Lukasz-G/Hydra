@@ -2,45 +2,103 @@
 
 Neural lemmatiser and morphological tagger for pre-modern languages, trained
 and evaluated on Middle High German, Early New High German, Middle Low German
-and Old German. It reads the manuscript's own spelling: there is no
+and Old German. It reads the manuscript's own spelling. There is no
 normalisation step and no tokeniser fitted to a modern corpus.
 
-Complete rewrite of the original mpi4py-based Hydra; the old code is preserved
+Complete rewrite of the original mpi4py-based Hydra; the old code is kept
 untouched in `legacy/`.
 
-## What it does
+## Two lines
 
-**Reads medieval spelling directly.** Pre-modern vernaculars were never
-spelled to a standard. One poem gives the same name as `roͮlant`, `Roͮlant`
-and `roͮlanten`, and the page carries long s (`ſ`), superscript vowels
-(`uͤ`, `oͮ`), a nasal bar (`vn̄`) and scribal abbreviation marks (`Ieſꝰ`).
-Hydra's encoder works over characters and sees the whole word at once, so
-these are related forms and not unrelated strings, and nothing is normalised
-away before the model reads it.
+```bash
+pip install "hydra-tagger @ git+https://github.com/Lukasz-G/Hydra"
+hydra-tag --model de-4corpus --input texts/ --output tagged/
+```
 
-**Lemmatises words it has never met.** The lemma decoder is open-vocabulary:
-beside a closed-set classifier it generates the lemma character by character,
-conditioned on the surface. With whole manuscripts held out of training, 13.2%
-of test tokens carry a surface form that never occurred in training, and
-62.1% of those still get the right lemma.
+The first call downloads the model and caches it; later calls read the cache.
+Input is plain text or 4-column TSV, one token per line. Output is the
+4-column TSV `surface / lemma / POS / morphology`, with the items of a
+multi-item token joined by `+`:
 
-**Handles one written token that is several words.** Medieval scribes fuse
-words: `inhandon` is *in* + *hant*, `geſtu` is *gân* + *dû*. Every token is
-decoded through K = 8 parallel slots, each producing its own lemma, part of
-speech and morphology, with a NULL tag marking the slots a token does not use.
-ReM's `/` notation for discontinuous units is understood, so `ane/+bëten`
-stays one item whose parts sit apart in the sentence.
+```
+gieng   gân      VVFIN   Ind.Past.Sg.3
+wege    wëg      NA      Dat.Sg
+zoh     zièhen   VVFIN   Ind.Past.Sg.3
+ſin     sîn      DPOSA   Neut.Akk.Sg.0
+```
 
-**Learns from unannotated text and from scribal variation.** A masked-token
-objective lets raw transcription contribute to training, and a substitution
-model learned from ReM's paired diplomatic and normalised layers perturbs
-spelling afresh each epoch, so the encoder meets many realisations of one
-word.
+That is real output, and it is not perfect output: see [Results](#results) for
+what the error rate actually is.
 
-**Says which split protocol produced a number.** How a historical corpus is
-divided moves accuracy more than most modelling choices do, because a random
-split puts the same scribe's hand on both sides of it. Hydra supports three
-protocols and every figure below names the one it came from.
+## The problem
+
+A medieval page does not hand a tagger one word per token. Scribes fuse words,
+abbreviate them, split one word across a clause, and spell the same word a
+dozen ways. Hydra's job is to read what is on the page and return an analysis
+for every item in it.
+
+| On the page | Example | ReM's analysis | What a tagger must produce |
+|---|---|---|---|
+| Two words in one token | *inhandon* | `in+hant` `APPR+NA` | two items from one token |
+| A verb with its pronoun attached | *geſtu* | `gân+dû` `VVFIN+PPER` | two items, 'goest thou' |
+| Three words in one token | *Deſwar* | `dër+sîn+wâr` `DDS+VAFIN+ADJD` | three items, 'that is true' |
+| One word split across the clause | *dar* | `dâr/+zuo` `PAVD` | **one** item, despite the `+` |
+| A scribal abbreviation | *vn̄* | `unte` `KON` | expand the nasal bar |
+| A spelling never seen in training | 13.2% of held-out tokens | | build the lemma from characters |
+
+The fourth row is the trap. The part-of-speech column counts the items, never
+the lemma string: `dâr/+zuo` carries a `+` inside a single lemma, and splitting
+on it would invent a second word that is not there.
+
+![Four real tokens through one decoder: univerbation, triple fusion, a discontinuous unit whose parts sit apart in the clause, and encliticisation in the Middle Low German corpus. The part-of-speech column decides how many slots fire.](docs/figures/clitic-handling.png)
+
+## How it works
+
+Every token is decoded through **K = 8 parallel slots**. Each slot produces its
+own lemma, part of speech and morphology; a NULL tag marks the slots a token
+does not use, so the item count falls out of the prediction and does not have
+to be decided in advance. The slots run at once, not one after another.
+
+The encoder is character-level throughout. A dilated convolutional network
+(TCN) reads the characters of a word, a masked max-pool turns them into one
+token vector, and a second TCN carries context across roughly fourteen tokens
+either side. Long s (`ſ`), superscript vowels (`uͤ`, `oͮ`), a nasal bar (`vn̄`)
+and abbreviation marks (`Ieſꝰ`) reach the model as the characters they are.
+Nothing is normalised first, and there is no subword vocabulary fitted to
+another corpus's orthography.
+
+The lemma head is open-vocabulary: a closed-set classifier proposes a lemma
+and a character generator builds one from the surface, and a confidence
+threshold picks between them. A spelling the model has never met still gets a
+lemma.
+
+![Hydra's encoder and decoding slots: a shared character and context encoder feeds a fixed bank of K = 8 slots, each with its own lemma, part-of-speech and morphology head.](docs/figures/architecture.png)
+
+Two further objectives are optional and switch on from the config. A
+masked-token auxiliary lets unannotated transcription contribute to training,
+and a substitution model learned from ReM's paired diplomatic and normalised
+layers perturbs spelling afresh each epoch, so the encoder meets many
+realisations of one word. [Architecture](#architecture) gives the full list.
+
+## Models
+
+| Name | Trained on | Parameters | Pass to `--model` |
+|---|---|---|---|
+| `de-4corpus` | ReM, ReF, ReN and LeA pooled, 6.2M tokens | 46.9M | `--model de-4corpus` |
+| `mhg` | ReM alone, manuscript-held-out split | 38M | `--model mhg` |
+
+They are published as assets of the [latest release](https://github.com/Lukasz-G/Hydra/releases/latest)
+and cached under `%LOCALAPPDATA%\hydra-tagger` or `~/.cache/hydra-tagger`;
+`HYDRA_CACHE` overrides that. `--model` also accepts a path, so
+`--model runs/x/best.pt` behaves as before. `hydra-tag --help` lists what is
+published.
+
+To cut a release from a run directory of your own:
+
+```bash
+python tools/package_model.py runs/stage2 de-4corpus
+gh release create v2.0.0 dist/hydra-de-4corpus.tar.gz --generate-notes
+```
 
 ## Results
 
@@ -53,18 +111,18 @@ for those systems was reused. Pie reports no joint accuracy.
 |---|---|---|---|---|---|
 | Hydra | manuscript-held-out | 88.4 | 90.2 | 84.0 | 75.3 |
 | RNNTagger | manuscript-held-out | 88.4 | **91.3** | **85.6** | **77.5** |
-| Pie | manuscript-held-out | 82.5 | 87.9 | 81.1 | — |
+| Pie | manuscript-held-out | 82.5 | 87.9 | 81.1 | |
 | Hydra | random chunk | **91.8** | **92.2** | **87.3** | **81.0** |
 | RNNTagger | random chunk | 88.5 | 90.2 | 86.6 | 79.8 |
-| Pie | random chunk | 83.3 | 86.6 | 80.3 | — |
+| Pie | random chunk | 83.3 | 86.6 | 80.3 | |
 
-Two things this is meant to show, and one of them is not in Hydra's favour.
-Hydra leads on every column under the random-chunk protocol; under the harder
+Hydra leads on every column under the random-chunk protocol. Under the harder
 one the lemma figures are level and RNNTagger is ahead on tag and joint
-accuracy. And the protocol is worth more than the architecture: the same
-recipe moves by over three points of lemma accuracy between the two rows with
-no parameter changed, which is several times any architectural difference we
-have been able to measure.
+accuracy, which we report as it stands. The second finding matters more than
+the first: the protocol moves the result by over three points of lemma
+accuracy with no parameter changed, which is several times any architectural
+difference we have measured. A figure quoted without its protocol cannot be
+compared with another.
 
 One model over all four corpora, 6,229,750 pooled tokens, manuscript-held-out:
 
@@ -76,33 +134,43 @@ One model over all four corpora, 6,229,750 pooled tokens, manuscript-held-out:
 | Old German (LeA) | 14,147 | 23.1% | 72.3 | 84.1 |
 
 Against a ReM-only model the pooled model neither gains nor loses on Middle
-High German beyond the spread across random seeds, and it supplies taggers
-for three varieties that had none. Middle High German's lemma figure here is
-held down by tokens ReM leaves without an analysis at all; over the tokens
-that carry one it is 87.9.
+High German beyond the spread across random seeds, and it supplies taggers for
+three varieties that had none. Middle High German's figure here is held down
+by tokens ReM leaves without an analysis at all; over the tokens that carry
+one it is 87.9.
 
-<!-- These figures come from the same run logs as the paper's, by way of
-     journal/make_numbers.py: batch2_3_results.log (Hydra s_joint, c_joint),
-     batch5_baselines.log (Pie, RNNTagger), batch6_results.log (the
-     four-corpus pool). Regenerate there rather than editing them here. -->
+### What the errors are
+
+Most of what Hydra gets wrong is a choice between readings, not a misspelling.
+On held-out development data 52% of lemma errors pick a wrong but attested
+lemma, and in 35% of all errors the lemma chosen is one the corpus assigns to
+that same surface somewhere else.
+
+![Development tokens split three times: into those the corpus supplies an analysis for and those it does not, then into correct and incorrect lemmas, then by error class, with the most frequent real instance of each class.](docs/figures/error-classes.png)
+
+<!-- Figures and accuracy figures alike are generated by the paper's build,
+     which is not part of this repository, from the run logs in runs/:
+     batch2_3_results.log (Hydra s_joint, c_joint), batch5_baselines.log
+     (Pie, RNNTagger), batch6_results.log (the four-corpus pool).
+     Regenerate there before editing anything here by hand. -->
 
 ## The corpora
 
-The corpora are not redistributed with this repository and the tracked configs
-point at local paths (`D:/Corpora/...`) that will need changing. They are
-available from their own projects:
+The corpora are not redistributed with this repository, and the tracked
+configs point at local paths (`D:/Corpora/...`) that will need changing. Each
+is available from its own project:
 
-- **ReM** — Referenzkorpus Mittelhochdeutsch (1050–1350), v2.1:
+- **ReM**, Referenzkorpus Mittelhochdeutsch (1050–1350), v2.1:
   <https://www.linguistics.rub.de/rem/>
-- **ReF** — Reference Corpus Early New High German (1350–1650), v1.0.2:
+- **ReF**, Reference Corpus Early New High German (1350–1650), v1.0.2:
   <https://doi.org/10.5281/zenodo.5793616>
-- **ReN** — Reference Corpus Middle Low German / Low Rhenish (1200–1650),
-  v1.1: <https://doi.org/10.25592/uhhfdm.9195>
-- **LeA** — the reading-corpus layer of Referenzkorpus Altdeutsch:
+- **ReN**, Reference Corpus Middle Low German / Low Rhenish (1200–1650), v1.1:
+  <https://doi.org/10.25592/uhhfdm.9195>
+- **LeA**, the reading-corpus layer of Referenzkorpus Altdeutsch:
   <http://hdl.handle.net/11022/0000-0007-C9C7-6>
 
-`tools/pool_stage2.py` converts and pools all four into the 4-column format
-below; `tools/convert_ren.py`, `tools/convert_ref.py` and `tools/map_lea_tags.py`
+`tools/pool_stage2.py` converts and pools all four into the format below;
+`tools/convert_ren.py`, `tools/convert_ref.py` and `tools/map_lea_tags.py`
 handle the individual conversions and the tagset mapping.
 
 ## The task
@@ -120,14 +188,14 @@ token can realize several items, joined by `+` with aligned counts:
 inhandon	in+hant	APPR+NA	c.D+Dat.Pl
 ```
 
-ReM-style `/` notation for discontinuous units is understood: in
-`hièr/+inne` the internal `+` is part of ONE item's lemma (the POS column is
-the authoritative item counter; see `hydra.data.split_lemma_items`).
+ReM's `/` notation for discontinuous units is understood. In `dâr/+zuo` the
+internal `+` belongs to one item's lemma, so the part-of-speech column is
+the authoritative item counter; see `hydra.data.split_lemma_items`.
 
-Lines starting with `@` are comments. Each file is one document — context
+Lines starting with `@` are comments. Each file is one document: context
 windows never cross file boundaries.
 
-## Model
+## Architecture
 
 Character-level, fully convolutional, open lemma vocabulary (~6–12M params):
 
@@ -148,21 +216,21 @@ That is the default model (~6.7M params). Several optional heads and
 objectives are off by default and switch on from the config; the configs used
 for the paper's runs turn most of them on (~38M params):
 
-- `model.lemma_classifier` — classify-or-generate: a closed-vocabulary lemma
+- `model.lemma_classifier`: classify-or-generate, a closed-vocabulary lemma
   classifier alongside the character generator. At inference the classifier's
   lemma is taken only above `infer.classifier_min_prob`, else the generator's.
-- `model.masked_lm` — masked-token auxiliary on the context encoder, which
+- `model.masked_lm`: a masked-token auxiliary on the context encoder, which
   lets *unannotated* text (`data.extra_train_dir`) contribute to training.
-- `model.tag_condition` — predict-then-condition cascade (POS -> morph ->
+- `model.tag_condition`: a predict-then-condition cascade (POS -> morph ->
   lemma). Gold tags are teacher-forced in training, predicted at inference,
   and gated by `infer.tag_cond_min_prob`. `infer.tag_cond_oracle` feeds gold
-  tags as a diagnostic — it separates "does conditioning help" from "does the
+  tags as a diagnostic. It separates "does conditioning help" from "does the
   tagger's own error rate eat the gain", and must never be used for reported
   numbers.
-- `model.pos_crf` — linear-chain CRF over the slot-0 POS sequence, decoded
+- `model.pos_crf`: a linear-chain CRF over the slot-0 POS sequence, decoded
   with Viterbi, modelling the dependency across tokens that the per-token
   heads cannot.
-- `data.spelling_noise` — train-time diplomatic-spelling augmentation from a
+- `data.spelling_noise`: train-time diplomatic-spelling augmentation from a
   learned substitution model (`tools/extract_rem_layers.py`).
 
 `tag_condition` and `pos_crf` add their parameters zero-initialised (the
@@ -176,7 +244,7 @@ guarantee.
 
 ```
 pip install -e .[dev]        # Python >= 3.10, PyTorch >= 2.1
-pytest -q                    # 112 tests, CPU, ~20 s
+pytest -q                    # 116 tests, CPU, ~18 s
 ```
 
 ## Train
@@ -199,11 +267,11 @@ Data can be one directory (`data.corpus_dir`, split with
 `data.split_mode` chooses **how** a `corpus_dir` is divided, and it changes
 the reported accuracy far more than most modelling choices do:
 
-- `"file"` — random whole manuscripts held out (the default).
-- `"stratified"` — whole manuscripts held out, balanced by dialect x period x
+- `"file"`: random whole manuscripts held out (the default).
+- `"stratified"`: whole manuscripts held out, balanced by dialect x period x
   text type and token-weighted. Needs `data.metadata_csv`. This is the hard
   protocol: the test manuscripts are ones no training token came from.
-- `"chunk"` — random chunks from within all files, so a test token's own
+- `"chunk"`: random chunks from within all files, so a test token's own
   manuscript is usually in training. Comparable to what most published
   figures for this task actually measure; the easiest of the three.
 
@@ -222,12 +290,12 @@ torchrun --nnodes=2 --nproc_per_node=4 --rdzv_backend=c10d \
 ```
 
 Backend is auto-selected (NCCL on Linux+CUDA, gloo otherwise). Without
-torchrun it runs as a plain single process on `cuda:0` or CPU — zero setup.
+torchrun it runs as a plain single process on `cuda:0` or CPU, with no setup.
 Rank 0 owns vocab building, logging, dev evaluation and checkpoints; data is
 sharded per step by `DistributedSampler` over shuffled chunks.
 
 Windows notes (dev box): only gloo works; set `USE_LIBUV=0`; torchrun's
-rendezvous can be flaky (Docker Desktop hosts entries) — launching processes
+rendezvous can be flaky (Docker Desktop hosts entries), and launching processes
 manually with `MASTER_ADDR/MASTER_PORT/RANK/WORLD_SIZE/LOCAL_RANK` env vars
 works, and non-main ranks may linger at interpreter exit (kill them; Linux is
 the real multi-GPU target).
@@ -255,7 +323,9 @@ and on tokens unseen in training (OOV), plus mean lemma Levenshtein distance.
 
 ```
 hydra/          the package: config, vocab, data, model, losses, metrics,
-                distributed, checkpoint, train, tag, evaluate, snap, noise, cli
+                distributed, checkpoint, train, tag, evaluate, snap, noise,
+                hub (published-model download), cli
+docs/figures/   the figures this README embeds
 configs/        default.toml (full corpus), smoke.toml (6 files, 3 epochs),
                 and the stratified-protocol run configs, each paired with a
                 *_remote.toml variant for a rented GPU

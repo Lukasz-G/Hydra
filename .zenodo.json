@@ -1,0 +1,28 @@
+{
+  "upload_type": "software",
+  "title": "Hydra: a character-level neural lemmatiser and morphological tagger for pre-modern languages",
+  "description": "<p>Hydra lemmatises and morphologically tags pre-modern vernaculars from the manuscript's own spelling, without a normalisation step and without a tokeniser fitted to a modern corpus. A character-level temporal convolutional encoder feeds a bank of eight parallel decoding slots, so a single written token that realises several words is decoded into several lemmas and tags at once, and the item count falls out of the prediction instead of being fixed in advance. The lemma head is open-vocabulary: a spelling never seen in training is built character by character from the surface.</p><p>Trained and evaluated on four reference corpora of historical German: Middle High German (ReM), Early New High German (ReF), Middle Low German and Low Rhenish (ReN) and Old German (the reading-corpus layer of Referenzkorpus Altdeutsch). Every reported figure names the split protocol it came from, because on this material the protocol moves accuracy by more than any architectural choice measured here.</p><p>This record archives the source code. The corpora are not redistributed and carry their own terms; trained model weights are deposited separately.</p>",
+  "creators": [
+    {
+      "name": "Gągała, Łukasz",
+      "orcid": "0009-0002-0149-2038",
+      "affiliation": "Georg-August-Universität Göttingen"
+    }
+  ],
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "language": "eng",
+  "keywords": [
+    "lemmatisation",
+    "part-of-speech tagging",
+    "morphological tagging",
+    "historical linguistics",
+    "Middle High German",
+    "Early New High German",
+    "Middle Low German",
+    "Old High German",
+    "digital humanities",
+    "natural language processing",
+    "temporal convolutional network"
+  ]
+}

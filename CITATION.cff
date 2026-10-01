@@ -9,6 +9,15 @@ authors:
 repository-code: "https://github.com/Lukasz-G/Hydra"
 license: Apache-2.0
 version: "2.0.0"
+date-released: "2026-10-01"
+doi: "10.5281/zenodo.23076866"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.23076866"
+    description: "Concept DOI, resolving to the current version"
+  - type: doi
+    value: "10.5281/zenodo.23076867"
+    description: "Version 2.0.0"
 keywords:
   - lemmatization
   - part-of-speech tagging

@@ -1,5 +1,9 @@
 # Hydra
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23076866.svg)](https://doi.org/10.5281/zenodo.23076866)
+[![tests](https://github.com/Lukasz-G/Hydra/actions/workflows/tests.yml/badge.svg)](https://github.com/Lukasz-G/Hydra/actions/workflows/tests.yml)
+[![licence](https://img.shields.io/badge/licence-Apache--2.0-blue.svg)](LICENSE)
+
 Neural lemmatiser and morphological tagger for pre-modern languages, trained
 and evaluated on Middle High German, Early New High German, Middle Low German
 and Old German. It reads the manuscript's own spelling. There is no
@@ -343,6 +347,11 @@ Apache-2.0, in `LICENSE`, with `NOTICE` recording the copyright. The licence
 covers the code in this repository. It does not cover the annotated corpora,
 which are not redistributed here and carry their own terms (see `NOTICE`).
 
-`CITATION.cff` carries the citation metadata, which GitHub's "Cite this
-repository" button reads. A paper describing the system and the evaluation
-protocols is in preparation; this file will name it when it appears.
+Each release is archived on Zenodo. Cite the concept DOI,
+[10.5281/zenodo.23076866](https://doi.org/10.5281/zenodo.23076866), which
+always resolves to the current version, or a version DOI where an exact
+snapshot matters. `CITATION.cff` carries the same metadata and is what
+GitHub's "Cite this repository" button reads.
+
+A paper describing the system and the evaluation protocols is in
+preparation; this file will name it when it appears.

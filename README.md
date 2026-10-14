@@ -76,7 +76,7 @@ and a character generator builds one from the surface, and a confidence
 threshold picks between them. A spelling the model has never met still gets a
 lemma.
 
-![Hydra's encoder and decoding slots: a shared character and context encoder feeds a fixed bank of K = 8 slots, each with its own lemma, part-of-speech and morphology head.](docs/figures/architecture.png)
+![Hydra's encoder and decoding slots: a shared character and context encoder feeds a fixed bank of K = 8 slots, every one of them read by the same three heads — lemma, part of speech, and the joint part-of-speech-and-morphology tag.](docs/figures/architecture.png)
 
 Two further objectives are optional and switch on from the config. A
 masked-token auxiliary lets unannotated transcription contribute to training,
@@ -433,7 +433,9 @@ and on tokens unseen in training (OOV), plus mean lemma Levenshtein distance.
 hydra/          the package: config, vocab, data, model, losses, metrics,
                 distributed, checkpoint, train, tag, evaluate, snap, noise,
                 hub (published-model download), cli
-docs/figures/   the figures this README embeds
+docs/figures/   the figures this README embeds; refresh them from the
+                directory that draws them with
+                tools/sync_readme_figures.py <dir>
 configs/        default.toml (full corpus), smoke.toml (6 files, 3 epochs),
                 and the stratified-protocol run configs, each paired with a
                 *_remote.toml variant for a rented GPU

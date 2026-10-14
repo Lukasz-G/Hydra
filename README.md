@@ -34,6 +34,71 @@ zoh     zièhen   VVFIN   Ind.Past.Sg.3
 That is real output, and it is not perfect output: see [Results](#results) for
 what the error rate actually is.
 
+## Use it from Python
+
+Hydra loads as a library, in the shape spaCy users expect:
+
+```python
+import hydra
+
+nlp = hydra.load("de-4corpus")              # or a path: "runs/stage2/model_only.pt"
+doc = nlp("Was daz mere vil lip")
+
+for token in doc:
+    print(token.text, token.lemma_, token.pos_, token.morph_)
+```
+
+```
+Was wësen VAFIN Ind.Past.Sg.3
+daz dër DDART Neut.Nom.Sg
+mere mèr(e) NA Nom.Sg
+vil vil(e) AVD --
+lip lièb ADJD Pos....0
+```
+
+A `Doc` is a sequence of `Token`s and knows how to dump itself:
+
+```python
+len(doc), doc[0].lemma_, doc.lemmas       # 5, 'wësen', [...]
+print(doc.to_tsv())                       # the four columns above
+rows = doc.to_dicts()                     # [{'text': ..., 'lemma': ...}, ...]
+```
+
+Many texts at once, and texts you have tokenised yourself:
+
+```python
+for doc in nlp.pipe(open("lines.txt", encoding="utf-8")):
+    ...
+
+for doc in nlp.pipe_tokens([["ich", "bin", "ein", "bote"]]):
+    ...
+
+doc = nlp.tag_file("mytext.txt")          # a file, same rules as hydra-tag
+```
+
+A fused token comes apart through `.items`, one `(lemma, pos, morph)` triple
+per annotated unit:
+
+```python
+token.is_multi                            # True for zemerſten
+token.items
+# [('ze', 'APPR', '--'), ('dër', 'DDART', 'Dat.Sg'), ('mèr(e)', 'ADJA', 'Sup.Dat.Sg')]
+```
+
+Where it differs from spaCy, deliberately: there is no parse and no entity
+layer, `nlp.tokenizer` is plain `str.split` unless you pass your own callable
+to `hydra.load(..., tokenizer=...)`, and `pipe` takes no `batch_size` — chunks
+are batched inside a document, and two documents are never batched together,
+because a chunk reads context from its neighbours and the end of one text must
+not inform the start of the next.
+
+`hydra.load(..., device="cpu")` forces the CPU; the default takes a GPU when
+one is visible. Loading costs a few seconds and should happen once, not per
+document. `nlp.meta` reports what was loaded.
+
+For a directory of files rather than strings in memory, the command-line
+route is [Tag a text you have not seen before](#tag-a-text-you-have-not-seen-before).
+
 ## The problem
 
 A medieval page does not hand a tagger one word per token. Scribes fuse words,
@@ -354,68 +419,6 @@ not an artefact.
 Accuracy on text unlike anything in training is the manuscript-held-out figure,
 not the headline one: see [Results](#results) below, and §4 of the paper for
 why the difference matters.
-
-## Use it from Python
-
-Hydra loads as a library, in the shape spaCy users expect:
-
-```python
-import hydra
-
-nlp = hydra.load("de-4corpus")              # or a path: "runs/stage2/model_only.pt"
-doc = nlp("Was daz mere vil lip")
-
-for token in doc:
-    print(token.text, token.lemma_, token.pos_, token.morph_)
-```
-
-```
-Was wësen VAFIN Ind.Past.Sg.3
-daz dër DDART Neut.Nom.Sg
-mere mèr(e) NA Nom.Sg
-vil vil(e) AVD --
-lip lièb ADJD Pos....0
-```
-
-A `Doc` is a sequence of `Token`s and knows how to dump itself:
-
-```python
-len(doc), doc[0].lemma_, doc.lemmas       # 5, 'wësen', [...]
-print(doc.to_tsv())                       # the four columns above
-rows = doc.to_dicts()                     # [{'text': ..., 'lemma': ...}, ...]
-```
-
-Many texts at once, and texts you have tokenised yourself:
-
-```python
-for doc in nlp.pipe(open("lines.txt", encoding="utf-8")):
-    ...
-
-for doc in nlp.pipe_tokens([["ich", "bin", "ein", "bote"]]):
-    ...
-
-doc = nlp.tag_file("mytext.txt")          # a file, same rules as hydra-tag
-```
-
-A fused token comes apart through `.items`, one `(lemma, pos, morph)` triple
-per annotated unit:
-
-```python
-token.is_multi                            # True for zemerſten
-token.items
-# [('ze', 'APPR', '--'), ('dër', 'DDART', 'Dat.Sg'), ('mèr(e)', 'ADJA', 'Sup.Dat.Sg')]
-```
-
-Where it differs from spaCy, deliberately: there is no parse and no entity
-layer, `nlp.tokenizer` is plain `str.split` unless you pass your own callable
-to `hydra.load(..., tokenizer=...)`, and `pipe` takes no `batch_size` — chunks
-are batched inside a document, and two documents are never batched together,
-because a chunk reads context from its neighbours and the end of one text must
-not inform the start of the next.
-
-`hydra.load(..., device="cpu")` forces the CPU; the default takes a GPU when
-one is visible. Loading costs a few seconds and should happen once, not per
-document. `nlp.meta` reports what was loaded.
 
 ## Evaluate
 

@@ -304,14 +304,118 @@ manually with `MASTER_ADDR/MASTER_PORT/RANK/WORLD_SIZE/LOCAL_RANK` env vars
 works, and non-main ranks may linger at interpreter exit (kill them; Linux is
 the real multi-GPU target).
 
-## Tag
+## Tag a text you have not seen before
+
+Put the text in a `.txt` file, one document per file, and point `hydra-tag` at
+it. Nothing has to be annotated first, and no model has to be downloaded by
+hand: a published name fetches itself the first time and is cached after that.
+
+```bash
+# one file
+hydra-tag --model de-4corpus --input mytext.txt --output tagged/
+
+# a whole directory of .txt files, in one pass
+hydra-tag --model de-4corpus --input corpus/ --output tagged/
+```
+
+`tagged/mytext.txt` comes back as four tab-separated columns — the token as
+written, its lemma, its part of speech, its morphology:
 
 ```
-hydra-tag --model runs/mhd_base/best.pt --input texts/ --output tagged/
+Was	wësen	VAFIN	Ind.Past.Sg.3
+daz	dër	DDART	Neut.Nom.Sg
+mere	mèr(e)	NA	Nom.Sg
+vil	vil(e)	AVD	--
+lip	lièb	ADJD	Pos....0
 ```
 
-`--format txt` (whitespace tokenization), `tsv` (retag column 1), or `auto`.
-Output is the 4-column TSV with `+`-joined items; `@` lines pass through.
+Which model to ask for:
+
+* `de-4corpus` for Middle High German, Early New High German, Middle Low German
+  or Old German, or a mixed collection — it knows all four.
+* `mhg` for Middle High German alone.
+
+Three things about the input are worth knowing.
+
+**Tokenisation is yours.** `--format txt` splits on whitespace and nothing
+else, because every edition punctuates differently and a guess made silently is
+worse than a decision made by you. If your text is already tokenised one per
+line, use `--format tsv` and Hydra retags column 1, leaving your other columns
+alone. `--format auto`, the default, picks between the two by looking for tabs.
+
+**Lines beginning with `@` pass through untouched**, so page, folio and
+sentence markers survive the round trip.
+
+**One written token can come back as several items**, joined by `+`:
+`zemerſten` is one word in the manuscript and `APPR+DDART+ADJA` in the output,
+a preposition, an article and an adjective. That is the corpora's own notation,
+not an artefact.
+
+Accuracy on text unlike anything in training is the manuscript-held-out figure,
+not the headline one: see [Results](#results) below, and §4 of the paper for
+why the difference matters.
+
+## Use it from Python
+
+Hydra loads as a library, in the shape spaCy users expect:
+
+```python
+import hydra
+
+nlp = hydra.load("de-4corpus")              # or a path: "runs/stage2/model_only.pt"
+doc = nlp("Was daz mere vil lip")
+
+for token in doc:
+    print(token.text, token.lemma_, token.pos_, token.morph_)
+```
+
+```
+Was wësen VAFIN Ind.Past.Sg.3
+daz dër DDART Neut.Nom.Sg
+mere mèr(e) NA Nom.Sg
+vil vil(e) AVD --
+lip lièb ADJD Pos....0
+```
+
+A `Doc` is a sequence of `Token`s and knows how to dump itself:
+
+```python
+len(doc), doc[0].lemma_, doc.lemmas       # 5, 'wësen', [...]
+print(doc.to_tsv())                       # the four columns above
+rows = doc.to_dicts()                     # [{'text': ..., 'lemma': ...}, ...]
+```
+
+Many texts at once, and texts you have tokenised yourself:
+
+```python
+for doc in nlp.pipe(open("lines.txt", encoding="utf-8")):
+    ...
+
+for doc in nlp.pipe_tokens([["ich", "bin", "ein", "bote"]]):
+    ...
+
+doc = nlp.tag_file("mytext.txt")          # a file, same rules as hydra-tag
+```
+
+A fused token comes apart through `.items`, one `(lemma, pos, morph)` triple
+per annotated unit:
+
+```python
+token.is_multi                            # True for zemerſten
+token.items
+# [('ze', 'APPR', '--'), ('dër', 'DDART', 'Dat.Sg'), ('mèr(e)', 'ADJA', 'Sup.Dat.Sg')]
+```
+
+Where it differs from spaCy, deliberately: there is no parse and no entity
+layer, `nlp.tokenizer` is plain `str.split` unless you pass your own callable
+to `hydra.load(..., tokenizer=...)`, and `pipe` takes no `batch_size` — chunks
+are batched inside a document, and two documents are never batched together,
+because a chunk reads context from its neighbours and the end of one text must
+not inform the start of the next.
+
+`hydra.load(..., device="cpu")` forces the CPU; the default takes a GPU when
+one is visible. Loading costs a few seconds and should happen once, not per
+document. `nlp.meta` reports what was loaded.
 
 ## Evaluate
 

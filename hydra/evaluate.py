@@ -17,6 +17,16 @@ from .vocab import Vocabs
 DAMAGED_POS = "--"
 
 
+def bf16_in_hardware() -> bool:
+    """True only where bfloat16 runs on the silicon, not under emulation."""
+    if not torch.cuda.is_available():
+        return False
+    try:
+        return torch.cuda.is_bf16_supported(including_emulation=False)
+    except TypeError:                       # torch < 2.6 has no such flag
+        return torch.cuda.get_device_capability()[0] >= 8
+
+
 def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
                      device: torch.device, batch_chunks: int,
                      snapper: LemmaSnapper | None = None,
@@ -27,10 +37,17 @@ def evaluate_dataset(model: torch.nn.Module, ds: HydraDataset, vocabs: Vocabs,
     acc_clean = EvalAccumulator()
     snap_ok_all = snap_ok_clean = 0
     use_amp = device.type == "cuda"
-    # bf16 where the GPU supports it: fp32-range exponent avoids activation
-    # overflow on large models (and matches bf16-trained runs)
-    amp_dtype = (torch.bfloat16 if use_amp and torch.cuda.is_bf16_supported()
-                 else torch.float16)
+    # bf16 where the GPU supports it IN HARDWARE: fp32-range exponent avoids
+    # activation overflow on large models (and matches bf16-trained runs).
+    #
+    # is_bf16_supported() alone is not that test. Since torch 2.6 it answers
+    # for emulation too, so a Turing card (sm_75, no bf16 silicon) says yes and
+    # then runs the emulated path: measured on a Quadro RTX 5000, one 128-token
+    # chunk took 15.4s in bf16 against 0.13s in fp16, a factor of 118. The eval
+    # is correct either way, which is why this hid: it only ever looked slow.
+    amp_dtype = torch.float16
+    if use_amp and bf16_in_hardware():
+        amp_dtype = torch.bfloat16
     if use_amp:
         torch.cuda.empty_cache()  # release training caches before the big eval tensors
     with torch.inference_mode():

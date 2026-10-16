@@ -205,6 +205,14 @@ def train(cfg: Config, resume: str | None = None,
                                 cfg.train.lr, cfg.train.lr_min)
     use_amp = cfg.train.amp and info.device.type == "cuda"
     amp_dtype = torch.bfloat16 if cfg.train.amp_dtype == "bf16" else torch.float16
+    if amp_dtype == torch.bfloat16 and use_amp:
+        from .evaluate import bf16_in_hardware
+        if not bf16_in_hardware():
+            # emulated bf16 is ~100x slower than fp16 here, and silently so:
+            # the run is correct, it just never finishes (see evaluate.py)
+            log.warning("amp_dtype=bf16 requested but this GPU has no bf16 "
+                        "silicon; using fp16 instead")
+            amp_dtype = torch.float16
     # bf16 needs no loss scaling; a disabled scaler is a clean passthrough
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp and amp_dtype == torch.float16)
 

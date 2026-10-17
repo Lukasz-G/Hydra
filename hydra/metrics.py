@@ -17,6 +17,15 @@ class Prediction:
     lemma: str  # '+'-joined
     pos: str
     morph: str
+    # Confidence, for callers that want to know where to look rather than
+    # just what the model said. Both are the softmax probability of the
+    # chosen class at slot 0, the slot every token has; `lemma_generated`
+    # records whether the classifier gate fell through to the character
+    # decoder, which is the other thing that marks a token worth checking.
+    # Defaults keep every existing caller working unchanged.
+    pos_conf: float = 1.0
+    lemma_conf: float = 1.0
+    lemma_generated: bool = False
 
 
 def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
@@ -49,7 +58,13 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
                                            out.char_pad_mask, model.max_lemma_len)
         char_ids = gen.view(Bq, Tq, Kq, -1)
 
+    # p(argmax) for the part of speech at slot 0, by the same logsumexp trick
+    # the classifier uses below: no softmax over the full class axis.
+    pos0 = out.pos_logits[..., 0, :].float()
+    pos_conf = (pos0.max(dim=-1).values - torch.logsumexp(pos0, dim=-1)).exp().cpu().numpy()
+
     cls_ids = None
+    cls_conf = None
     if out.lemma_cls_logits is not None:
         # confidence without materializing a softmax over ~36k classes:
         # p(argmax) = exp(max_logit - logsumexp); only (B,T,K)-sized outputs
@@ -59,6 +74,7 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
         cls_arg = cls_arg + 1                                      # undo NULL skip
         cls_arg[cls_prob < cls_min_prob] = LABEL_UNK               # low confidence -> generate
         cls_ids = cls_arg.cpu().numpy()                            # (B, T, K)
+        cls_conf = cls_prob.detach().cpu().numpy()                 # (B, T, K)
 
     # model.count_head: an explicit item count replaces the implicit
     # "read slots until the first NULL POS" rule. Clamped to >=1 (slot 0 is
@@ -101,7 +117,12 @@ def decode_batch(out: ModelOutput, vocabs: Vocabs, surfaces: list[list[str]],
                 lemmas.append(lemma)
                 poss.append(vocabs.pos.decode(pos_ids[b, t, k]))
                 morphs.append(vocabs.morph.decode(morph_ids[b, t, k]))
-            row.append(Prediction("+".join(lemmas), "+".join(poss), "+".join(morphs)))
+            gen = cls_ids is None or cls_ids[b, t, 0] == LABEL_UNK
+            row.append(Prediction(
+                "+".join(lemmas), "+".join(poss), "+".join(morphs),
+                pos_conf=float(pos_conf[b, t]),
+                lemma_conf=float(cls_conf[b, t, 0]) if cls_conf is not None else 1.0,
+                lemma_generated=bool(gen)))
         results.append(row)
     return results
 

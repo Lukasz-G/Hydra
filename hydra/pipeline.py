@@ -44,6 +44,21 @@ class Token:
     pos_: str
     morph_: str
     i: int = 0
+    # How much to trust this row. `pos_conf` and `lemma_conf` are softmax
+    # probabilities; `lemma_generated` says the lemma was spelled out by the
+    # character decoder because the classifier was not confident enough, and
+    # `is_unseen` that this written form occurs nowhere in the training data.
+    # The paper (§6.3, §8.1) finds the last of these the strongest single
+    # predictor of an error.
+    pos_conf: float = 1.0
+    lemma_conf: float = 1.0
+    lemma_generated: bool = False
+    is_unseen: bool = False
+
+    @property
+    def is_uncertain(self) -> bool:
+        """A row worth a human glance: unseen spelling, or a low-confidence tag."""
+        return self.is_unseen or self.pos_conf < 0.5 or self.lemma_generated
 
     @property
     def items(self) -> list[tuple[str, str, str]]:
@@ -104,9 +119,33 @@ class Doc:
         """The four columns the corpora and `hydra-tag` use."""
         return "".join(f"{t.text}\t{t.lemma_}\t{t.pos_}\t{t.morph_}\n" for t in self.tokens)
 
-    def to_dicts(self) -> list[dict]:
-        return [{"text": t.text, "lemma": t.lemma_, "pos": t.pos_, "morph": t.morph_}
-                for t in self.tokens]
+    def to_dicts(self, confidence: bool = False) -> list[dict]:
+        out = [{"text": t.text, "lemma": t.lemma_, "pos": t.pos_, "morph": t.morph_}
+               for t in self.tokens]
+        if confidence:
+            for d, t in zip(out, self.tokens):
+                d.update(pos_conf=round(t.pos_conf, 4),
+                         lemma_conf=round(t.lemma_conf, 4),
+                         lemma_generated=t.lemma_generated, unseen=t.is_unseen)
+        return out
+
+    @property
+    def unseen_rate(self) -> float:
+        """Share of tokens whose written form occurs nowhere in training.
+
+        This is the number to look at before trusting the rest. Across the
+        corpora of the paper it is the strongest single predictor of how a
+        text will be tagged, and it can be read off a new manuscript without
+        any gold annotation: see §4.2 and §8.1.
+        """
+        if not self.tokens:
+            return 0.0
+        return sum(t.is_unseen for t in self.tokens) / len(self.tokens)
+
+    def uncertain(self, pos_conf: float = 0.5) -> "list[Token]":
+        """Rows worth a human glance, for a scholar checking a concordance."""
+        return [t for t in self.tokens
+                if t.is_unseen or t.lemma_generated or t.pos_conf < pos_conf]
 
 
 class Hydra:
@@ -162,12 +201,18 @@ class Hydra:
 
         if not surfaces:
             return []
-        preds = tag_document(self._model, self._vocabs, self._cfg, surfaces, self._device)
+        preds = tag_document(self._model, self._vocabs, self._cfg, surfaces,
+                             self._device, with_confidence=True)
+        known = getattr(self._vocabs, "train_surfaces", None) or set()
         out = []
-        for i, (surface, (lemma, pos, morph)) in enumerate(zip(surfaces, preds)):
+        for i, (surface, p) in enumerate(zip(surfaces, preds)):
+            lemma = p.lemma
             if self._snapper is not None:
-                lemma = self._snapper.snap(lemma, len(pos.split("+")))
-            out.append(Token(surface, lemma, pos, morph, i))
+                lemma = self._snapper.snap(lemma, len(p.pos.split("+")))
+            out.append(Token(surface, lemma, p.pos, p.morph, i,
+                             pos_conf=p.pos_conf, lemma_conf=p.lemma_conf,
+                             lemma_generated=p.lemma_generated,
+                             is_unseen=surface not in known))
         return out
 
     @property
@@ -176,7 +221,9 @@ class Hydra:
                 "slots": self._cfg.model.n_slots,
                 "pos_tags": len(self._vocabs.pos),
                 "morph_tags": len(self._vocabs.morph),
-                "lemma_inventory": len(self._vocabs.lemma_types)}
+                "lemma_inventory": len(self._vocabs.lemma_types),
+                "known_surfaces": len(getattr(self._vocabs, "train_surfaces", ()) or ()),
+                "classifier_min_prob": self._cfg.infer.classifier_min_prob}
 
     def __repr__(self) -> str:
         return f"Hydra({self.name or 'model'}, device={self._device})"

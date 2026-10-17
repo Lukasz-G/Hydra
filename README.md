@@ -76,6 +76,35 @@ for doc in nlp.pipe_tokens([["ich", "bin", "ein", "bote"]]):
 doc = nlp.tag_file("mytext.txt")          # a file, same rules as hydra-tag
 ```
 
+### Knowing where not to trust it
+
+A tagger that will not say when it is guessing is hard to use for scholarship.
+Every token carries what the model knew about it:
+
+```python
+doc = nlp(open("newly_transcribed_codex.txt", encoding="utf-8").read())
+
+doc.unseen_rate                           # 0.21 -- a fifth of it is spellings
+                                          #   this model has never seen
+for token in doc.uncertain():             # the rows worth a human glance
+    print(token.text, token.lemma_, token.pos_,
+          f"{token.pos_conf:.2f}", "unseen" if token.is_unseen else "")
+```
+
+`unseen_rate` is the one to read first, and it needs no gold annotation, so
+you can run it on a new manuscript before deciding whether to trust anything
+else. Accuracy on unseen spellings runs twenty-five to thirty points below
+accuracy on familiar ones, and the share of them is the strongest single
+predictor of how a text will be tagged — see §4.2 and §8.1 of the paper.
+
+Per token: `pos_conf` and `lemma_conf` are softmax probabilities,
+`lemma_generated` says the lemma was spelled out character by character
+because the classifier was not confident enough to choose a known one, and
+`is_unseen` that this written form is absent from training. `token.is_uncertain`
+rolls the three together, and `doc.to_dicts(confidence=True)` puts them all in
+the dump. `nlp.meta` reports how many surfaces the model counts as known and
+the confidence threshold it decides on.
+
 A fused token comes apart through `.items`, one `(lemma, pos, morph)` triple
 per annotated unit:
 
@@ -393,6 +422,19 @@ mere	mèr(e)	NA	Nom.Sg
 vil	vil(e)	AVD	--
 lip	lièb	ADJD	Pos....0
 ```
+
+Each file also reports the share of written forms the model has never seen:
+
+```
+tagged texts/codex.txt -> tagged/codex.txt (8,412 tokens, 21.3% unseen spellings)
+```
+
+Read that number before the output. It needs no gold annotation, so it is
+available for a manuscript nobody has evaluated on, and accuracy on unseen
+spellings runs twenty-five to thirty points below accuracy on familiar ones.
+A text in the low single figures will be tagged about as well as our reported
+results; one in the twenties will not. For per-token confidence, use the
+Python API above.
 
 Which model to ask for:
 

@@ -67,3 +67,56 @@ def test_the_default_tokenizer_splits_on_whitespace_and_can_be_replaced():
     assert nlp.tokenizer("Was daz mere") == ["Was", "daz", "mere"]
     nlp.tokenizer = (lambda s: list(s.replace(" ", "")))
     assert nlp.tokenizer("ab c") == ["a", "b", "c"]
+
+
+def test_a_plain_token_is_certain_by_default():
+    # the defaults have to be the confident ones, or every caller that builds
+    # a Token by hand would be told its own data is suspect
+    t = Token("mere", "mære", "NA", "Nom.Sg")
+    assert not t.is_uncertain
+    assert t.pos_conf == 1.0 and t.lemma_conf == 1.0
+    assert not t.lemma_generated and not t.is_unseen
+
+
+def test_an_unseen_spelling_is_flagged_however_confident_the_tag():
+    t = Token("ſchoeniu", "schœne", "ADJA", "Nom.Sg", pos_conf=0.99, is_unseen=True)
+    assert t.is_uncertain
+
+
+def test_a_generated_lemma_is_flagged():
+    t = Token("x", "y", "NA", "--", lemma_generated=True)
+    assert t.is_uncertain
+
+
+def test_a_low_confidence_tag_is_flagged():
+    assert Token("x", "y", "NA", "--", pos_conf=0.31).is_uncertain
+    assert not Token("x", "y", "NA", "--", pos_conf=0.77).is_uncertain
+
+
+def test_unseen_rate_is_the_share_of_unseen_tokens():
+    doc = Doc([Token("a", "a", "NA", "--"),
+               Token("b", "b", "NA", "--", is_unseen=True),
+               Token("c", "c", "NA", "--", is_unseen=True),
+               Token("d", "d", "NA", "--")])
+    assert doc.unseen_rate == 0.5
+
+
+def test_unseen_rate_of_an_empty_doc_is_zero_not_an_error():
+    assert Doc([]).unseen_rate == 0.0
+
+
+def test_uncertain_collects_the_rows_worth_checking():
+    doc = Doc([Token("a", "a", "NA", "--"),
+               Token("b", "b", "NA", "--", is_unseen=True),
+               Token("c", "c", "NA", "--", pos_conf=0.2),
+               Token("d", "d", "NA", "--", lemma_generated=True)])
+    assert [t.text for t in doc.uncertain()] == ["b", "c", "d"]
+    # a stricter threshold is the caller's to choose
+    assert [t.text for t in doc.uncertain(pos_conf=0.1)] == ["b", "d"]
+
+
+def test_to_dicts_carries_confidence_only_when_asked():
+    doc = Doc([Token("a", "a", "NA", "--", pos_conf=0.5, is_unseen=True)])
+    assert doc.to_dicts() == [{"text": "a", "lemma": "a", "pos": "NA", "morph": "--"}]
+    d = doc.to_dicts(confidence=True)[0]
+    assert d["unseen"] is True and d["pos_conf"] == 0.5

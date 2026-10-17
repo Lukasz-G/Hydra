@@ -56,8 +56,14 @@ def read_input_file(path: Path, fmt: str) -> list[tuple[str, str]]:
 
 
 def tag_document(model: torch.nn.Module, vocabs: Vocabs, cfg: Config,
-                 surfaces: list[str], device: torch.device) -> list[tuple[str, str, str]]:
-    """Tag one document (list of surfaces); returns (lemma, pos, morph) per token."""
+                 surfaces: list[str], device: torch.device,
+                 with_confidence: bool = False):
+    """Tag one document (list of surfaces).
+
+    Returns (lemma, pos, morph) per token, or with `with_confidence` the
+    Prediction objects themselves, which carry the part-of-speech and lemma
+    probabilities and whether the lemma was generated rather than selected.
+    """
     if not surfaces:
         return []
     doc = [Token(s, None, None, None) for s in surfaces]
@@ -79,7 +85,7 @@ def tag_document(model: torch.nn.Module, vocabs: Vocabs, cfg: Config,
                 n_here = min(cfg.data.chunk_len, len(surfaces) - start)
                 for t in range(n_here):
                     p = preds[b][t]
-                    results.append((p.lemma, p.pos, p.morph))
+                    results.append(p if with_confidence else (p.lemma, p.pos, p.morph))
     return results
 
 
@@ -115,5 +121,14 @@ def tag_files(model_path: str | Path, input_path: str | Path, output_dir: str | 
                         lemma = snapper.snap(lemma, len(pos.split("+")))
                     fh.write(f"{text}\t{lemma}\t{pos}\t{morph}\n")
         written.append(out_path)
-        log.info("tagged %s -> %s (%d tokens)", f, out_path, len(surfaces))
+        # The share of written forms this model has never seen is the one
+        # quality signal available without gold annotation, and it is the
+        # strongest predictor of how the file was tagged (paper, §4.2, §8.1).
+        # Reporting it per file is what lets someone judge the output of a
+        # manuscript nobody has evaluated on.
+        known = getattr(vocabs, "train_surfaces", None) or set()
+        unseen = sum(1 for s in surfaces if s not in known)
+        rate = unseen / len(surfaces) if surfaces else 0.0
+        log.info("tagged %s -> %s (%d tokens, %.1f%% unseen spellings)",
+                 f, out_path, len(surfaces), 100 * rate)
     return written
